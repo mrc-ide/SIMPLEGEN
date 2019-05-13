@@ -12,7 +12,7 @@ Description: Forwards-in time simulation of Plasmodium falciparum genetic data c
     the first step as long as it outputs in the correct format. The major limitation of SIMPLEGEN
     is that assumes the epidemiological and genetic processes are seperable, and hence is limited
     to neutral variation, and cannot model selection.
-License: License: MIT + file LICENSE
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
