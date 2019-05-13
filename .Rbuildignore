@@ -1,7 +1,0 @@
-^codecov\.yml$
-^appveyor\.yml$
-^\.travis\.yml$
-^.*\.Rproj$
-^\.Rproj\.user$
-^ignore/$
-^R_ignore/$
