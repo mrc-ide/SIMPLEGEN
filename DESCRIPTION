@@ -19,7 +19,8 @@ RoxygenNote: 6.1.1
 LinkingTo: 
     Rcpp
 Imports: 
-    Rcpp
+    Rcpp,
+    data.table
 SystemRequirements: C++11
 Suggests: 
     testthat,
