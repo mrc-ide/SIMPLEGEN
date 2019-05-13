@@ -3,5 +3,5 @@
 ^\.travis\.yml$
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^ignore/$
-^R_ignore/$
+^ignore$
+^R_ignore$

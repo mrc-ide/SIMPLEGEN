@@ -20,7 +20,8 @@ LinkingTo:
     Rcpp
 Imports: 
     Rcpp,
-    data.table
+    data.table,
+    coda
 SystemRequirements: C++11
 Suggests: 
     testthat,

@@ -102,6 +102,7 @@ simplegen_file <- function(name) {
 #' @param max_innoculations maximum number of innoculations that an individual
 #'   can hold simultaneously.
 #'
+#' @importFrom stats dgeom
 #' @export
 
 define_epi_parameters <- function(project,
@@ -169,4 +170,171 @@ define_epi_parameters <- function(project,
   
   # return
   invisible(project)
+}
+
+#------------------------------------------------
+#' @title Define deme parameters
+#'
+#' @description Define the parameters of each deme in a SIMPLEGEN simulation.
+#'   These parameters will be used when simulating epidemiolocal data.
+#'
+#' @param project a SIMPLEGEN project.
+#' @param H vector specifying human population size in each deme.
+#' @param seed_infections vector specifying the initial number of infected
+#'   humans in each deme. Infected humans are assumed to have just been bitten,
+#'   meaning they have just entered the latent phase.
+#' @param M vector specifying mosquito population size (strictly the number of
+#'   adult female mosquitoes) in each deme.
+#'
+#' @export
+
+define_deme_parameters <- function(project,
+                                   H = 1000,
+                                   seed_infections = 100,
+                                   M = 1000) {
+  
+  # check inputs
+  assert_custom_class(project, "simplegen_project")
+  assert_pos_int(H)
+  assert_pos_int(seed_infections)
+  assert_pos_int(M)
+  assert_same_length_multiple(H, seed_infections, M)
+  assert_leq(seed_infections, H)
+  
+  # modify project to store parameters
+  project$sim_parameters$deme_parameters <- list(H = H,
+                                                 seed_infections = seed_infections,
+                                                 M = M)
+  
+  # return
+  invisible(project)
+}
+
+#------------------------------------------------
+#' @title Define demographic parameters
+#'
+#' @description Define demography used in SIMPLEGEN simulation. The raw input is
+#'   a life table giving the probability of death in each one-year age group.
+#'   This is used to derive the distribution of age of death, and the stable age
+#'   distribution.
+#'
+#' @param project a SIMPLEGEN project.
+#' @param life_table vector specifying probability of death in each one-year age
+#'   group. Final value must be 1 to ensure a closed population. If \code{NULL}
+#'   then an age-distribution from Mali is used by default.
+#'
+#' @export
+
+define_demograpy <- function(project,
+                             life_table = NULL) {
+  
+  # check inputs
+  assert_custom_class(project, "simplegen_project")
+  if (is.null(life_table)) {
+    life_table_raw <- simplegen_file("Mali_life_table.csv")
+    life_table <- life_table_raw[,2]
+  }
+  assert_bounded(life_table)
+  assert_eq(life_table[length(life_table)], 1, message = "the final value in the life table must be 1, representing a 100%% chance of dying, to ensure a closed population")
+  
+  # compute distribution of age of death
+  n <- length(life_table)
+  age_death <- rep(0,n)
+  remaining <- 1
+  for (i in 1:n) {
+    age_death[i] <- remaining*life_table[i]
+    remaining <- remaining*(1 - life_table[i])
+  }
+  
+  # convert life table to transition matrix
+  m <- matrix(0,n,n)
+  m[col(m) == (row(m)+1)] <- 1 - life_table[1:(n-1)]
+  m[,1] <- 1 - rowSums(m)
+  
+  # convert to rates
+  r = m - diag(n)
+  
+  # compute Eigenvalues of the rate matrix
+  E = eigen(t(r))
+  
+  # there should be one Eigenvalue that is zero (up to limit of computational
+  # precision). Find which Eigenvalue this is
+  w <- which.min(abs(E$values))
+  
+  # the stable solution is the corresponding Eigenvector, suitably normalised
+  age_stable <- Re(E$vectors[,w]/sum(E$vectors[,w]))
+  
+  # modify project to store distributions
+  project$sim_parameters$demography <- list(life_table = life_table,
+                                            age_death = age_death,
+                                            age_stable = age_stable)
+  
+  # return
+  invisible(project)
+}
+
+#------------------------------------------------
+#' @title Define migration parameters
+#'
+#' @description Define default migration parameters for SIMPLEGEN simulation.
+#'
+#' @param project a SIMPLEGEN project.
+#' @param migration_matrix TODO - rethink this input type to allow "trip"
+#'   migration.
+#'
+#' @export
+
+define_migration <- function(project,
+                             migration_matrix = matrix(1)) {
+  
+  # check inputs
+  assert_custom_class(project, "simplegen_project")
+  
+  # modify project
+  project$sim_parameters$migration <- migration_matrix
+  
+  # return
+  invisible(project)
+}
+
+#------------------------------------------------
+#' @title Simulate from simple individual-based model
+#'
+#' @description Simulate data from a simple individual-based model of humans and
+#'   mosquitoes. Parameters are taken from the values stored within the
+#'   \code{sim_parameters} slot of the project, and outputs are written to the
+#'   \code{sim_output} slot.
+#'
+#' @param project a SIMPLEGEN project.
+#' @param max_time run simulation for this many days.
+#' @param output_daily_counts whether to output daily counts of key quantities,
+#'   such as the number of infected hosts and the EIR.
+#' @param output_age_distributions whether to output complete age distributions
+#' @param output_age_times a vector of times at which complete age distributions
+#'   are output.
+#' @param output_infection_history whether to output complete infection history.
+#' @param silent whether to write messages to console.
+#'
+#' @export
+
+sim_epi <- function(project,
+                    max_time = 365,
+                    output_daily_counts = TRUE,
+                    output_age_distributions = TRUE,
+                    output_age_times = max_time,
+                    output_infection_history = FALSE,
+                    silent = FALSE) {
+  
+  # check inputs
+  assert_custom_class(project, "simplegen_project")
+  assert_single_pos_int(max_time, zero_allowed = FALSE)
+  assert_single_logical(output_daily_counts)
+  assert_single_logical(output_age_distributions)
+  assert_vector(output_age_times)
+  assert_pos_int(output_age_times)
+  assert_leq(output_age_times, max_time)
+  assert_single_logical(output_infection_history)
+  assert_single_logical(silent)
+  
+  
 }

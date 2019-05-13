@@ -15,17 +15,17 @@ simplegen_project <- function() {
                   sim_output = NULL)
   class(project) <- "simplegen_project"
   
-  # define default epi parameters
+  # use default epi parameters
   project <- define_epi_parameters(project)
   
-  # define default deme parameters
-  #project <- define_deme_parameters(project)
+  # use default deme parameters
+  project <- define_deme_parameters(project)
   
-  # define default life table
-  #project <- define_demograpy(project)
+  # use default life table
+  project <- define_demograpy(project)
   
-  # define default migration parameters
-  #project <- define_migration(project)
+  # use default migration parameters
+  project <- define_migration(project)
   
   # return
   invisible(project)
@@ -48,6 +48,6 @@ print.simplegen_project <- function(x, ...) {
 #' @noRd
 summary.simplegen_project <- function(x, ...) {
   
-  message("TODO")
+  message("TODO - some default print method")
   
 }
