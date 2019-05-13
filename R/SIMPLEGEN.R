@@ -26,5 +26,5 @@ NULL
 # unload DLL when package is unloaded
 #' @noRd
 .onUnload <- function(libpath) {
-  library.dynam.unload("SIMPLEGEN", libpath)  #' @skip
+  library.dynam.unload("SIMPLEGEN", libpath)  # nocov
 }
