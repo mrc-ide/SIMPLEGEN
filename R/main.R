@@ -33,3 +33,7 @@ dummy1 <- function(x = 1:5) {
   return(ret)
 }
 
+dummy2 <- function(x) {
+  x
+}
+

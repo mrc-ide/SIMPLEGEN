@@ -21,3 +21,6 @@ LinkingTo:
 Imports: 
     Rcpp
 SystemRequirements: C++11
+Suggests: 
+    testthat,
+    covr
