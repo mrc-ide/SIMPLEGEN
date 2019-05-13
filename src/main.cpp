@@ -1,25 +1,49 @@
 
 #include "main.h"
+#include "misc_v5.h"
+
+#include <chrono>
 
 using namespace std;
 
 //------------------------------------------------
-// Dummy function to test Rcpp working as expected
-// [[Rcpp::export]]
-Rcpp::List dummy1_cpp(Rcpp::List args) {
+// main function (when not run using Rcpp)
+#ifndef RCPP_ACTIVE
+int main(int argc, const char * argv[]) {
   
-  // print message to console
-  Rcpp::Rcout << "running C++ dummy1_cpp function\n";
+  // run simulation
+  indiv_sim_cpp();
   
-  // get inputs from Rcpp format to base C++ format
-  vector<double> x = Rcpp::as<vector<double>>(args("x"));
-  
-  // square values
-  for (int i=0; i<int(x.size()); i++) {
-    x[i] *= x[i];
-  }
-  
-  // return as Rcpp list
-  Rcpp::List ret = Rcpp::List::create(Rcpp::Named("x_squared") = x);
-  return ret;
 }
+#endif
+
+//------------------------------------------------
+// draw from simple individual-based model
+#ifdef RCPP_ACTIVE
+// [[Rcpp::export]]
+Rcpp::List indiv_sim_cpp(Rcpp::List args) {
+  
+  // start timer
+  chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
+  
+  // do something
+  
+  // end timer
+  chrono_timer(t1);
+  
+  return Rcpp::List::create(Rcpp::Named("foo") = -9);
+}
+#else
+int indiv_sim_cpp() {
+  
+  // start timer
+  chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
+  
+  // do something
+  
+  // end timer
+  chrono_timer(t1);
+  
+  return 0;
+}
+#endif

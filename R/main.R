@@ -1,39 +1,5 @@
 
 #------------------------------------------------
-#' @title Dummy function
-#'
-#' @description Simple test function that demonstrates some of the features of
-#'   this package.
-#'
-#' @details Takes a vector of values, returns the square.
-#'
-#' @param x vector of values
-#'
-#' @export
-#' @examples
-#' # Find square of first 100 values
-#' dummy1(1:100)
-
-dummy1 <- function(x = 1:5) {
-  
-  # print message to console
-  message("running R dummy1 function")
-  
-  # get arguments in list form
-  args <- list(x = x)
-  
-  # run C++ function with these arguments
-  output_raw <- dummy1_cpp(args)
-  
-  # some optional processing of output
-  message("processing output")
-  ret <- output_raw$x_squared
-  
-  # return
-  return(ret)
-}
-
-#------------------------------------------------
 #' @title Load system file
 #'
 #' @description Load a file from within the inst/extdata folder of the SIMPLEGEN
@@ -325,7 +291,8 @@ sim_epi <- function(project,
                     output_infection_history = FALSE,
                     silent = FALSE) {
   
-  # check inputs
+  # ---------- check inputs ----------
+  
   assert_custom_class(project, "simplegen_project")
   assert_single_pos_int(max_time, zero_allowed = FALSE)
   assert_single_logical(output_daily_counts)
@@ -336,5 +303,25 @@ sim_epi <- function(project,
   assert_single_logical(output_infection_history)
   assert_single_logical(silent)
   
+  # ---------- define argument lists ----------
   
+  # parameters from project
+  args <- project$sim_parameters
+  
+  # simulation parameters from function arguments
+  args$run_parameters <- list(max_time = max_time,
+                              output_daily_counts = output_daily_counts,
+                              output_age_distributions = output_age_distributions,
+                              output_age_times = output_age_times,
+                              output_infection_history = output_infection_history,
+                              silent = silent)
+  
+  # ---------- run simulation ----------
+  
+  # run efficient C++ function
+  output_raw <- indiv_sim_cpp(args)
+  
+  # ---------- process output ----------
+  
+  return(output_raw)
 }

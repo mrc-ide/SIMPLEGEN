@@ -5,3 +5,4 @@
 ^\.Rproj\.user$
 ^ignore$
 ^R_ignore$
+^src/SIMPLEGEN_Xcode$
