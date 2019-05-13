@@ -16,5 +16,5 @@ in the correct format. The major limitation of SIMPLEGEN is that assumes the
 epidemiological and genetic processes are seperable, and hence is limited to
 neutral variation, and cannot model selection.
 
-**This package is currently in development. Code contributors must read the
-guidelines in the R_ignore/CODER_README.txt file before contributing**.
+*This package is currently in development. Code contributors **must** read the
+guidelines [here](https://github.com/mrc-ide/SIMPLEGEN/tree/style_guide) before contributing.*
