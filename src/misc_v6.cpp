@@ -1,7 +1,9 @@
 
-#include "misc_v5.h"
+#include "misc_v6.h"
 
 #include <math.h>
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -368,3 +370,56 @@ vector<vector<vector<double>>> rcpp_to_array_double(Rcpp::List x) {
   return ret;
 }
 #endif
+
+//------------------------------------------------
+// read values from comma-separated text file to vector<double>
+vector<double> file_to_vector_double(string file_path) {
+  
+  // initialise return object
+  vector<double> ret;
+  
+  // read in values from comma-separated file
+  ifstream infile(file_path);
+  std::string line1, line2;
+  double x;
+  while (getline(infile, line1)) {
+    istringstream ss(line1);
+    while (getline(ss, line2, ',')) {
+      if (line2.size() > 0) {
+        istringstream(line2) >> x;
+        ret.push_back(x);
+      }
+    }
+  }
+  
+  return ret;
+}
+
+//------------------------------------------------
+// read values from text file to vector<vector<double>>. Text file should be
+// delimited by first line break, then comma. Lines do not all need to be same
+// length, i.e. jagged matrices are allowed.
+vector<vector<double>> file_to_matrix_double(string file_path) {
+  
+  // initialise return object
+  vector<vector<double>> ret;
+  
+  // read in values from comma-separated file
+  ifstream infile(file_path);
+  std::string line1, line2, line3;
+  double x;
+  vector<double> v;
+  while (getline(infile, line1)) {
+    v.clear();
+    istringstream ss(line1);
+    while (getline(ss, line2, ',')) {
+      if (line2.size() > 0) {
+        istringstream(line2) >> x;
+        v.push_back(x);
+      }
+    }
+    ret.push_back(v);
+  }
+  
+  return ret;
+}

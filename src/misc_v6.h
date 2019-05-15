@@ -300,3 +300,14 @@ std::vector<std::vector<std::vector<int>>> rcpp_to_array_int(Rcpp::List x);
 // converts input from Rcpp::List format to vector<vector<vector<double>>> format.
 std::vector<std::vector<std::vector<double>>> rcpp_to_array_double(Rcpp::List x);
 #endif
+
+//------------------------------------------------
+// read values from comma-separated text file to vector<double>
+std::vector<double> file_to_vector_double(std::string file_path);
+
+//------------------------------------------------
+// read values from text file to vector<vector<double>>. Text file should be
+// delimited by first line break, then comma. Lines do not all need to be same
+// length, i.e. jagged matrices are allowed.
+std::vector<std::vector<double>> file_to_matrix_double(std::string file_path);
+

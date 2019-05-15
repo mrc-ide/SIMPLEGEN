@@ -318,6 +318,37 @@ sim_epi <- function(project,
   
   # ---------- run simulation ----------
   
+  # internal flag, not visible to user. If TRUE then write parameter lists to
+  # file and return without running simulation. Parameters can then be read
+  # directly from file into Xcode.
+  xcode_on <- TRUE
+  if (xcode_on) {
+    message("writing arguments to file")
+    
+    # write to file dataframe of scalar parameters
+    scalar_params <- c("a", "p", "mu", "u", "v", "g", "prob_AC", "max_innoculations")
+    writeLines(paste(unlist(args$epi_parameters[scalar_params]), collapse = ","),
+               con = "R_ignore/SIMPLEGEN_Xcode/args/scalar.txt")
+    
+    # write to file vector parameters
+    writeLines(paste(args$epi_parameters$prob_infection, collapse = ","),
+               con = "R_ignore/SIMPLEGEN_Xcode/args/prob_infection.txt")
+    writeLines(paste(args$epi_parameters$prob_acute, collapse = ","),
+               con = "R_ignore/SIMPLEGEN_Xcode/args/prob_acute.txt")
+    writeLines(paste(args$epi_parameters$infectivity_acute, collapse = ","),
+               con = "R_ignore/SIMPLEGEN_Xcode/args/infectivity_acute.txt")
+    writeLines(paste(args$epi_parameters$infectivity_chronic, collapse = ","),
+               con = "R_ignore/SIMPLEGEN_Xcode/args/infectivity_chronic.txt")
+    
+    # write to file matrices (or lists of vectors)
+    writeLines(mapply(function(x) paste(x, collapse = ","), args$epi_parameters$duration_acute),
+               con = "R_ignore/SIMPLEGEN_Xcode/args/duration_acute.txt")
+    writeLines(mapply(function(x) paste(x, collapse = ","), args$epi_parameters$duration_chronic),
+               con = "R_ignore/SIMPLEGEN_Xcode/args/duration_chronic.txt")
+    
+    return()
+  }
+  
   # run efficient C++ function
   output_raw <- indiv_sim_cpp(args)
   

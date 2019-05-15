@@ -7,12 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		8B261C7B2289A3A900DCE089 /* misc_v5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B261C7A2289A3A900DCE089 /* misc_v5.cpp */; };
-		8B261C7E2289A3C000DCE089 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B261C7C2289A3C000DCE089 /* main.cpp */; };
+		8B261C97228AA05B00DCE089 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B261C94228AA05B00DCE089 /* main.cpp */; };
+		8B261C9D228AB25A00DCE089 /* misc_v6.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B261C9B228AB25900DCE089 /* misc_v6.cpp */; };
+		8B261CA0228AE78600DCE089 /* Parameters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B261C9E228AE78600DCE089 /* Parameters.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		8B261C6D2289A2CF00DCE089 /* CopyFiles */ = {
+		8B261C86228AA01C00DCE089 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -24,15 +25,17 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		8B261C6F2289A2CF00DCE089 /* SIMPLEGEN_Xcode */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = SIMPLEGEN_Xcode; sourceTree = BUILT_PRODUCTS_DIR; };
-		8B261C792289A3A900DCE089 /* misc_v5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = misc_v5.h; path = ../../misc_v5.h; sourceTree = "<group>"; };
-		8B261C7A2289A3A900DCE089 /* misc_v5.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = misc_v5.cpp; path = ../../misc_v5.cpp; sourceTree = "<group>"; };
-		8B261C7C2289A3C000DCE089 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../main.cpp; sourceTree = "<group>"; };
-		8B261C7D2289A3C000DCE089 /* main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = main.h; path = ../../main.h; sourceTree = "<group>"; };
+		8B261C88228AA01C00DCE089 /* SIMPLEGEN_Xcode */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = SIMPLEGEN_Xcode; sourceTree = BUILT_PRODUCTS_DIR; };
+		8B261C92228AA05B00DCE089 /* main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = main.h; path = ../../../src/main.h; sourceTree = "<group>"; };
+		8B261C94228AA05B00DCE089 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../../src/main.cpp; sourceTree = "<group>"; };
+		8B261C9B228AB25900DCE089 /* misc_v6.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = misc_v6.cpp; path = ../../../src/misc_v6.cpp; sourceTree = "<group>"; };
+		8B261C9C228AB25A00DCE089 /* misc_v6.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = misc_v6.h; path = ../../../src/misc_v6.h; sourceTree = "<group>"; };
+		8B261C9E228AE78600DCE089 /* Parameters.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Parameters.cpp; path = ../../../src/Parameters.cpp; sourceTree = "<group>"; };
+		8B261C9F228AE78600DCE089 /* Parameters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Parameters.h; path = ../../../src/Parameters.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		8B261C6C2289A2CF00DCE089 /* Frameworks */ = {
+		8B261C85228AA01C00DCE089 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -42,29 +45,31 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		8B261C662289A2CF00DCE089 = {
+		8B261C7F228AA01C00DCE089 = {
 			isa = PBXGroup;
 			children = (
-				8B261C712289A2CF00DCE089 /* SIMPLEGEN_Xcode */,
-				8B261C702289A2CF00DCE089 /* Products */,
+				8B261C8A228AA01C00DCE089 /* SIMPLEGEN_Xcode */,
+				8B261C89228AA01C00DCE089 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		8B261C702289A2CF00DCE089 /* Products */ = {
+		8B261C89228AA01C00DCE089 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8B261C6F2289A2CF00DCE089 /* SIMPLEGEN_Xcode */,
+				8B261C88228AA01C00DCE089 /* SIMPLEGEN_Xcode */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		8B261C712289A2CF00DCE089 /* SIMPLEGEN_Xcode */ = {
+		8B261C8A228AA01C00DCE089 /* SIMPLEGEN_Xcode */ = {
 			isa = PBXGroup;
 			children = (
-				8B261C7C2289A3C000DCE089 /* main.cpp */,
-				8B261C7D2289A3C000DCE089 /* main.h */,
-				8B261C7A2289A3A900DCE089 /* misc_v5.cpp */,
-				8B261C792289A3A900DCE089 /* misc_v5.h */,
+				8B261C94228AA05B00DCE089 /* main.cpp */,
+				8B261C92228AA05B00DCE089 /* main.h */,
+				8B261C9B228AB25900DCE089 /* misc_v6.cpp */,
+				8B261C9C228AB25A00DCE089 /* misc_v6.h */,
+				8B261C9E228AE78600DCE089 /* Parameters.cpp */,
+				8B261C9F228AE78600DCE089 /* Parameters.h */,
 			);
 			path = SIMPLEGEN_Xcode;
 			sourceTree = "<group>";
@@ -72,13 +77,13 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		8B261C6E2289A2CF00DCE089 /* SIMPLEGEN_Xcode */ = {
+		8B261C87228AA01C00DCE089 /* SIMPLEGEN_Xcode */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 8B261C762289A2CF00DCE089 /* Build configuration list for PBXNativeTarget "SIMPLEGEN_Xcode" */;
+			buildConfigurationList = 8B261C8F228AA01C00DCE089 /* Build configuration list for PBXNativeTarget "SIMPLEGEN_Xcode" */;
 			buildPhases = (
-				8B261C6B2289A2CF00DCE089 /* Sources */,
-				8B261C6C2289A2CF00DCE089 /* Frameworks */,
-				8B261C6D2289A2CF00DCE089 /* CopyFiles */,
+				8B261C84228AA01C00DCE089 /* Sources */,
+				8B261C85228AA01C00DCE089 /* Frameworks */,
+				8B261C86228AA01C00DCE089 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -86,55 +91,56 @@
 			);
 			name = SIMPLEGEN_Xcode;
 			productName = SIMPLEGEN_Xcode;
-			productReference = 8B261C6F2289A2CF00DCE089 /* SIMPLEGEN_Xcode */;
+			productReference = 8B261C88228AA01C00DCE089 /* SIMPLEGEN_Xcode */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		8B261C672289A2CF00DCE089 /* Project object */ = {
+		8B261C80228AA01C00DCE089 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0920;
 				ORGANIZATIONNAME = Bob;
 				TargetAttributes = {
-					8B261C6E2289A2CF00DCE089 = {
+					8B261C87228AA01C00DCE089 = {
 						CreatedOnToolsVersion = 9.2;
 						ProvisioningStyle = Automatic;
 					};
 				};
 			};
-			buildConfigurationList = 8B261C6A2289A2CF00DCE089 /* Build configuration list for PBXProject "SIMPLEGEN_Xcode" */;
+			buildConfigurationList = 8B261C83228AA01C00DCE089 /* Build configuration list for PBXProject "SIMPLEGEN_Xcode" */;
 			compatibilityVersion = "Xcode 8.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 			);
-			mainGroup = 8B261C662289A2CF00DCE089;
-			productRefGroup = 8B261C702289A2CF00DCE089 /* Products */;
+			mainGroup = 8B261C7F228AA01C00DCE089;
+			productRefGroup = 8B261C89228AA01C00DCE089 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				8B261C6E2289A2CF00DCE089 /* SIMPLEGEN_Xcode */,
+				8B261C87228AA01C00DCE089 /* SIMPLEGEN_Xcode */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
-		8B261C6B2289A2CF00DCE089 /* Sources */ = {
+		8B261C84228AA01C00DCE089 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8B261C7E2289A3C000DCE089 /* main.cpp in Sources */,
-				8B261C7B2289A3A900DCE089 /* misc_v5.cpp in Sources */,
+				8B261CA0228AE78600DCE089 /* Parameters.cpp in Sources */,
+				8B261C97228AA05B00DCE089 /* main.cpp in Sources */,
+				8B261C9D228AB25A00DCE089 /* misc_v6.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		8B261C742289A2CF00DCE089 /* Debug */ = {
+		8B261C8D228AA01C00DCE089 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -189,7 +195,7 @@
 			};
 			name = Debug;
 		};
-		8B261C752289A2CF00DCE089 /* Release */ = {
+		8B261C8E228AA01C00DCE089 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -237,7 +243,7 @@
 			};
 			name = Release;
 		};
-		8B261C772289A2CF00DCE089 /* Debug */ = {
+		8B261C90228AA01C00DCE089 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -245,7 +251,7 @@
 			};
 			name = Debug;
 		};
-		8B261C782289A2CF00DCE089 /* Release */ = {
+		8B261C91228AA01C00DCE089 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -256,25 +262,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		8B261C6A2289A2CF00DCE089 /* Build configuration list for PBXProject "SIMPLEGEN_Xcode" */ = {
+		8B261C83228AA01C00DCE089 /* Build configuration list for PBXProject "SIMPLEGEN_Xcode" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				8B261C742289A2CF00DCE089 /* Debug */,
-				8B261C752289A2CF00DCE089 /* Release */,
+				8B261C8D228AA01C00DCE089 /* Debug */,
+				8B261C8E228AA01C00DCE089 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		8B261C762289A2CF00DCE089 /* Build configuration list for PBXNativeTarget "SIMPLEGEN_Xcode" */ = {
+		8B261C8F228AA01C00DCE089 /* Build configuration list for PBXNativeTarget "SIMPLEGEN_Xcode" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				8B261C772289A2CF00DCE089 /* Debug */,
-				8B261C782289A2CF00DCE089 /* Release */,
+				8B261C90228AA01C00DCE089 /* Debug */,
+				8B261C91228AA01C00DCE089 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 8B261C672289A2CF00DCE089 /* Project object */;
+	rootObject = 8B261C80228AA01C00DCE089 /* Project object */;
 }
