@@ -18,16 +18,16 @@ public:
   // PUBLIC OBJECTS
   
   // scalar parameters
-  double a, p, mu, prob_AC;
-  int u, v, g, max_innoculations;
+  static double a, p, mu, prob_AC;
+  static int u, v, g, max_innoculations;
   
   // distributions
-  std::vector<double> prob_acute;
-  std::vector<double> prob_infection;
-  std::vector<double> infectivity_acute;
-  std::vector<double> infectivity_chronic;
-  std::vector<std::vector<double>> duration_acute;
-  std::vector<std::vector<double>> duration_chronic;
+  static std::vector<double> prob_acute;
+  static std::vector<double> prob_infection;
+  static std::vector<double> infectivity_acute;
+  static std::vector<double> infectivity_chronic;
+  static std::vector<std::vector<double>> duration_acute;
+  static std::vector<std::vector<double>> duration_chronic;
   
   
   // PUBLIC FUNCTIONS

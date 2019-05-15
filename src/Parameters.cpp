@@ -4,6 +4,27 @@
 using namespace std;
 
 //------------------------------------------------
+// declare static member variables
+
+// define scalars
+double Parameters::a;
+double Parameters::p;
+double Parameters::mu;
+double Parameters::prob_AC;
+int Parameters::u;
+int Parameters::v;
+int Parameters::g;
+int Parameters::max_innoculations;
+
+// define distributions
+vector<double> Parameters::prob_acute;
+vector<double> Parameters::prob_infection;
+vector<double> Parameters::infectivity_acute;
+vector<double> Parameters::infectivity_chronic;
+vector<vector<double>> Parameters::duration_acute;
+vector<vector<double>> Parameters::duration_chronic;
+
+//------------------------------------------------
 // load parameter values
 void Parameters::load_values(double a, double p, double mu, double prob_AC,
                              int u, int v, int g, int max_innoculations,

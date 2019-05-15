@@ -321,7 +321,7 @@ sim_epi <- function(project,
   # internal flag, not visible to user. If TRUE then write parameter lists to
   # file and return without running simulation. Parameters can then be read
   # directly from file into Xcode.
-  xcode_on <- TRUE
+  xcode_on <- FALSE
   if (xcode_on) {
     message("writing arguments to file")
     

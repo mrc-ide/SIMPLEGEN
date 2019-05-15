@@ -2,6 +2,7 @@
 #include "main.h"
 #include "misc_v6.h"
 #include "Parameters.h"
+#include "Dispatcher.h"
 
 #include <chrono>
 
@@ -36,6 +37,10 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args) {
                      rcpp_to_matrix_double(args_epi_parameters["duration_acute"]),
                      rcpp_to_matrix_double(args_epi_parameters["duration_chronic"]));
   //params.summary();
+  
+  // create dispatcher object and run simulations
+  Dispatcher dispatcher;
+  dispatcher.run_simulation();
   
   // end timer
   chrono_timer(t1);
@@ -73,7 +78,9 @@ int main(int argc, const char * argv[]) {  // main function when not using Rcpp
                      file_to_matrix_double(duration_chronic_path));
   //params.summary();
   
-  
+  // create dispatcher object and run simulations
+  Dispatcher dispatcher;
+  dispatcher.run_simulation();
   
   // end timer
   chrono_timer(t1);
