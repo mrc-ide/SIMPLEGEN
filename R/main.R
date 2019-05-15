@@ -325,42 +325,45 @@ sim_epi <- function(project,
   if (xcode_on) {
     message("writing arguments to file")
     
+    # functions for writing vectors and matrices to file
+    vector_to_file <- function(x, file_path) {
+      writeLines(paste(x, collapse = ","), con = file_path)
+    }
+    matrix_to_file <- function(x, file_path) {
+      writeLines(mapply(function(y) paste(y, collapse = ","), x), con = file_path)
+    }
+    
     # write scalar epi parameters to file
-    scalar_params <- c("a", "p", "mu", "u", "v", "g", "prob_AC", "max_innoculations")
-    writeLines(paste(unlist(args$epi_parameters[scalar_params]), collapse = ","),
-               con = "R_ignore/SIMPLEGEN_Xcode/args/scalar.txt")
+    arg_file_path <- "R_ignore/SIMPLEGEN_Xcode/args/"
+    scalar_epi_params <- c("a", "p", "mu", "u", "v", "g", "prob_AC", "max_innoculations")
+    vector_to_file(unlist(args$epi_parameters[scalar_epi_params]), paste0(arg_file_path, "epi_scalar.txt"))
     
     # write epi vectors to file
-    writeLines(paste(args$epi_parameters$prob_infection, collapse = ","),
-               con = "R_ignore/SIMPLEGEN_Xcode/args/prob_infection.txt")
-    writeLines(paste(args$epi_parameters$prob_acute, collapse = ","),
-               con = "R_ignore/SIMPLEGEN_Xcode/args/prob_acute.txt")
-    writeLines(paste(args$epi_parameters$infectivity_acute, collapse = ","),
-               con = "R_ignore/SIMPLEGEN_Xcode/args/infectivity_acute.txt")
-    writeLines(paste(args$epi_parameters$infectivity_chronic, collapse = ","),
-               con = "R_ignore/SIMPLEGEN_Xcode/args/infectivity_chronic.txt")
+    vector_to_file(args$epi_parameters$prob_infection, paste0(arg_file_path, "prob_infection.txt"))
+    vector_to_file(args$epi_parameters$prob_acute, paste0(arg_file_path, "prob_acute.txt"))
+    vector_to_file(args$epi_parameters$infectivity_acute, paste0(arg_file_path, "infectivity_acute.txt"))
+    vector_to_file(args$epi_parameters$infectivity_chronic, paste0(arg_file_path, "infectivity_chronic.txt"))
     
     # write epi matrices (or lists of vectors) to file
-    writeLines(mapply(function(x) paste(x, collapse = ","), args$epi_parameters$duration_acute),
-               con = "R_ignore/SIMPLEGEN_Xcode/args/duration_acute.txt")
-    writeLines(mapply(function(x) paste(x, collapse = ","), args$epi_parameters$duration_chronic),
-               con = "R_ignore/SIMPLEGEN_Xcode/args/duration_chronic.txt")
+    matrix_to_file(args$epi_parameters$duration_acute, paste0(arg_file_path, "duration_acute.txt"))
+    matrix_to_file(args$epi_parameters$duration_chronic, paste0(arg_file_path, "duration_chronic.txt"))
     
     # write deme vectors to file
-    writeLines(paste(args$deme_parameters$H, collapse = ","),
-               con = "R_ignore/SIMPLEGEN_Xcode/args/H.txt")
-    writeLines(paste(args$deme_parameters$seed_infections, collapse = ","),
-               con = "R_ignore/SIMPLEGEN_Xcode/args/seed_infections.txt")
-    writeLines(paste(args$deme_parameters$M, collapse = ","),
-               con = "R_ignore/SIMPLEGEN_Xcode/args/M.txt")
+    vector_to_file(args$deme_parameters$H, paste0(arg_file_path, "H.txt"))
+    vector_to_file(args$deme_parameters$seed_infections, paste0(arg_file_path, "seed_infections.txt"))
+    vector_to_file(args$deme_parameters$M, paste0(arg_file_path, "M.txt"))
     
     # write demog vectors to file
-    writeLines(paste(args$demography$life_table, collapse = ","),
-               con = "R_ignore/SIMPLEGEN_Xcode/args/life_table.txt")
-    writeLines(paste(args$demography$age_death, collapse = ","),
-               con = "R_ignore/SIMPLEGEN_Xcode/args/age_death.txt")
-    writeLines(paste(args$demography$age_stable, collapse = ","),
-               con = "R_ignore/SIMPLEGEN_Xcode/args/age_stable.txt")
+    vector_to_file(args$demography$age_death, paste0(arg_file_path, "age_death.txt"))
+    vector_to_file(args$demography$age_stable, paste0(arg_file_path, "age_stable.txt"))
+    
+    # write scalar run parameters to file
+    scalar_run_params <- c("max_time", "output_daily_counts", "output_age_distributions",
+                           "output_infection_history", "silent")
+    vector_to_file(args$run_parameters[scalar_run_params], paste0(arg_file_path, "run_scalar.txt"))
+    
+    # write run vectors to file
+    vector_to_file(args$run_parameters$output_age_times, paste0(arg_file_path, "output_age_times.txt"))
     
     return()
   }

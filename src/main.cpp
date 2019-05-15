@@ -20,6 +20,7 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args) {
   Rcpp::List args_epi_parameters = args["epi_parameters"];
   Rcpp::List args_deme_parameters = args["deme_parameters"];
   Rcpp::List args_demog_parameters = args["demography"];
+  Rcpp::List args_run_parameters = args["run_parameters"];
   
   // define parameters object and load values
   Parameters params;
@@ -42,9 +43,15 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args) {
                           rcpp_to_vector_int(args_deme_parameters["seed_infections"]),
                           rcpp_to_vector_int(args_deme_parameters["M"]));
   
-  params.load_demog_params(rcpp_to_vector_double(args_demog_parameters["life_table"]),
-                           rcpp_to_vector_double(args_demog_parameters["age_death"]),
+  params.load_demog_params(rcpp_to_vector_double(args_demog_parameters["age_death"]),
                            rcpp_to_vector_double(args_demog_parameters["age_stable"]));
+  
+  params.load_run_params(rcpp_to_int(args_run_parameters["max_time"]),
+                         rcpp_to_bool(args_run_parameters["output_daily_counts"]),
+                         rcpp_to_bool(args_run_parameters["output_age_distributions"]),
+                         rcpp_to_bool(args_run_parameters["output_infection_history"]),
+                         rcpp_to_bool(args_run_parameters["silent"]),
+                         rcpp_to_vector_int(args_run_parameters["output_age_times"]));
   
   //params.summary();
   
@@ -66,7 +73,7 @@ int main(int argc, const char * argv[]) {  // main function when not using Rcpp
   // define paths to arg files
   string file_path = "/Users/rverity/Dropbox/Bob/Work/My Programs/Simulation/SIMPLEGEN/R_ignore/SIMPLEGEN_Xcode/args/";
   
-  string scalar_path = file_path + "scalar.txt";
+  string epi_scalar_path = file_path + "epi_scalar.txt";
   string prob_acute_path = file_path + "prob_acute.txt";
   string prob_infection_path = file_path + "prob_infection.txt";
   string infectivity_acute_path = file_path + "infectivity_acute.txt";
@@ -82,13 +89,22 @@ int main(int argc, const char * argv[]) {  // main function when not using Rcpp
   string age_death_path = file_path + "age_death.txt";
   string age_stable_path = file_path + "age_stable.txt";
   
-  // read in scalar epi arguments from file
-  vector<double> scalar = file_to_vector_double(scalar_path);
+  string run_scalar_path = file_path + "run_scalar.txt";
+  string output_age_times_path = file_path + "output_age_times.txt";
+  
+  // read in scalar arguments from file
+  vector<double> epi_scalar = file_to_vector_double(epi_scalar_path);
+  vector<double> run_scalar = file_to_vector_double(run_scalar_path);
+  int max_time = int(run_scalar[0]);
+  bool output_daily_counts = int(run_scalar[1]);
+  bool output_age_distributions = int(run_scalar[2]);
+  bool output_infection_history = int(run_scalar[3]);
+  bool silent = int(run_scalar[4]);
   
   // define parameters object and load values
   Parameters params;
-  params.load_epi_params(scalar[0], scalar[1], scalar[2], scalar[3],
-                         scalar[4], scalar[5], scalar[6], scalar[7],
+  params.load_epi_params(epi_scalar[0], epi_scalar[1], epi_scalar[2], epi_scalar[3],
+                         epi_scalar[4], epi_scalar[5], epi_scalar[6], epi_scalar[7],
                          file_to_vector_double(prob_acute_path),
                          file_to_vector_double(prob_infection_path),
                          file_to_vector_double(infectivity_acute_path),
@@ -100,9 +116,13 @@ int main(int argc, const char * argv[]) {  // main function when not using Rcpp
                           file_to_vector_int(seed_infections_path),
                           file_to_vector_int(M_path));
   
-  params.load_demog_params(file_to_vector_double(life_table_path),
-                           file_to_vector_double(age_death_path),
+  params.load_demog_params(file_to_vector_double(age_death_path),
                            file_to_vector_double(age_stable_path));
+  
+  params.load_run_params(max_time, output_daily_counts, output_age_distributions,
+                         output_infection_history, silent,
+                         file_to_vector_int(output_age_times_path));
+  
   
   //params.summary();
   

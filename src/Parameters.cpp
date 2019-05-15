@@ -30,9 +30,16 @@ vector<int> Parameters::seed_infections;
 vector<int> Parameters::M;
 
 // demog parameters
-vector<double> Parameters::life_table;
 vector<double> Parameters::age_death;
 vector<double> Parameters::age_stable;
+
+// run parameters
+int Parameters::max_time;
+bool Parameters::output_daily_counts;
+bool Parameters::output_age_distributions;
+bool Parameters::output_infection_history;
+bool Parameters::silent;
+vector<int> Parameters::output_age_times;
 
 //------------------------------------------------
 // load epi parameter values
@@ -78,14 +85,31 @@ void Parameters::load_deme_params(vector<int> H,
 
 //------------------------------------------------
 // load demography parameter values
-void Parameters::load_demog_params(vector<double> life_table,
-                       vector<double> age_death,
-                       vector<double> age_stable) {
+void Parameters::load_demog_params(vector<double> age_death,
+                                   vector<double> age_stable) {
   
   // distributions
-  this->life_table = life_table;
   this->age_death = age_death;
   this->age_stable = age_stable;
+}
+
+//------------------------------------------------
+// load run parameter values
+void Parameters::load_run_params(int max_time,
+                                 bool output_daily_counts,
+                                 bool output_age_distributions,
+                                 bool output_infection_history,
+                                 bool silent,
+                                 std::vector<int> output_age_times) {
+  
+  // load values
+  this->max_time = max_time;
+  this->output_daily_counts = output_daily_counts;
+  this->output_age_distributions = output_age_distributions;
+  this->output_infection_history = output_infection_history;
+  this->silent = silent;
+  this->output_age_times = output_age_times;
+  
 }
 
 //------------------------------------------------
@@ -125,11 +149,20 @@ void Parameters::summary() {
   print_vector(M);
   
   // print demog parameters
-  print("life_table:");
-  print_vector(life_table);
   print("age_death:");
   print_vector(age_death);
   print("age_stable:");
   print_vector(age_stable);
+  
+  // print run scalars
+  print("max_time:", max_time);
+  print("output_daily_counts:", output_daily_counts);
+  print("output_age_distributions:", output_age_distributions);
+  print("output_infection_history:", output_infection_history);
+  print("silent:", silent);
+  
+  // print run vectors
+  print("output_age_times:");
+  print_vector(output_age_times);
 }
 

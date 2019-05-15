@@ -31,9 +31,13 @@ public:
   static std::vector<int> M;
   
   // demog parameters
-  static std::vector<double> life_table;
   static std::vector<double> age_death;
   static std::vector<double> age_stable;
+  
+  // run parameters
+  static int max_time;
+  static bool output_daily_counts, output_age_distributions, output_infection_history, silent;
+  static std::vector<int> output_age_times;
   
   // PUBLIC FUNCTIONS
   
@@ -54,9 +58,15 @@ public:
                         std::vector<int> seed_infections,
                         std::vector<int> M);
   
-  void load_demog_params(std::vector<double> life_table,
-                         std::vector<double> age_death,
+  void load_demog_params(std::vector<double> age_death,
                          std::vector<double> age_stable);
+  
+  void load_run_params(int max_time,
+                       bool output_daily_counts,
+                       bool output_age_distributions,
+                       bool output_infection_history,
+                       bool silent,
+                       std::vector<int> output_age_times);
   
   void summary();
   

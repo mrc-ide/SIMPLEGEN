@@ -22,6 +22,10 @@ public:
   
   // scheduler objects
   std::vector<std::set<int>> schedule_death;
+  std::vector<std::vector<std::pair<int, int>>> schedule_Eh_to_Ih;
+  std::vector<std::vector<std::pair<int, int>>> schedule_Ih_to_Sh;
+  std::vector<std::vector<std::pair<int, int>>> schedule_infective;
+  std::vector<std::vector<std::pair<int, int>>> schedule_infective_recovery;
   
   
   // PUBLIC FUNCTIONS
