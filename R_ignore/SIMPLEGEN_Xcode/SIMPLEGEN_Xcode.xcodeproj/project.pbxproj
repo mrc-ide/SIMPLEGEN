@@ -10,6 +10,9 @@
 		8B261C97228AA05B00DCE089 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B261C94228AA05B00DCE089 /* main.cpp */; };
 		8B261C9D228AB25A00DCE089 /* misc_v6.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B261C9B228AB25900DCE089 /* misc_v6.cpp */; };
 		8B261CA0228AE78600DCE089 /* Parameters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B261C9E228AE78600DCE089 /* Parameters.cpp */; };
+		8B261CA5228BEF8A00DCE089 /* Dispatcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B261CA3228BEF8A00DCE089 /* Dispatcher.cpp */; };
+		8B261CAB228BF8BD00DCE089 /* Sampler_v1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B261CA8228BF8BD00DCE089 /* Sampler_v1.cpp */; };
+		8B261CAC228BF8BD00DCE089 /* probability_v2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B261CA9228BF8BD00DCE089 /* probability_v2.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -32,6 +35,12 @@
 		8B261C9C228AB25A00DCE089 /* misc_v6.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = misc_v6.h; path = ../../../src/misc_v6.h; sourceTree = "<group>"; };
 		8B261C9E228AE78600DCE089 /* Parameters.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Parameters.cpp; path = ../../../src/Parameters.cpp; sourceTree = "<group>"; };
 		8B261C9F228AE78600DCE089 /* Parameters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Parameters.h; path = ../../../src/Parameters.h; sourceTree = "<group>"; };
+		8B261CA1228BEF8A00DCE089 /* Dispatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dispatcher.h; path = ../../../src/Dispatcher.h; sourceTree = "<group>"; };
+		8B261CA3228BEF8A00DCE089 /* Dispatcher.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Dispatcher.cpp; path = ../../../src/Dispatcher.cpp; sourceTree = "<group>"; };
+		8B261CA7228BF8BD00DCE089 /* Sampler_v1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sampler_v1.h; path = ../../../src/Sampler_v1.h; sourceTree = "<group>"; };
+		8B261CA8228BF8BD00DCE089 /* Sampler_v1.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sampler_v1.cpp; path = ../../../src/Sampler_v1.cpp; sourceTree = "<group>"; };
+		8B261CA9228BF8BD00DCE089 /* probability_v2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = probability_v2.cpp; path = ../../../src/probability_v2.cpp; sourceTree = "<group>"; };
+		8B261CAA228BF8BD00DCE089 /* probability_v2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = probability_v2.h; path = ../../../src/probability_v2.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,8 +77,14 @@
 				8B261C92228AA05B00DCE089 /* main.h */,
 				8B261C9B228AB25900DCE089 /* misc_v6.cpp */,
 				8B261C9C228AB25A00DCE089 /* misc_v6.h */,
+				8B261CA9228BF8BD00DCE089 /* probability_v2.cpp */,
+				8B261CAA228BF8BD00DCE089 /* probability_v2.h */,
 				8B261C9E228AE78600DCE089 /* Parameters.cpp */,
 				8B261C9F228AE78600DCE089 /* Parameters.h */,
+				8B261CA3228BEF8A00DCE089 /* Dispatcher.cpp */,
+				8B261CA1228BEF8A00DCE089 /* Dispatcher.h */,
+				8B261CA8228BF8BD00DCE089 /* Sampler_v1.cpp */,
+				8B261CA7228BF8BD00DCE089 /* Sampler_v1.h */,
 			);
 			path = SIMPLEGEN_Xcode;
 			sourceTree = "<group>";
@@ -132,7 +147,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				8B261CA0228AE78600DCE089 /* Parameters.cpp in Sources */,
+				8B261CAC228BF8BD00DCE089 /* probability_v2.cpp in Sources */,
 				8B261C97228AA05B00DCE089 /* main.cpp in Sources */,
+				8B261CA5228BEF8A00DCE089 /* Dispatcher.cpp in Sources */,
+				8B261CAB228BF8BD00DCE089 /* Sampler_v1.cpp in Sources */,
 				8B261C9D228AB25A00DCE089 /* misc_v6.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -325,12 +325,12 @@ sim_epi <- function(project,
   if (xcode_on) {
     message("writing arguments to file")
     
-    # write to file dataframe of scalar parameters
+    # write scalar epi parameters to file
     scalar_params <- c("a", "p", "mu", "u", "v", "g", "prob_AC", "max_innoculations")
     writeLines(paste(unlist(args$epi_parameters[scalar_params]), collapse = ","),
                con = "R_ignore/SIMPLEGEN_Xcode/args/scalar.txt")
     
-    # write to file vector parameters
+    # write epi vectors to file
     writeLines(paste(args$epi_parameters$prob_infection, collapse = ","),
                con = "R_ignore/SIMPLEGEN_Xcode/args/prob_infection.txt")
     writeLines(paste(args$epi_parameters$prob_acute, collapse = ","),
@@ -340,11 +340,27 @@ sim_epi <- function(project,
     writeLines(paste(args$epi_parameters$infectivity_chronic, collapse = ","),
                con = "R_ignore/SIMPLEGEN_Xcode/args/infectivity_chronic.txt")
     
-    # write to file matrices (or lists of vectors)
+    # write epi matrices (or lists of vectors) to file
     writeLines(mapply(function(x) paste(x, collapse = ","), args$epi_parameters$duration_acute),
                con = "R_ignore/SIMPLEGEN_Xcode/args/duration_acute.txt")
     writeLines(mapply(function(x) paste(x, collapse = ","), args$epi_parameters$duration_chronic),
                con = "R_ignore/SIMPLEGEN_Xcode/args/duration_chronic.txt")
+    
+    # write deme vectors to file
+    writeLines(paste(args$deme_parameters$H, collapse = ","),
+               con = "R_ignore/SIMPLEGEN_Xcode/args/H.txt")
+    writeLines(paste(args$deme_parameters$seed_infections, collapse = ","),
+               con = "R_ignore/SIMPLEGEN_Xcode/args/seed_infections.txt")
+    writeLines(paste(args$deme_parameters$M, collapse = ","),
+               con = "R_ignore/SIMPLEGEN_Xcode/args/M.txt")
+    
+    # write demog vectors to file
+    writeLines(paste(args$demography$life_table, collapse = ","),
+               con = "R_ignore/SIMPLEGEN_Xcode/args/life_table.txt")
+    writeLines(paste(args$demography$age_death, collapse = ","),
+               con = "R_ignore/SIMPLEGEN_Xcode/args/age_death.txt")
+    writeLines(paste(args$demography$age_stable, collapse = ","),
+               con = "R_ignore/SIMPLEGEN_Xcode/args/age_stable.txt")
     
     return()
   }

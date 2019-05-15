@@ -3,10 +3,9 @@
 
 #include "misc_v6.h"
 #include "Parameters.h"
+#include "Sampler_v1.h"
 
-#ifdef RCPP_ACTIVE
-#include <Rcpp.h>
-#endif
+#include <set>
 
 //------------------------------------------------
 // class for dispatching main simulation. Inherits parameters
@@ -16,6 +15,11 @@ public:
   
   // PUBLIC OBJECTS
   
+  // objects for sampling from probability distributions
+  Sampler sampler_age_stable;
+  Sampler sampler_age_death;
+  Sampler sampler_duration_infection;
+  
   // scheduler objects
   std::vector<std::set<int>> schedule_death;
   
@@ -23,7 +27,7 @@ public:
   // PUBLIC FUNCTIONS
   
   // constructors
-  Dispatcher() {};
+  Dispatcher();
   
   // methods
   void run_simulation();

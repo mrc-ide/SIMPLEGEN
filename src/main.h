@@ -1,7 +1,5 @@
 
-#ifdef RCPP_ACTIVE
-#include <Rcpp.h>
-#endif
+#include "misc_v6.h"
 
 //------------------------------------------------
 // draw from simple individual-based model

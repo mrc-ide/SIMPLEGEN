@@ -372,6 +372,30 @@ vector<vector<vector<double>>> rcpp_to_array_double(Rcpp::List x) {
 #endif
 
 //------------------------------------------------
+// read values from comma-separated text file to vector<int>
+vector<int> file_to_vector_int(string file_path) {
+  
+  // initialise return object
+  vector<int> ret;
+  
+  // read in values from comma-separated file
+  ifstream infile(file_path);
+  std::string line1, line2;
+  int x;
+  while (getline(infile, line1)) {
+    istringstream ss(line1);
+    while (getline(ss, line2, ',')) {
+      if (line2.size() > 0) {
+        istringstream(line2) >> x;
+        ret.push_back(x);
+      }
+    }
+  }
+  
+  return ret;
+}
+
+//------------------------------------------------
 // read values from comma-separated text file to vector<double>
 vector<double> file_to_vector_double(string file_path) {
   

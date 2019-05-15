@@ -302,6 +302,10 @@ std::vector<std::vector<std::vector<double>>> rcpp_to_array_double(Rcpp::List x)
 #endif
 
 //------------------------------------------------
+// read values from comma-separated text file to vector<int>
+std::vector<int> file_to_vector_int(std::string file_path);
+
+//------------------------------------------------
 // read values from comma-separated text file to vector<double>
 std::vector<double> file_to_vector_double(std::string file_path);
 

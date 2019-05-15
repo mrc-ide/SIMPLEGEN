@@ -6,7 +6,7 @@ using namespace std;
 //------------------------------------------------
 // declare static member variables
 
-// define scalars
+// scalar epi parameters
 double Parameters::a;
 double Parameters::p;
 double Parameters::mu;
@@ -16,7 +16,7 @@ int Parameters::v;
 int Parameters::g;
 int Parameters::max_innoculations;
 
-// define distributions
+// epi distributions
 vector<double> Parameters::prob_acute;
 vector<double> Parameters::prob_infection;
 vector<double> Parameters::infectivity_acute;
@@ -24,16 +24,26 @@ vector<double> Parameters::infectivity_chronic;
 vector<vector<double>> Parameters::duration_acute;
 vector<vector<double>> Parameters::duration_chronic;
 
+// deme parameters
+vector<int> Parameters::H;
+vector<int> Parameters::seed_infections;
+vector<int> Parameters::M;
+
+// demog parameters
+vector<double> Parameters::life_table;
+vector<double> Parameters::age_death;
+vector<double> Parameters::age_stable;
+
 //------------------------------------------------
-// load parameter values
-void Parameters::load_values(double a, double p, double mu, double prob_AC,
-                             int u, int v, int g, int max_innoculations,
-                             vector<double> prob_acute,
-                             vector<double> prob_infection,
-                             vector<double> infectivity_acute,
-                             vector<double> infectivity_chronic,
-                             vector<vector<double>> duration_acute,
-                             vector<vector<double>> duration_chronic) {
+// load epi parameter values
+void Parameters::load_epi_params(double a, double p, double mu, double prob_AC,
+                                 int u, int v, int g, int max_innoculations,
+                                 vector<double> prob_acute,
+                                 vector<double> prob_infection,
+                                 vector<double> infectivity_acute,
+                                 vector<double> infectivity_chronic,
+                                 vector<vector<double>> duration_acute,
+                                 vector<vector<double>> duration_chronic) {
   
   // define scalars
   this->a = a;
@@ -55,10 +65,34 @@ void Parameters::load_values(double a, double p, double mu, double prob_AC,
 }
 
 //------------------------------------------------
+// load deme parameter values
+void Parameters::load_deme_params(vector<int> H,
+                                  vector<int> seed_infections,
+                                  vector<int> M) {
+  
+  // distributions
+  this->H = H;
+  this->seed_infections = seed_infections;
+  this->M = M;
+}
+
+//------------------------------------------------
+// load demography parameter values
+void Parameters::load_demog_params(vector<double> life_table,
+                       vector<double> age_death,
+                       vector<double> age_stable) {
+  
+  // distributions
+  this->life_table = life_table;
+  this->age_death = age_death;
+  this->age_stable = age_stable;
+}
+
+//------------------------------------------------
 // print summary of parameters
 void Parameters::summary() {
   
-  // print scalars
+  // print epi scalars
   print("a:", a);
   print("p:", p);
   print("mu:", mu);
@@ -68,7 +102,7 @@ void Parameters::summary() {
   print("g:", g);
   print("max_innoculations:", max_innoculations);
   
-  // print distributions
+  // print epi distributions
   print("prob_acute:");
   print_vector(prob_acute);
   print("prob_infection:");
@@ -82,5 +116,20 @@ void Parameters::summary() {
   print("duration_chronic:");
   print_matrix(duration_chronic);
   
+  // print deme parameters
+  print("H:");
+  print_vector(H);
+  print("seed_infections:");
+  print_vector(seed_infections);
+  print("M:");
+  print_vector(M);
+  
+  // print demog parameters
+  print("life_table:");
+  print_vector(life_table);
+  print("age_death:");
+  print_vector(age_death);
+  print("age_stable:");
+  print_vector(age_stable);
 }
 
