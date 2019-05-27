@@ -20,17 +20,21 @@ public:
   // epi distributions
   static std::vector<double> prob_acute;
   static std::vector<double> prob_infection;
-  static std::vector<double> infectivity_acute;
-  static std::vector<double> infectivity_chronic;
+  static int n_prob_infection;
+  static std::vector<std::vector<double>> infectivity_acute;
+  static std::vector<std::vector<double>> infectivity_chronic;
+  static double max_infectivity;
   static std::vector<std::vector<double>> duration_acute;
   static std::vector<std::vector<double>> duration_chronic;
   
   // deme parameters
-  static std::vector<int> H;
+  static std::vector<int> H_init;
   static std::vector<int> seed_infections;
   static std::vector<int> M;
+  static int n_demes;
   
   // demog parameters
+  static std::vector<double> life_table;
   static std::vector<double> age_death;
   static std::vector<double> age_stable;
   
@@ -38,6 +42,11 @@ public:
   static int max_time;
   static bool output_daily_counts, output_age_distributions, output_infection_history, silent;
   static std::vector<int> output_age_times;
+  
+  // misc parameters
+  static double prob_mosq_death;  // daily probability of mosquito death
+  //double prob_survive_extrinsic;  // probability of mosquito surviving the extrinsic incubation period
+  
   
   // PUBLIC FUNCTIONS
   
@@ -49,16 +58,17 @@ public:
                        int u, int v, int g, int max_innoculations,
                        std::vector<double> prob_acute,
                        std::vector<double> prob_infection,
-                       std::vector<double> infectivity_acute,
-                       std::vector<double> infectivity_chronic,
+                       std::vector<std::vector<double>> infectivity_acute,
+                       std::vector<std::vector<double>> infectivity_chronic,
                        std::vector<std::vector<double>> duration_acute,
                        std::vector<std::vector<double>> duration_chronic);
   
-  void load_deme_params(std::vector<int> H,
+  void load_deme_params(std::vector<int> H_init,
                         std::vector<int> seed_infections,
                         std::vector<int> M);
   
-  void load_demog_params(std::vector<double> age_death,
+  void load_demog_params(std::vector<double> life_table,
+                         std::vector<double> age_death,
                          std::vector<double> age_stable);
   
   void load_run_params(int max_time,

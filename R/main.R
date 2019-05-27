@@ -61,10 +61,15 @@ simplegen_file <- function(name) {
 #'   is used for all incidents of acute disease.
 #' @param duration_chronic equivalent to \code{duration_acute} but for chronic
 #'   phase of disease.
-#' @param infectivity_acute probability a mosquito becomes infected after biting
-#'   a human host in the acute phase.
-#' @param infectivity_chronic probability a mosquito becomes infected after
-#'   biting a human host in the chronic phase.
+#' @param infectivity_acute vector or list specifying the probability at each
+#'   time point (in days since entering the infective state) that a mosquito
+#'   becomes infected upon biting a human host in the acute phase. If a list
+#'   then the first element specifies the vector for the first incident of acute
+#'   disease, the second element for the second incident and so on (the final
+#'   vector is used for all remaining incidents). If a single vector then the
+#'   same values are used for all incidents of acute disease.
+#' @param infectivity_chronic equivalent to \code{infectivity_acute} but for
+#'   chronic phase of disease.
 #' @param max_innoculations maximum number of innoculations that an individual
 #'   can hold simultaneously.
 #'
@@ -98,16 +103,22 @@ define_epi_parameters <- function(project,
   assert_bounded(prob_infection)
   assert_bounded(prob_acute)
   assert_single_bounded(prob_AC)
-  if (!is.list(duration_acute)) {  # force to list
-    duration_acute <- list(duration_acute)
+  if (!is.list(duration_acute)) {
+    duration_acute <- list(duration_acute)  # force to list
   }
   mapply(assert_pos, duration_acute)
-  if (!is.list(duration_chronic)) {  # force to list
-    duration_chronic <- list(duration_chronic)
+  if (!is.list(duration_chronic)) {
+    duration_chronic <- list(duration_chronic)  # force to list
   }
   mapply(assert_pos, duration_chronic)
-  assert_bounded(infectivity_acute)
-  assert_bounded(infectivity_chronic)
+  if (!is.list(infectivity_acute)) {
+    infectivity_acute <- list(infectivity_acute)  # force to list
+  }
+  mapply(assert_bounded, infectivity_acute)
+  if (!is.list(infectivity_chronic)) {
+    infectivity_chronic <- list(infectivity_chronic)  # force to list
+  }
+  mapply(assert_bounded, infectivity_chronic)
   assert_single_pos_int(max_innoculations, zero_allowed = FALSE)
   
   # normalise input distributions to sum to 1
@@ -354,6 +365,7 @@ sim_epi <- function(project,
     vector_to_file(args$deme_parameters$M, paste0(arg_file_path, "M.txt"))
     
     # write demog vectors to file
+    vector_to_file(args$demography$life_table, paste0(arg_file_path, "life_table.txt"))
     vector_to_file(args$demography$age_death, paste0(arg_file_path, "age_death.txt"))
     vector_to_file(args$demography$age_stable, paste0(arg_file_path, "age_stable.txt"))
     

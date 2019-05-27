@@ -33,7 +33,7 @@ double log_sum(double logA, double logB) {
 
 //------------------------------------------------
 // sum boolean values and return integer
-int sum_bool(vector<bool> &x_vec) {
+int sum_bool(const vector<bool> &x_vec) {
   int ret = 0;
   for (int i=0; i<int(x_vec.size()); ++i) {
     ret += x_vec[i];

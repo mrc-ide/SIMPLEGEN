@@ -31,7 +31,7 @@ void Sampler::reset() {
   double p_remaining = sum_p;
   for (int i=0; i<int(p.size()); ++i) {
     int n_i = rbinom1(n_remaining, p[i]/p_remaining);
-    fill(x.begin()+n_cum, x.begin()+n_cum+n_i, i+1);
+    fill(x.begin()+n_cum, x.begin()+n_cum+n_i, i);
     n_cum += n_i;
     n_remaining -= n_i;
     p_remaining -= p[i];

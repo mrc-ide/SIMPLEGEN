@@ -34,8 +34,8 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args) {
                          rcpp_to_int(args_epi_parameters["max_innoculations"]),
                          rcpp_to_vector_double(args_epi_parameters["prob_acute"]),
                          rcpp_to_vector_double(args_epi_parameters["prob_infection"]),
-                         rcpp_to_vector_double(args_epi_parameters["infectivity_acute"]),
-                         rcpp_to_vector_double(args_epi_parameters["infectivity_chronic"]),
+                         rcpp_to_matrix_double(args_epi_parameters["infectivity_acute"]),
+                         rcpp_to_matrix_double(args_epi_parameters["infectivity_chronic"]),
                          rcpp_to_matrix_double(args_epi_parameters["duration_acute"]),
                          rcpp_to_matrix_double(args_epi_parameters["duration_chronic"]));
   
@@ -43,7 +43,8 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args) {
                           rcpp_to_vector_int(args_deme_parameters["seed_infections"]),
                           rcpp_to_vector_int(args_deme_parameters["M"]));
   
-  params.load_demog_params(rcpp_to_vector_double(args_demog_parameters["age_death"]),
+  params.load_demog_params(rcpp_to_vector_double(args_demog_parameters["life_table"]),
+                           rcpp_to_vector_double(args_demog_parameters["age_death"]),
                            rcpp_to_vector_double(args_demog_parameters["age_stable"]));
   
   params.load_run_params(rcpp_to_int(args_run_parameters["max_time"]),
@@ -62,7 +63,7 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args) {
   // end timer
   chrono_timer(t1);
   
-  return Rcpp::List::create(Rcpp::Named("foo") = -9);
+  return Rcpp::List::create(Rcpp::Named("daily_values") = dispatcher.daily_values);
 }
 #else
 int main(int argc, const char * argv[]) {  // main function when not using Rcpp
@@ -107,8 +108,8 @@ int main(int argc, const char * argv[]) {  // main function when not using Rcpp
                          epi_scalar[4], epi_scalar[5], epi_scalar[6], epi_scalar[7],
                          file_to_vector_double(prob_acute_path),
                          file_to_vector_double(prob_infection_path),
-                         file_to_vector_double(infectivity_acute_path),
-                         file_to_vector_double(infectivity_chronic_path),
+                         file_to_matrix_double(infectivity_acute_path),
+                         file_to_matrix_double(infectivity_chronic_path),
                          file_to_matrix_double(duration_acute_path),
                          file_to_matrix_double(duration_chronic_path));
   
@@ -116,7 +117,8 @@ int main(int argc, const char * argv[]) {  // main function when not using Rcpp
                           file_to_vector_int(seed_infections_path),
                           file_to_vector_int(M_path));
   
-  params.load_demog_params(file_to_vector_double(age_death_path),
+  params.load_demog_params(file_to_vector_double(life_table_path),
+                           file_to_vector_double(age_death_path),
                            file_to_vector_double(age_stable_path));
   
   params.load_run_params(max_time, output_daily_counts, output_age_distributions,
