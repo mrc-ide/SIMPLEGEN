@@ -49,170 +49,173 @@ simplegen_file <- function(name) {
 #' @param g lag time between human blood-stage infection and production of
 #'   gametocytes.
 #' @param prob_infection probability a human becomes infected after being bitten
-#'   by an infected mosquito.
-#' @param prob_acute probability an infection goes through an acute phase.
-#' @param prob_AC probability of acute infection transitioning to chronic before
-#'   clearing, as opposed to clearing directly.
-#' @param duration_acute vector or list specifying probability distribution of
-#'   time (in days) of acute phase of disease. If a list then the first element
-#'   specifies the distribution for the first incident of acute disease, the
-#'   second element for the second incident and so on (the final distribution is
-#'   used for all remaining incidents). If a vector then the same distribution
+#'   by an infected mosquito. If a vector then each value applies to each
+#'   subsequent infection.
+#' @param prob_acute probability an infection passes to the acute stage, rather
+#'   than going directly to the chronic stage. If a vector then each value
+#'   applies to each subsequent infection.
+#' @param prob_AC probability an infection in the acute stage passes to the
+#'   chronic stage prior to recovery, rather than recovering directly. If a
+#'   vector then each value applies to each subsequent infection.
+#' @param duration_acute specifies the probability distribution of duration (in
+#'   days) of acute disease. Can be vector or list: if a list then the first
+#'   element specifies the distribution for the first incident of acute disease,
+#'   the second element for the second incident and so on (the final element is
+#'   used for all remaining incidents); if a vector then the same distribution
 #'   is used for all incidents of acute disease.
 #' @param duration_chronic equivalent to \code{duration_acute} but for chronic
-#'   phase of disease.
-#' @param infectivity_acute vector or list specifying the probability at each
-#'   time point (in days since entering the infective state) that a mosquito
-#'   becomes infected upon biting a human host in the acute phase. If a list
-#'   then the first element specifies the vector for the first incident of acute
-#'   disease, the second element for the second incident and so on (the final
-#'   vector is used for all remaining incidents). If a single vector then the
-#'   same values are used for all incidents of acute disease.
+#'   disease.
+#' @param infectivity_acute specifies the probability that a mosquito becomes
+#'   infected upon biting an acutely infective human host. Values specify the
+#'   infectivity at each day since entering the infective state. Can be vector
+#'   or list: if a list then the first element specifies the infectivity for the
+#'   first incident of acute disease, the second element for the second incident
+#'   and so on (the final element is used for all remaining incidents); if a
+#'   vector then the same infectivity is used for all incidents of acute
+#'   disease.
 #' @param infectivity_chronic equivalent to \code{infectivity_acute} but for
-#'   chronic phase of disease.
+#'   chronic disease.
 #' @param max_innoculations maximum number of innoculations that an individual
 #'   can hold simultaneously.
-#'
-#' @importFrom stats dgeom
-#' @export
-
-define_epi_parameters <- function(project,
-                                  a = 0.3,
-                                  p = 0.85,
-                                  mu = -log(p),
-                                  u = 12,
-                                  v = 10,
-                                  g = 12,
-                                  prob_infection = 0.6,
-                                  prob_acute = c(1,0.5,0),
-                                  prob_AC = 0.2,
-                                  duration_acute = dgeom(1:25, 1/5),
-                                  duration_chronic = dgeom(1:1000, 1/200),
-                                  infectivity_acute = 0.07,
-                                  infectivity_chronic = 0.07,
-                                  max_innoculations = 5) {
-  
-  # check inputs
-  assert_custom_class(project, "simplegen_project")
-  assert_single_bounded(a)
-  assert_single_bounded(p)
-  assert_single_pos(mu)
-  assert_single_pos_int(u, zero_allowed = FALSE)
-  assert_single_pos_int(v, zero_allowed = FALSE)
-  assert_single_pos_int(g, zero_allowed = FALSE)
-  assert_bounded(prob_infection)
-  assert_bounded(prob_acute)
-  assert_single_bounded(prob_AC)
-  if (!is.list(duration_acute)) {
-    duration_acute <- list(duration_acute)  # force to list
-  }
-  mapply(assert_pos, duration_acute)
-  if (!is.list(duration_chronic)) {
-    duration_chronic <- list(duration_chronic)  # force to list
-  }
-  mapply(assert_pos, duration_chronic)
-  if (!is.list(infectivity_acute)) {
-    infectivity_acute <- list(infectivity_acute)  # force to list
-  }
-  mapply(assert_bounded, infectivity_acute)
-  if (!is.list(infectivity_chronic)) {
-    infectivity_chronic <- list(infectivity_chronic)  # force to list
-  }
-  mapply(assert_bounded, infectivity_chronic)
-  assert_single_pos_int(max_innoculations, zero_allowed = FALSE)
-  
-  # normalise input distributions to sum to 1
-  for (i in 1:length(duration_acute)) {
-    duration_acute[[i]] <- duration_acute[[i]]/sum(duration_acute[[i]])
-  }
-  for (i in 1:length(duration_chronic)) {
-    duration_chronic[[i]] <- duration_chronic[[i]]/sum(duration_chronic[[i]])
-  }
-  
-  # modify project to store parameters
-  project$sim_parameters$epi_parameters <- list(a = a,
-                                                p = p,
-                                                mu = mu,
-                                                u = u,
-                                                v = v,
-                                                g = g,
-                                                prob_infection = prob_infection,
-                                                prob_acute = prob_acute,
-                                                prob_AC = prob_AC,
-                                                duration_acute = duration_acute,
-                                                duration_chronic = duration_chronic,
-                                                infectivity_acute = infectivity_acute,
-                                                infectivity_chronic = infectivity_chronic,
-                                                max_innoculations = max_innoculations)
-  
-  # return
-  invisible(project)
-}
-
-#------------------------------------------------
-#' @title Define deme parameters
-#'
-#' @description Define the parameters of each deme in a SIMPLEGEN simulation.
-#'   These parameters will be used when simulating epidemiolocal data.
-#'
-#' @param project a SIMPLEGEN project.
 #' @param H vector specifying human population size in each deme.
 #' @param seed_infections vector specifying the initial number of infected
 #'   humans in each deme. Infected humans are assumed to have just been bitten,
 #'   meaning they have just entered the latent phase.
 #' @param M vector specifying mosquito population size (strictly the number of
 #'   adult female mosquitoes) in each deme.
+#' @param life_table vector specifying probability of death in each one-year age
+#'   group. Final value must be 1 to ensure a closed population. If \code{NULL}
+#'   then an age distribution from Mali is used by default.
 #'
+#' @importFrom stats dgeom
 #' @export
 
-define_deme_parameters <- function(project,
-                                   H = 1000,
-                                   seed_infections = 100,
-                                   M = 1000) {
+define_params <- function(project,
+                          a = 0.3,
+                          p = 0.85,
+                          mu = -log(p),
+                          u = 12,
+                          v = 10,
+                          g = 12,
+                          prob_infection = 0.6,
+                          prob_acute = 1.0,
+                          prob_AC = 1.0,
+                          duration_acute = dgeom(1:25, 1/5),
+                          duration_chronic = dgeom(1:25, 1/5),
+                          infectivity_acute = 0.07,
+                          infectivity_chronic = 0.07,
+                          max_innoculations = 5,
+                          H = 1000,
+                          seed_infections = 100,
+                          M = 1000,
+                          life_table = NULL) {
   
-  # check inputs
-  assert_custom_class(project, "simplegen_project")
-  assert_pos_int(H)
-  assert_pos_int(seed_infections)
-  assert_pos_int(M)
-  assert_same_length_multiple(H, seed_infections, M)
-  assert_leq(seed_infections, H)
+  # get current life table
+  life_table_before <- project$life_table
   
-  # modify project to store parameters
-  project$sim_parameters$deme_parameters <- list(H = H,
-                                                 seed_infections = seed_infections,
-                                                 M = M)
+  # use Mali life table by default
+  if (is.null(life_table)) {
+    life_table_raw <- simplegen_file("Mali_life_table.csv")
+    life_table <- life_table_raw[,2]
+  }
+  
+  # replace project parameters with user-defined
+  userlist <- as.list(match.call())[-(1:2)]
+  project$sim_parameters[names(userlist)] <- mapply(eval, userlist, SIMPLIFY = FALSE)
+  
+  # give all NULL parameters default values
+  arglist <- list(a = a,
+                  p = p,
+                  mu = mu,
+                  u = u,
+                  v = v,
+                  g = g,
+                  prob_infection = prob_infection,
+                  prob_acute = prob_acute,
+                  prob_AC = prob_AC,
+                  duration_acute = duration_acute,
+                  duration_chronic = duration_chronic,
+                  infectivity_acute = infectivity_acute,
+                  infectivity_chronic = infectivity_chronic,
+                  max_innoculations = max_innoculations,
+                  H = H,
+                  seed_infections = seed_infections,
+                  M = M,
+                  life_table = life_table)
+  argnull <- mapply(is.null, project$sim_parameters[names(arglist)])
+  project$sim_parameters[which(argnull)] <- arglist[which(argnull)]
+  
+  # standardise and perform checks
+  params_processed <- process_params(project$sim_parameters)
+  check_params(params_processed)
+  
+  # update demography distributions as needed
+  if (!isTRUE(all.equal(life_table_before, project$sim_parameters$life_table))) {
+    demog <- get_demography(life_table)
+    project$sim_parameters$age_death <- demog$age_death
+    project$sim_parameters$age_stable <- demog$age_stable
+  }
   
   # return
   invisible(project)
 }
 
 #------------------------------------------------
-#' @title Define demographic parameters
-#'
-#' @description Define demography used in SIMPLEGEN simulation. The raw input is
-#'   a life table giving the probability of death in each one-year age group.
-#'   This is used to derive the distribution of age of death, and the stable age
-#'   distribution.
-#'
-#' @param project a SIMPLEGEN project.
-#' @param life_table vector specifying probability of death in each one-year age
-#'   group. Final value must be 1 to ensure a closed population. If \code{NULL}
-#'   then an age-distribution from Mali is used by default.
-#'
-#' @export
-
-define_demograpy <- function(project,
-                             life_table = NULL) {
+# convert parameters to standardised type
+#' @noRd
+process_params <- function(x) {
   
-  # check inputs
-  assert_custom_class(project, "simplegen_project")
-  if (is.null(life_table)) {
-    life_table_raw <- simplegen_file("Mali_life_table.csv")
-    life_table <- life_table_raw[,2]
+  # standardise parameters
+  if (!is.list(x$duration_acute)) {
+    x$duration_acute <- list(x$duration_acute)
   }
-  assert_bounded(life_table)
-  assert_eq(life_table[length(life_table)], 1, message = "the final value in the life table must be 1, representing a 100%% chance of dying, to ensure a closed population")
+  if (!is.list(x$duration_chronic)) {
+    x$duration_chronic <- list(x$duration_chronic)
+  }
+  if (!is.list(x$infectivity_acute)) {
+    x$infectivity_acute <- list(x$infectivity_acute)
+  }
+  if (!is.list(x$infectivity_chronic)) {
+    x$infectivity_chronic <- list(x$infectivity_chronic)
+  }
+  
+  return(x)
+}
+
+#------------------------------------------------
+# perform checks on parameters
+#' @noRd
+check_params <- function(x) {
+  
+  # perform checks
+  assert_single_bounded(x$a, name = "a")
+  assert_single_bounded(x$p, name = "p")
+  assert_single_pos(x$mu, name = "mu")
+  assert_single_pos_int(x$u, zero_allowed = FALSE, name = "u")
+  assert_single_pos_int(x$v, zero_allowed = FALSE, name = "v")
+  assert_single_pos_int(x$g, zero_allowed = FALSE, name = "g")
+  assert_bounded(x$prob_infection, name = "prob_infection")
+  assert_bounded(x$prob_acute, name = "prob_acute")
+  assert_bounded(x$prob_AC, name = "prob_AC")
+  mapply(assert_pos, x$duration_acute, name = "duration_acute")
+  mapply(assert_pos, x$duration_chronic, name = "duration_chronic")
+  mapply(assert_bounded, x$infectivity_acute, name = "infectivity_acute")
+  mapply(assert_bounded, x$infectivity_chronic, name = "infectivity_chronic")
+  assert_single_pos_int(x$max_innoculations, zero_allowed = FALSE, name = "max_innoculations")
+  assert_pos_int(x$H, name = "H")
+  assert_pos_int(x$seed_infections, name = "seed_infections")
+  assert_pos_int(x$M, name = "M")
+  assert_same_length_multiple(x$H, x$seed_infections, x$M)
+  assert_leq(x$seed_infections, x$H, name_x = "seed_infections", name_y = "H")
+  assert_bounded(x$life_table, name = "life_table")
+  assert_eq(x$life_table[length(x$life_table)], 1, message = "the final value in the life table must be 1, representing a 100%% chance of dying, to ensure a closed population")
+  
+}
+
+#------------------------------------------------
+# get stable demography distribution from life table
+#' @noRd
+get_demography <- function(life_table) {
   
   # compute distribution of age of death
   n <- length(life_table)
@@ -241,37 +244,11 @@ define_demograpy <- function(project,
   # the stable solution is the corresponding Eigenvector, suitably normalised
   age_stable <- Re(E$vectors[,w]/sum(E$vectors[,w]))
   
-  # modify project to store distributions
-  project$sim_parameters$demography <- list(life_table = life_table,
-                                            age_death = age_death,
-                                            age_stable = age_stable)
-  
-  # return
-  invisible(project)
-}
-
-#------------------------------------------------
-#' @title Define migration parameters
-#'
-#' @description Define default migration parameters for SIMPLEGEN simulation.
-#'
-#' @param project a SIMPLEGEN project.
-#' @param migration_matrix TODO - rethink this input type to allow "trip"
-#'   migration.
-#'
-#' @export
-
-define_migration <- function(project,
-                             migration_matrix = matrix(1)) {
-  
-  # check inputs
-  assert_custom_class(project, "simplegen_project")
-  
-  # modify project
-  project$sim_parameters$migration <- migration_matrix
-  
-  # return
-  invisible(project)
+  # return list of distributions
+  ret <- list(life_table = life_table,
+              age_death = age_death,
+              age_stable = age_stable)
+  return(ret)
 }
 
 #------------------------------------------------
@@ -316,16 +293,18 @@ sim_epi <- function(project,
   
   # ---------- define argument lists ----------
   
-  # parameters from project
-  args <- project$sim_parameters
+  # get project params into standardised format and perform checks
+  args <- process_params(project$sim_parameters)
+  check_params(args)
   
-  # simulation parameters from function arguments
-  args$run_parameters <- list(max_time = max_time,
-                              output_daily_counts = output_daily_counts,
-                              output_age_distributions = output_age_distributions,
-                              output_age_times = output_age_times,
-                              output_infection_history = output_infection_history,
-                              silent = silent)
+  # append arguments
+  args <- c(args,
+            list(max_time = max_time,
+                 output_daily_counts = output_daily_counts,
+                 output_age_distributions = output_age_distributions,
+                 output_age_times = output_age_times,
+                 output_infection_history = output_infection_history,
+                 silent = silent))
   
   # ---------- run simulation ----------
   
@@ -346,18 +325,15 @@ sim_epi <- function(project,
     
     # write scalar epi parameters to file
     arg_file_path <- "R_ignore/SIMPLEGEN_Xcode/args/"
-    scalar_epi_params <- c("a", "p", "mu", "u", "v", "g", "prob_AC", "max_innoculations")
-    vector_to_file(unlist(args$epi_parameters[scalar_epi_params]), paste0(arg_file_path, "epi_scalar.txt"))
+    scalar_epi_params <- c("a", "p", "mu", "u", "v", "g", "max_innoculations")
+    vector_to_file(unlist(args[scalar_epi_params]), paste0(arg_file_path, "epi_scalar.txt"))
     
     # write epi vectors to file
-    vector_to_file(args$epi_parameters$prob_infection, paste0(arg_file_path, "prob_infection.txt"))
-    vector_to_file(args$epi_parameters$prob_acute, paste0(arg_file_path, "prob_acute.txt"))
-    vector_to_file(args$epi_parameters$infectivity_acute, paste0(arg_file_path, "infectivity_acute.txt"))
-    vector_to_file(args$epi_parameters$infectivity_chronic, paste0(arg_file_path, "infectivity_chronic.txt"))
+    vector_to_file(args$prob_infection, paste0(arg_file_path, "prob_infection.txt"))
+    vector_to_file(args$infectivity, paste0(arg_file_path, "infectivity.txt"))
     
     # write epi matrices (or lists of vectors) to file
-    matrix_to_file(args$epi_parameters$duration_acute, paste0(arg_file_path, "duration_acute.txt"))
-    matrix_to_file(args$epi_parameters$duration_chronic, paste0(arg_file_path, "duration_chronic.txt"))
+    matrix_to_file(args$duration_disease, paste0(arg_file_path, "duration_disease.txt"))
     
     # write deme vectors to file
     vector_to_file(args$deme_parameters$H, paste0(arg_file_path, "H.txt"))

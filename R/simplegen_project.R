@@ -15,17 +15,16 @@ simplegen_project <- function() {
                   sim_output = NULL)
   class(project) <- "simplegen_project"
   
-  # use default epi parameters
-  project <- define_epi_parameters(project)
-  
-  # use default deme parameters
-  project <- define_deme_parameters(project)
-  
-  # use default life table
-  project <- define_demograpy(project)
-  
-  # use default migration parameters
-  project <- define_migration(project)
+  # set all parameters to NULL
+  param_names <- c("a", "p", "mu", "u", "v", "g",
+                   "prob_infection", "prob_acute", "prob_AC",
+                   "duration_acute", "duration_chronic",
+                   "infectivity_acute", "infectivity_chronic",
+                   "max_innoculations",
+                   "H", "seed_infections", "M",
+                   "life_table")
+  project$sim_parameters <- replicate(length(param_names), NULL)
+  names(project$sim_parameters) <- param_names
   
   # return
   invisible(project)
@@ -51,3 +50,4 @@ summary.simplegen_project <- function(x, ...) {
   message("TODO - some default print method")
   
 }
+

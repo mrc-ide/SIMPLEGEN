@@ -20,7 +20,8 @@ public:
   // objects for sampling from probability distributions
   Sampler sampler_age_stable;
   Sampler sampler_age_death;
-  Sampler sampler_duration_acute;
+  std::vector<Sampler> sampler_duration_acute;
+  std::vector<Sampler> sampler_duration_chronic;
   
   // scheduler objects
   std::vector<std::set<int>> schedule_death;

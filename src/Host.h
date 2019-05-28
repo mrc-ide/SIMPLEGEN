@@ -38,7 +38,8 @@ public:
   // distributions
   Sampler* sampler_age_stable_ptr;
   Sampler* sampler_age_death_ptr;
-  Sampler* sampler_duration_acute_ptr;
+  std::vector<Sampler>* sampler_duration_acute_ptr;
+  std::vector<Sampler>* sampler_duration_chronic_ptr;
   
   // pointers to scheduler objects, for adding events to schedulers
   std::vector<std::set<int>>* schedule_death_ptr;
@@ -76,7 +77,8 @@ public:
             std::vector<std::vector<std::pair<int, int>>> &schedule_Ih_to_Sh,
             std::vector<std::vector<std::pair<int, int>>> &schedule_infective,
             std::vector<std::vector<std::pair<int, int>>> &schedule_infective_recovery,
-            Sampler &sampler_age_stable, Sampler &sampler_age_death, Sampler &sampler_duration_acute);
+            Sampler &sampler_age_stable, Sampler &sampler_age_death,
+            std::vector<Sampler> &sampler_duration_acute, std::vector<Sampler> &sampler_duration_chronic);
   
   void draw_starting_age();
   void death(int &ID, int birth_day);

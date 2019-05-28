@@ -11,7 +11,14 @@ Dispatcher::Dispatcher() {
   // objects for sampling from probability distributions
   sampler_age_stable = Sampler(age_stable, 1000);
   sampler_age_death = Sampler(age_death, 1000);
-  sampler_duration_acute = Sampler(duration_acute[0], 1000);
+  sampler_duration_acute = vector<Sampler>(n_duration_acute);
+  for (int i = 0; i < n_duration_acute; ++i) {
+    sampler_duration_acute[i] = Sampler(duration_acute[i], 1000);
+  }
+  sampler_duration_chronic = vector<Sampler>(n_duration_chronic);
+  for (int i = 0; i < n_duration_chronic; ++i) {
+    sampler_duration_chronic[i] = Sampler(duration_chronic[i], 1000);
+  }
   
   // events are enacted using scheduler objects. New events (e.g. infection) are
   // generated in the current time step, and future events (e.g. transition to
@@ -57,7 +64,8 @@ Dispatcher::Dispatcher() {
                                host_infective_index,
                                schedule_death, schedule_Eh_to_Ih, schedule_Ih_to_Sh,
                                schedule_infective, schedule_infective_recovery,
-                               sampler_age_stable, sampler_age_death, sampler_duration_acute);
+                               sampler_age_stable, sampler_age_death,
+                               sampler_duration_acute, sampler_duration_chronic);
     }
   }
   

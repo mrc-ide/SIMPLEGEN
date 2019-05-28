@@ -10,21 +10,27 @@ using namespace std;
 double Parameters::a;
 double Parameters::p;
 double Parameters::mu;
-double Parameters::prob_AC;
 int Parameters::u;
 int Parameters::v;
 int Parameters::g;
 int Parameters::max_innoculations;
 
 // epi distributions
-vector<double> Parameters::prob_acute;
 vector<double> Parameters::prob_infection;
 int Parameters::n_prob_infection;
-vector<vector<double>> Parameters::infectivity_acute;
-vector<vector<double>> Parameters::infectivity_chronic;
-double Parameters::max_infectivity;
+vector<double> Parameters::prob_acute;
+int Parameters::n_prob_acute;
+vector<double> Parameters::prob_AC;
+int Parameters::n_prob_AC;
 vector<vector<double>> Parameters::duration_acute;
+int Parameters::n_duration_acute;
 vector<vector<double>> Parameters::duration_chronic;
+int Parameters::n_duration_chronic;
+vector<vector<double>> Parameters::infectivity_acute;
+int Parameters::n_infectivity_acute;
+vector<vector<double>> Parameters::infectivity_chronic;
+int Parameters::n_infectivity_chronic;
+double Parameters::max_infectivity;
 
 // deme parameters
 vector<int> Parameters::H_init;
@@ -50,34 +56,41 @@ double Parameters::prob_mosq_death;
 
 //------------------------------------------------
 // load epi parameter values
-void Parameters::load_epi_params(double a, double p, double mu, double prob_AC,
-                                 int u, int v, int g, int max_innoculations,
-                                 vector<double> prob_acute,
+void Parameters::load_epi_params(double a, double p, double mu,
+                                 int u, int v, int g,
                                  vector<double> prob_infection,
+                                 vector<double> prob_acute,
+                                 vector<double> prob_AC,
+                                 vector<vector<double>> duration_acute,
+                                 vector<vector<double>> duration_chronic,
                                  vector<vector<double>> infectivity_acute,
                                  vector<vector<double>> infectivity_chronic,
-                                 vector<vector<double>> duration_acute,
-                                 vector<vector<double>> duration_chronic) {
+                                 int max_innoculations) {
   
   // define scalars
   this->a = a;
   this->p = p;
   this->mu = mu;
-  this->prob_AC = prob_AC;
   this->u = u;
   this->v = v;
   this->g = g;
   this->max_innoculations = max_innoculations;
   
   // distributions
-  this->prob_acute = prob_acute;
   this->prob_infection = prob_infection;
   n_prob_infection = int(prob_infection.size());
-  this->infectivity_acute = infectivity_acute;
-  this->infectivity_chronic = infectivity_chronic;
-  //max_infectivity = (max(infectivity_acute) > max(infectivity_chronic)) ? max(infectivity_acute) : max(infectivity_chronic);
+  this->prob_acute = prob_acute;
+  n_prob_acute = int(prob_acute.size());
+  this->prob_AC = prob_AC;
+  n_prob_AC = int(prob_AC.size());
   this->duration_acute = duration_acute;
+  n_duration_acute = int(duration_acute.size());
   this->duration_chronic = duration_chronic;
+  n_duration_chronic = int(duration_chronic.size());
+  this->infectivity_acute = infectivity_acute;
+  n_infectivity_acute = int(infectivity_acute.size());
+  this->infectivity_chronic = infectivity_chronic;
+  n_infectivity_chronic = int(infectivity_chronic.size());
   
   // get max infectivity over all distributions
   max_infectivity = 0.0;
@@ -90,7 +103,6 @@ void Parameters::load_epi_params(double a, double p, double mu, double prob_AC,
   
   // misc parameters
   prob_mosq_death = 1 - exp(-mu);  // daily probability of mosquito death
-  //prob_survive_extrinsic = pow(1 - prob_mosq_death, v);  // probability of mosquito surviving the extrinsic incubation period
   
 }
 
@@ -146,25 +158,26 @@ void Parameters::summary() {
   print("a:", a);
   print("p:", p);
   print("mu:", mu);
-  print("prob_AC:", prob_AC);
   print("u:", u);
   print("v:", v);
   print("g:", g);
   print("max_innoculations:", max_innoculations);
   
   // print epi distributions
-  print("prob_acute:");
-  print_vector(prob_acute);
   print("prob_infection:");
   print_vector(prob_infection);
-  print("infectivity_acute:");
-  print_matrix(infectivity_acute);
-  print("infectivity_chronic:");
-  print_matrix(infectivity_chronic);
+  print("prob_acute:");
+  print_vector(prob_acute);
+  print("prob_AC:");
+  print_vector(prob_AC);
   print("duration_acute:");
   print_matrix(duration_acute);
   print("duration_chronic:");
   print_matrix(duration_chronic);
+  print("infectivity_acute:");
+  print_matrix(infectivity_acute);
+  print("infectivity_chronic:");
+  print_matrix(infectivity_chronic);
   
   // print deme parameters
   print("H_init:");

@@ -16,43 +16,37 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args) {
   // start timer
   chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
   
-  // split args into sublists
-  Rcpp::List args_epi_parameters = args["epi_parameters"];
-  Rcpp::List args_deme_parameters = args["deme_parameters"];
-  Rcpp::List args_demog_parameters = args["demography"];
-  Rcpp::List args_run_parameters = args["run_parameters"];
-  
   // define parameters object and load values
   Parameters params;
-  params.load_epi_params(rcpp_to_double(args_epi_parameters["a"]),
-                         rcpp_to_double(args_epi_parameters["p"]),
-                         rcpp_to_double(args_epi_parameters["mu"]),
-                         rcpp_to_double(args_epi_parameters["prob_AC"]),
-                         rcpp_to_int(args_epi_parameters["u"]),
-                         rcpp_to_int(args_epi_parameters["v"]),
-                         rcpp_to_int(args_epi_parameters["g"]),
-                         rcpp_to_int(args_epi_parameters["max_innoculations"]),
-                         rcpp_to_vector_double(args_epi_parameters["prob_acute"]),
-                         rcpp_to_vector_double(args_epi_parameters["prob_infection"]),
-                         rcpp_to_matrix_double(args_epi_parameters["infectivity_acute"]),
-                         rcpp_to_matrix_double(args_epi_parameters["infectivity_chronic"]),
-                         rcpp_to_matrix_double(args_epi_parameters["duration_acute"]),
-                         rcpp_to_matrix_double(args_epi_parameters["duration_chronic"]));
+  params.load_epi_params(rcpp_to_double(args["a"]),
+                         rcpp_to_double(args["p"]),
+                         rcpp_to_double(args["mu"]),
+                         rcpp_to_int(args["u"]),
+                         rcpp_to_int(args["v"]),
+                         rcpp_to_int(args["g"]),
+                         rcpp_to_vector_double(args["prob_infection"]),
+                         rcpp_to_vector_double(args["prob_acute"]),
+                         rcpp_to_vector_double(args["prob_AC"]),
+                         rcpp_to_matrix_double(args["duration_acute"]),
+                         rcpp_to_matrix_double(args["duration_chronic"]),
+                         rcpp_to_matrix_double(args["infectivity_acute"]),
+                         rcpp_to_matrix_double(args["infectivity_chronic"]),
+                         rcpp_to_int(args["max_innoculations"]));
   
-  params.load_deme_params(rcpp_to_vector_int(args_deme_parameters["H"]),
-                          rcpp_to_vector_int(args_deme_parameters["seed_infections"]),
-                          rcpp_to_vector_int(args_deme_parameters["M"]));
+  params.load_deme_params(rcpp_to_vector_int(args["H"]),
+                          rcpp_to_vector_int(args["seed_infections"]),
+                          rcpp_to_vector_int(args["M"]));
   
-  params.load_demog_params(rcpp_to_vector_double(args_demog_parameters["life_table"]),
-                           rcpp_to_vector_double(args_demog_parameters["age_death"]),
-                           rcpp_to_vector_double(args_demog_parameters["age_stable"]));
+  params.load_demog_params(rcpp_to_vector_double(args["life_table"]),
+                           rcpp_to_vector_double(args["age_death"]),
+                           rcpp_to_vector_double(args["age_stable"]));
   
-  params.load_run_params(rcpp_to_int(args_run_parameters["max_time"]),
-                         rcpp_to_bool(args_run_parameters["output_daily_counts"]),
-                         rcpp_to_bool(args_run_parameters["output_age_distributions"]),
-                         rcpp_to_bool(args_run_parameters["output_infection_history"]),
-                         rcpp_to_bool(args_run_parameters["silent"]),
-                         rcpp_to_vector_int(args_run_parameters["output_age_times"]));
+  params.load_run_params(rcpp_to_int(args["max_time"]),
+                         rcpp_to_bool(args["output_daily_counts"]),
+                         rcpp_to_bool(args["output_age_distributions"]),
+                         rcpp_to_bool(args["output_infection_history"]),
+                         rcpp_to_bool(args["silent"]),
+                         rcpp_to_vector_int(args["output_age_times"]));
   
   //params.summary();
   

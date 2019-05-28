@@ -15,7 +15,8 @@ void Host::init(int index, int &ID, int deme,
                 vector<vector<pair<int, int>>> &schedule_Ih_to_Sh,
                 vector<vector<pair<int, int>>> &schedule_infective,
                 vector<vector<pair<int, int>>> &schedule_infective_recovery,
-                Sampler &sampler_age_stable, Sampler &sampler_age_death, Sampler &sampler_duration_acute) {
+                Sampler &sampler_age_stable, Sampler &sampler_age_death,
+                vector<Sampler> &sampler_duration_acute, vector<Sampler> &sampler_duration_chronic) {
   
   // identifiers
   this->index = index;
@@ -36,6 +37,7 @@ void Host::init(int index, int &ID, int deme,
   sampler_age_stable_ptr = &sampler_age_stable;
   sampler_age_death_ptr = &sampler_age_death;
   sampler_duration_acute_ptr = &sampler_duration_acute;
+  sampler_duration_chronic_ptr = &sampler_duration_chronic;
   
   // pointers to scheduler objects, for adding events to schedulers
   schedule_death_ptr = &schedule_death;
@@ -207,7 +209,7 @@ void Host::infection(int t) {
   innoc_status_asexual[this_slot] = Liverstage_asexual;
   
   // draw duration of infection
-  int duration_infection = sampler_duration_acute_ptr->draw() + 1;
+  int duration_infection = (*sampler_duration_acute_ptr)[0].draw() + 1;
   
   // get times of future events
   int t1 = t + u;                    // begin bloodstage
