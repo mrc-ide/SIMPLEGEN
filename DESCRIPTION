@@ -25,4 +25,7 @@ Imports:
 SystemRequirements: C++11
 Suggests: 
     testthat,
-    covr
+    covr,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

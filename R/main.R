@@ -1,5 +1,17 @@
 
 #------------------------------------------------
+#' @title Check that SIMPLEGEN package has loaded successfully
+#'
+#' @description Simple function to check that SIMPLEGEN package has loaded
+#'   successfully. Prints "SIMPLEGEN loaded successfully!" if so.
+#'
+#' @export
+
+check_SIMPLEGEN_loaded <- function() {
+  message("SIMPLEGEN loaded successfully!")
+}
+
+#------------------------------------------------
 #' @title Load system file
 #'
 #' @description Load a file from within the inst/extdata folder of the SIMPLEGEN
@@ -75,7 +87,7 @@ simplegen_file <- function(name) {
 #'   disease.
 #' @param infectivity_chronic equivalent to \code{infectivity_acute} but for
 #'   chronic disease.
-#' @param max_innoculations maximum number of innoculations that an individual
+#' @param max_inoculations maximum number of inoculations that an individual
 #'   can hold simultaneously.
 #' @param H vector specifying human population size in each deme.
 #' @param seed_infections vector specifying the initial number of infected
@@ -104,7 +116,7 @@ define_params <- function(project,
                           duration_chronic = dgeom(1:25, 1/5),
                           infectivity_acute = 0.07,
                           infectivity_chronic = 0.07,
-                          max_innoculations = 5,
+                          max_inoculations = 5,
                           H = 1000,
                           seed_infections = 100,
                           M = 1000,
@@ -137,7 +149,7 @@ define_params <- function(project,
                   duration_chronic = duration_chronic,
                   infectivity_acute = infectivity_acute,
                   infectivity_chronic = infectivity_chronic,
-                  max_innoculations = max_innoculations,
+                  max_inoculations = max_inoculations,
                   H = H,
                   seed_infections = seed_infections,
                   M = M,
@@ -201,7 +213,7 @@ check_params <- function(x) {
   mapply(assert_pos, x$duration_chronic, name = "duration_chronic")
   mapply(assert_bounded, x$infectivity_acute, name = "infectivity_acute")
   mapply(assert_bounded, x$infectivity_chronic, name = "infectivity_chronic")
-  assert_single_pos_int(x$max_innoculations, zero_allowed = FALSE, name = "max_innoculations")
+  assert_single_pos_int(x$max_inoculations, zero_allowed = FALSE, name = "max_inoculations")
   assert_pos_int(x$H, name = "H")
   assert_pos_int(x$seed_infections, name = "seed_infections")
   assert_pos_int(x$M, name = "M")
@@ -325,7 +337,7 @@ sim_epi <- function(project,
     
     # write scalar epi parameters to file
     arg_file_path <- "R_ignore/SIMPLEGEN_Xcode/args/"
-    scalar_epi_params <- c("a", "p", "mu", "u", "v", "g", "max_innoculations")
+    scalar_epi_params <- c("a", "p", "mu", "u", "v", "g", "max_inoculations")
     vector_to_file(unlist(args[scalar_epi_params]), paste0(arg_file_path, "epi_scalar.txt"))
     
     # write epi vectors to file

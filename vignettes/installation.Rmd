@@ -1,0 +1,54 @@
+---
+title: "Installation"
+author: "Bob Verity"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{"Installation"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+### Installing Rcpp
+
+SIMPLEGEN relies on the [Rcpp](https://cran.r-project.org/web/packages/Rcpp/index.html) package, which requires the following OS-specific steps:
+
+* Windows
+    - Download and install the appropriate version of [Rtools](https://cran.rstudio.com/bin/windows/Rtools/) for your version of R. On installation, ensure you check the box to arrange your system PATH as recommended by Rtools
+* Mac OS X
+    - Download and install [XCode](http://itunes.apple.com/us/app/xcode/id497799835?mt=12)
+    - Within XCode go to Preferences : Downloads and install the Command Line Tools
+* Linux (Debian/Ubuntu)
+    - Install the core software development utilities required for R package development as well as LaTeX by executing
+    
+        ```{}
+        sudo apt-get install r-base-dev texlive-full
+        ```
+
+### Installing and loading SIMPLEGEN
+
+Next, in R, ensure that you have the [devtools](https://www.rstudio.com/products/rpackages/devtools/) package installed by running
+
+```{r, eval = FALSE}
+install.packages("devtools", repos='http://cran.us.r-project.org')
+```
+
+Then install the SIMPLEGEN package directly from GitHub by running
+
+```{r, eval = FALSE}
+devtools::install_github("mrc-ide/SIMPLEGEN")
+```
+
+If you have any problems installing, please check the [Known issues](https://mrc-ide.github.io/SIMPLEGEN/articles/known_issues.html) page to see if there is a known solution. If not then please [raise an issue](https://github.com/mrc-ide/SIMPLEGEN/issues) on github.
+
+Assuming everything installed correctly, we need to load the package:
+
+```{r}
+library(SIMPLEGEN)
+```
+
+You can test that the package is loaded and working by running the following command, which should produce this output:
+
+```{r}
+check_SIMPLEGEN_loaded()
+```

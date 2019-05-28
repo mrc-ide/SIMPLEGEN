@@ -25,16 +25,21 @@ public:
   
   // scheduler objects
   std::vector<std::set<int>> schedule_death;
-  std::vector<std::vector<std::pair<int, int>>> schedule_Eh_to_Ih;
-  std::vector<std::vector<std::pair<int, int>>> schedule_Ih_to_Sh;
-  std::vector<std::vector<std::pair<int, int>>> schedule_infective;
+  std::vector<std::vector<std::pair<int, int>>> schedule_Eh_to_Ah;
+  std::vector<std::vector<std::pair<int, int>>> schedule_Eh_to_Ch;
+  std::vector<std::vector<std::pair<int, int>>> schedule_Ah_to_Ch;
+  std::vector<std::vector<std::pair<int, int>>> schedule_Ah_to_Sh;
+  std::vector<std::vector<std::pair<int, int>>> schedule_Ch_to_Sh;
+  std::vector<std::vector<std::pair<int, int>>> schedule_infective_acute;
+  std::vector<std::vector<std::pair<int, int>>> schedule_infective_chronic;
   std::vector<std::vector<std::pair<int, int>>> schedule_infective_recovery;
   
   // counts of host types
   std::vector<int> H;
   std::vector<int> Sh;
   std::vector<int> Eh;
-  std::vector<int> Ih;
+  std::vector<int> Ah;
+  std::vector<int> Ch;
   
   // population of human hosts
   std::vector<Host> host_pop;

@@ -8,7 +8,7 @@ define_params(project, a = 0.3, p = 0.85, mu = -log(p), u = 12,
   v = 10, g = 12, prob_infection = 0.6, prob_acute = 1,
   prob_AC = 1, duration_acute = dgeom(1:25, 1/5),
   duration_chronic = dgeom(1:25, 1/5), infectivity_acute = 0.07,
-  infectivity_chronic = 0.07, max_innoculations = 5, H = 1000,
+  infectivity_chronic = 0.07, max_inoculations = 5, H = 1000,
   seed_infections = 100, M = 1000, life_table = NULL)
 }
 \arguments{
@@ -65,7 +65,7 @@ disease.}
 \item{infectivity_chronic}{equivalent to \code{infectivity_acute} but for
 chronic disease.}
 
-\item{max_innoculations}{maximum number of innoculations that an individual
+\item{max_inoculations}{maximum number of inoculations that an individual
 can hold simultaneously.}
 
 \item{H}{vector specifying human population size in each deme.}

@@ -26,16 +26,21 @@ Dispatcher::Dispatcher() {
   // avoids the need to loop through every host in every time step, as we only
   // need to modify the hosts for which we have scheduled events.
   schedule_death = vector<set<int>>(max_time);
-  schedule_Eh_to_Ih = vector<vector<pair<int, int>>>(max_time);
-  schedule_Ih_to_Sh = vector<vector<pair<int, int>>>(max_time);
-  schedule_infective = vector<vector<pair<int, int>>>(max_time);
+  schedule_Eh_to_Ah = vector<vector<pair<int, int>>>(max_time);
+  schedule_Eh_to_Ch = vector<vector<pair<int, int>>>(max_time);
+  schedule_Ah_to_Ch = vector<vector<pair<int, int>>>(max_time);
+  schedule_Ah_to_Sh = vector<vector<pair<int, int>>>(max_time);
+  schedule_Ch_to_Sh = vector<vector<pair<int, int>>>(max_time);
+  schedule_infective_acute = vector<vector<pair<int, int>>>(max_time);
+  schedule_infective_chronic = vector<vector<pair<int, int>>>(max_time);
   schedule_infective_recovery = vector<vector<pair<int, int>>>(max_time);
   
   // counts of host types
   H = H_init;
   Sh = H;
   Eh = vector<int>(n_demes);
-  Ih = vector<int>(n_demes);
+  Ah = vector<int>(n_demes);
+  Ch = vector<int>(n_demes);
   
   // initialise single population of human hosts over all demes. This is
   // preferable to using separate vectors of hosts for each deme, as this would
@@ -60,10 +65,12 @@ Dispatcher::Dispatcher() {
     for (int i = 0; i < H[k]; ++i) {
       int this_host = host_index[k][i];
       host_pop[this_host].init(this_host, next_host_ID, k,
-                               Sh, Eh, Ih,
+                               Sh, Eh, Ah, Ch,
                                host_infective_index,
-                               schedule_death, schedule_Eh_to_Ih, schedule_Ih_to_Sh,
-                               schedule_infective, schedule_infective_recovery,
+                               schedule_death,
+                               schedule_Eh_to_Ah, schedule_Eh_to_Ch, schedule_Ah_to_Ch,
+                               schedule_Ah_to_Sh, schedule_Ch_to_Sh,
+                               schedule_infective_acute, schedule_infective_chronic, schedule_infective_recovery,
                                sampler_age_stable, sampler_age_death,
                                sampler_duration_acute, sampler_duration_chronic);
     }
@@ -90,8 +97,8 @@ Dispatcher::Dispatcher() {
   Iv_pop = vector<vector<Mosquito>>(n_demes);
   
   // objects for storing daily values:
-  // 0 = Sh, 1 = Eh, 2 = Ih, 3 = Sv, 4 = Ev, 5 = Iv, 6 = EIR
-  daily_values = vector<vector<vector<double>>>(n_demes, vector<vector<double>>(max_time, vector<double>(7)));
+  // 0 = Sh, 1 = Eh, 2 = Ah, 3 = Ch, 4 = Sv, 5 = Ev, 6 = Iv, 7 = EIR
+  daily_values = vector<vector<vector<double>>>(n_demes, vector<vector<double>>(max_time, vector<double>(8)));
   
   // misc
   EIR = vector<double>(n_demes);
@@ -128,25 +135,53 @@ void Dispatcher::run_simulation() {
         host_pop[this_host].death(next_host_ID, t);
       }
       
-      // scheduled Eh to Ih
-      for (auto it = schedule_Eh_to_Ih[t].begin(); it != schedule_Eh_to_Ih[t].end(); ++it) {
+      // scheduled Eh to Ah
+      for (auto it = schedule_Eh_to_Ah[t].begin(); it != schedule_Eh_to_Ah[t].end(); ++it) {
         int this_host = it->first;
         int this_slot = it->second;
-        host_pop[this_host].Eh_to_Ih(this_slot);
+        host_pop[this_host].Eh_to_Ah(this_slot);
       }
       
-      // scheduled Ih to Sh
-      for (auto it = schedule_Ih_to_Sh[t].begin(); it != schedule_Ih_to_Sh[t].end(); ++it) {
+      // scheduled Eh to Ch
+      for (auto it = schedule_Eh_to_Ch[t].begin(); it != schedule_Eh_to_Ch[t].end(); ++it) {
         int this_host = it->first;
         int this_slot = it->second;
-        host_pop[this_host].Ih_to_Sh(this_slot);
+        host_pop[this_host].Eh_to_Ch(this_slot);
       }
       
-      // scheduled become infective
-      for (auto it = schedule_infective[t].begin(); it != schedule_infective[t].end(); ++it) {
+      // scheduled Ah to Ch
+      for (auto it = schedule_Ah_to_Ch[t].begin(); it != schedule_Ah_to_Ch[t].end(); ++it) {
         int this_host = it->first;
         int this_slot = it->second;
-        host_pop[this_host].begin_infective(this_slot, t);
+        host_pop[this_host].Ah_to_Ch(this_slot);
+      }
+      
+      // scheduled Ah to Sh
+      for (auto it = schedule_Ah_to_Sh[t].begin(); it != schedule_Ah_to_Sh[t].end(); ++it) {
+        int this_host = it->first;
+        int this_slot = it->second;
+        host_pop[this_host].Ah_to_Sh(this_slot);
+      }
+      
+      // scheduled Ch to Sh
+      for (auto it = schedule_Ch_to_Sh[t].begin(); it != schedule_Ch_to_Sh[t].end(); ++it) {
+        int this_host = it->first;
+        int this_slot = it->second;
+        host_pop[this_host].Ch_to_Sh(this_slot);
+      }
+      
+      // scheduled become acutely infective
+      for (auto it = schedule_infective_acute[t].begin(); it != schedule_infective_acute[t].end(); ++it) {
+        int this_host = it->first;
+        int this_slot = it->second;
+        host_pop[this_host].begin_infective_acute(this_slot, t);
+      }
+      
+      // scheduled become chronically infective
+      for (auto it = schedule_infective_chronic[t].begin(); it != schedule_infective_chronic[t].end(); ++it) {
+        int this_host = it->first;
+        int this_slot = it->second;
+        host_pop[this_host].begin_infective_chronic(this_slot, t);
       }
       
       // scheduled infective recovery
@@ -282,12 +317,11 @@ void Dispatcher::run_simulation() {
       
     }  // end skip over first time step
     
-    
     //-------- STORE RESULTS --------
     
     // store daily values
     for (int k = 0; k < n_demes; ++k) {
-      daily_values[k][t] = {double(Sh[k]), double(Eh[k]), double(Ih[k]),
+      daily_values[k][t] = {double(Sh[k]), double(Eh[k]), double(Ah[k]), double(Ch[k]),
                               double(Sv[k]), double(Ev[k]), double(Iv[k]),
                               EIR[k]};
     }
