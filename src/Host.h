@@ -8,7 +8,7 @@
 #include <set>
 
 //------------------------------------------------
-// enumerate possible asexual and sexual innoculation status
+// enumerate possible asexual and sexual inoculation status
 enum Status_asexual {Inactive_asexual, Liverstage_asexual, Acute_asexual, Chronic_asexual};
 enum Status_sexual {Inactive_sexual, Acute_sexual, Chronic_sexual};
 
@@ -59,19 +59,19 @@ public:
   
   // cumulative count of how many times this host has been bitten by infective
   // mosquito (infection_index) and how many times an infection has taken hold
-  // (innoc_index)
+  // (inoc_index)
   int infection_index;
-  int innoc_index;
+  int inoc_index;
   
   // dates of birth and death
   int birth_day;
   int death_day;
   
-  // innoculation objects
-  std::vector<bool> innoc_active;
-  std::vector<Status_asexual> innoc_status_asexual;
-  std::vector<Status_sexual> innoc_status_sexual;
-  std::vector<int> innoc_time_infective;
+  // inoculation objects
+  std::vector<bool> inoc_active;
+  std::vector<Status_asexual> inoc_status_asexual;
+  std::vector<Status_sexual> inoc_status_sexual;
+  std::vector<int> inoc_time_infective;
   
   
   // PUBLIC FUNCTIONS
@@ -109,7 +109,7 @@ public:
   void end_infective(int this_slot);
   
   // getters and setters
-  int get_n_active_innoc();
+  int get_n_active_inoc();
   Status_host get_host_status();
   int get_n_liverstage();
   int get_n_bloodstage_acute();
@@ -123,5 +123,5 @@ public:
   int get_duration_acute();
   int get_duration_chronic();
   double get_infectivity(int t);
-  int get_free_innoc_slot();
+  int get_free_inoc_slot();
 };

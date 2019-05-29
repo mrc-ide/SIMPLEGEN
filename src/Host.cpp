@@ -57,18 +57,18 @@ void Host::init(int index, int &ID, int deme,
   
   // cumulative count of how many times this host has been bitten by infective
   // mosquito (infection_index) and how many times an infection has taken hold
-  // (innoc_index)
+  // (inoc_index)
   infection_index = 0;
-  innoc_index = 0;
+  inoc_index = 0;
   
   // draw age from stable demography distribution
   draw_starting_age();
   
-  // initialise innoculation objects
-  innoc_active = vector<bool>(max_innoculations, false);
-  innoc_status_asexual = vector<Status_asexual>(max_innoculations, Inactive_asexual);
-  innoc_status_sexual = vector<Status_sexual>(max_innoculations, Inactive_sexual);
-  innoc_time_infective = vector<int>(max_innoculations);
+  // initialise inoculation objects
+  inoc_active = vector<bool>(max_inoculations, false);
+  inoc_status_asexual = vector<Status_asexual>(max_inoculations, Inactive_asexual);
+  inoc_status_sexual = vector<Status_sexual>(max_inoculations, Inactive_sexual);
+  inoc_time_infective = vector<int>(max_inoculations);
   
 }
 
@@ -157,7 +157,7 @@ void Host::death(int &ID, int birth_day) {
   
   // reset cumulative counts
   infection_index = 0;
-  innoc_index = 0;
+  inoc_index = 0;
   
   // set date of birth
   this->birth_day = birth_day;
@@ -175,11 +175,11 @@ void Host::death(int &ID, int birth_day) {
     (*schedule_death_ptr)[death_day].insert(index);
   }
   
-  // reset innoculation objects
-  fill(innoc_active.begin(), innoc_active.end(), false);
-  fill(innoc_status_asexual.begin(), innoc_status_asexual.end(), Inactive_asexual);
-  fill(innoc_status_sexual.begin(), innoc_status_sexual.end(), Inactive_sexual);
-  fill(innoc_time_infective.begin(), innoc_time_infective.end(), 0);
+  // reset inoculation objects
+  fill(inoc_active.begin(), inoc_active.end(), false);
+  fill(inoc_status_asexual.begin(), inoc_status_asexual.end(), Inactive_asexual);
+  fill(inoc_status_sexual.begin(), inoc_status_sexual.end(), Inactive_sexual);
+  fill(inoc_time_infective.begin(), inoc_time_infective.end(), 0);
   
 }
 
@@ -206,11 +206,11 @@ void Host::denovo_infection(int t) {
 void Host::infection(int t) {
   
   // update infection_index irrespective of whether exit due to reaching max
-  // innoculations
+  // inoculations
   infection_index++;
   
-  // return if already at max_innoculations
-  if (get_n_active_innoc() == max_innoculations) {
+  // return if already at max_inoculations
+  if (get_n_active_inoc() == max_inoculations) {
     return;
   }
   
@@ -220,12 +220,12 @@ void Host::infection(int t) {
     (*Eh_ptr)[deme]++;
   }
   
-  // get next free innoculation slot
-  int this_slot = get_free_innoc_slot();
+  // get next free inoculation slot
+  int this_slot = get_free_inoc_slot();
   
-  // add new innoculation
-  innoc_active[this_slot] = true;
-  innoc_status_asexual[this_slot] = Liverstage_asexual;
+  // add new inoculation
+  inoc_active[this_slot] = true;
+  inoc_status_asexual[this_slot] = Liverstage_asexual;
   
   // schedule future events
   int t1 = t + u;
@@ -302,7 +302,7 @@ void Host::infection(int t) {
 }
 
 //------------------------------------------------
-// move innoculation from Eh state to Ah
+// move inoculation from Eh state to Ah
 void Host::Eh_to_Ah(int this_slot) {
   
   // update deme counts
@@ -316,12 +316,12 @@ void Host::Eh_to_Ah(int this_slot) {
   }
   
   // update status
-  innoc_status_asexual[this_slot] = Acute_asexual;
+  inoc_status_asexual[this_slot] = Acute_asexual;
   
 }
 
 //------------------------------------------------
-// move innoculation from Eh state to Ch
+// move inoculation from Eh state to Ch
 void Host::Eh_to_Ch(int this_slot) {
   
   // update deme counts
@@ -333,12 +333,12 @@ void Host::Eh_to_Ch(int this_slot) {
   }
   
   // update status
-  innoc_status_asexual[this_slot] = Chronic_asexual;
+  inoc_status_asexual[this_slot] = Chronic_asexual;
   
 }
 
 //------------------------------------------------
-// move innoculation from Ah state to Ch
+// move inoculation from Ah state to Ch
 void Host::Ah_to_Ch(int this_slot) {
   
   // update deme counts
@@ -348,12 +348,12 @@ void Host::Ah_to_Ch(int this_slot) {
   }
   
   // update status
-  innoc_status_asexual[this_slot] = Chronic_asexual;
+  inoc_status_asexual[this_slot] = Chronic_asexual;
   
 }
 
 //------------------------------------------------
-// move innoculation from Ah state to Sh
+// move inoculation from Ah state to Sh
 void Host::Ah_to_Sh(int this_slot) {
   
   // update deme counts
@@ -369,12 +369,12 @@ void Host::Ah_to_Sh(int this_slot) {
   }
   
   // update status
-  innoc_status_asexual[this_slot] = Inactive_asexual;
+  inoc_status_asexual[this_slot] = Inactive_asexual;
   
 }
 
 //------------------------------------------------
-// move innoculation from Ch state to Sh
+// move inoculation from Ch state to Sh
 void Host::Ch_to_Sh(int this_slot) {
   
   // update deme counts
@@ -390,7 +390,7 @@ void Host::Ch_to_Sh(int this_slot) {
   }
   
   // update status
-  innoc_status_asexual[this_slot] = Inactive_asexual;
+  inoc_status_asexual[this_slot] = Inactive_asexual;
   
 }
 
@@ -399,10 +399,10 @@ void Host::Ch_to_Sh(int this_slot) {
 void Host::begin_infective_acute(int this_slot, int t) {
   
   // update host status
-  innoc_status_sexual[this_slot] = Acute_sexual;
+  inoc_status_sexual[this_slot] = Acute_sexual;
   
   // store time
-  innoc_time_infective[this_slot] = t;
+  inoc_time_infective[this_slot] = t;
   
   // if newly infective then add to infectives list
   if (get_n_infective() == 1) {
@@ -416,13 +416,13 @@ void Host::begin_infective_acute(int this_slot, int t) {
 void Host::begin_infective_chronic(int this_slot, int t) {
   
   // get current host status
-  Status_sexual current_status = innoc_status_sexual[this_slot];
+  Status_sexual current_status = inoc_status_sexual[this_slot];
   
   // update host status
-  innoc_status_sexual[this_slot] = Chronic_sexual;
+  inoc_status_sexual[this_slot] = Chronic_sexual;
   
   // store time
-  innoc_time_infective[this_slot] = t;
+  inoc_time_infective[this_slot] = t;
   
   // if newly infective then add to infectives list
   if (current_status == Inactive_sexual && get_n_infective() == 1) {
@@ -436,8 +436,8 @@ void Host::begin_infective_chronic(int this_slot, int t) {
 void Host::end_infective(int this_slot) {
   
   // update host status
-  innoc_status_sexual[this_slot] = Inactive_sexual;
-  innoc_active[this_slot] = false;
+  inoc_status_sexual[this_slot] = Inactive_sexual;
+  inoc_active[this_slot] = false;
   
   // if no longer infective then drop from infectives list
   if (get_n_infective() == 0) {
@@ -447,26 +447,26 @@ void Host::end_infective(int this_slot) {
 }
 
 //------------------------------------------------
-// get total number of active innoculations
-int Host::get_n_active_innoc() {
-  return sum_bool(innoc_active);
+// get total number of active inoculations
+int Host::get_n_active_inoc() {
+  return sum_bool(inoc_active);
 }
 
 //------------------------------------------------
 // get host status
 Status_host Host::get_host_status() {
   Status_host ret = Host_Sh;
-  for (int i = 0; i < max_innoculations; ++i) {
-    if (!innoc_active[i]) {
+  for (int i = 0; i < max_inoculations; ++i) {
+    if (!inoc_active[i]) {
       continue;
     }
-    if (ret == Host_Sh && innoc_status_asexual[i] == Liverstage_asexual) {
+    if (ret == Host_Sh && inoc_status_asexual[i] == Liverstage_asexual) {
       ret = Host_Eh;
     }
-    if ((ret == Host_Sh || ret == Host_Eh) && innoc_status_asexual[i] == Chronic_asexual) {
+    if ((ret == Host_Sh || ret == Host_Eh) && inoc_status_asexual[i] == Chronic_asexual) {
       ret = Host_Ch;
     }
-    if ((ret == Host_Sh || ret == Host_Eh || ret == Host_Ch) && innoc_status_asexual[i] == Acute_asexual) {
+    if ((ret == Host_Sh || ret == Host_Eh || ret == Host_Ch) && inoc_status_asexual[i] == Acute_asexual) {
       ret = Host_Ah;
       break;
     }
@@ -475,11 +475,11 @@ Status_host Host::get_host_status() {
 }
 
 //------------------------------------------------
-// get total number of liverstage innoculations
+// get total number of liverstage inoculations
 int Host::get_n_liverstage() {
   int ret = 0;
-  for (int i = 0; i < max_innoculations; ++i) {
-    if (innoc_status_asexual[i] == Liverstage_asexual) {
+  for (int i = 0; i < max_inoculations; ++i) {
+    if (inoc_status_asexual[i] == Liverstage_asexual) {
       ret ++;
     }
   }
@@ -487,11 +487,11 @@ int Host::get_n_liverstage() {
 }
 
 //------------------------------------------------
-// get total number of acute bloodstage innoculations
+// get total number of acute bloodstage inoculations
 int Host::get_n_bloodstage_acute() {
   int ret = 0;
-  for (int i = 0; i < int(innoc_status_asexual.size()); ++i) {
-    if (innoc_status_asexual[i] == Acute_asexual) {
+  for (int i = 0; i < int(inoc_status_asexual.size()); ++i) {
+    if (inoc_status_asexual[i] == Acute_asexual) {
       ret ++;
     }
   }
@@ -499,11 +499,11 @@ int Host::get_n_bloodstage_acute() {
 }
 
 //------------------------------------------------
-// get total number of chronic bloodstage innoculations
+// get total number of chronic bloodstage inoculations
 int Host::get_n_bloodstage_chronic() {
   int ret = 0;
-  for (int i = 0; i < int(innoc_status_asexual.size()); ++i) {
-    if (innoc_status_asexual[i] == Chronic_asexual) {
+  for (int i = 0; i < int(inoc_status_asexual.size()); ++i) {
+    if (inoc_status_asexual[i] == Chronic_asexual) {
       ret ++;
     }
   }
@@ -511,23 +511,23 @@ int Host::get_n_bloodstage_chronic() {
 }
 
 //------------------------------------------------
-// get total number of bloodstage innoculations
+// get total number of bloodstage inoculations
 int Host::get_n_bloodstage() {
   return get_n_bloodstage_acute() + get_n_bloodstage_chronic();
 }
 
 //------------------------------------------------
-// get total number of asexual stage innoculations
+// get total number of asexual stage inoculations
 int Host::get_n_asexual() {
   return get_n_liverstage() + get_n_bloodstage();
 }
 
 //------------------------------------------------
-// get total number of infective (sexual stage) innoculations
+// get total number of infective (sexual stage) inoculations
 int Host::get_n_infective() {
   int ret = 0;
-  for (int i = 0; i < int(innoc_status_sexual.size()); ++i) {
-    if (innoc_status_sexual[i] == Acute_sexual || innoc_status_sexual[i] == Chronic_sexual) {
+  for (int i = 0; i < int(inoc_status_sexual.size()); ++i) {
+    if (inoc_status_sexual[i] == Acute_sexual || inoc_status_sexual[i] == Chronic_sexual) {
       ret ++;
     }
   }
@@ -546,8 +546,8 @@ double Host::get_prob_infection() {
 //------------------------------------------------
 // get current probability of going to acute infection
 double Host::get_prob_acute() {
-  if (innoc_index < (n_prob_acute-1)) {
-    return prob_acute[innoc_index];
+  if (inoc_index < (n_prob_acute-1)) {
+    return prob_acute[inoc_index];
   }
   return prob_acute[n_prob_acute-1];
 }
@@ -555,8 +555,8 @@ double Host::get_prob_acute() {
 //------------------------------------------------
 // get current probability of going to chronic from acute infection
 double Host::get_prob_AC() {
-  if (innoc_index < (n_prob_AC-1)) {
-    return prob_AC[innoc_index];
+  if (inoc_index < (n_prob_AC-1)) {
+    return prob_AC[inoc_index];
   }
   return prob_AC[n_prob_AC-1];
 }
@@ -565,8 +565,8 @@ double Host::get_prob_AC() {
 // get duration of acute disease
 int Host::get_duration_acute() {
   int ret;
-  if (innoc_index < (n_duration_acute-1)) {
-    ret = (*sampler_duration_acute_ptr)[innoc_index].draw() + 1;
+  if (inoc_index < (n_duration_acute-1)) {
+    ret = (*sampler_duration_acute_ptr)[inoc_index].draw() + 1;
   }
   ret = (*sampler_duration_acute_ptr)[n_duration_acute-1].draw() + 1;
   return ret;
@@ -576,8 +576,8 @@ int Host::get_duration_acute() {
 // get duration of chronic disease
 int Host::get_duration_chronic() {
   int ret;
-  if (innoc_index < (n_duration_chronic-1)) {
-    ret = (*sampler_duration_chronic_ptr)[innoc_index].draw() + 1;
+  if (inoc_index < (n_duration_chronic-1)) {
+    ret = (*sampler_duration_chronic_ptr)[inoc_index].draw() + 1;
   }
   ret = (*sampler_duration_chronic_ptr)[n_duration_chronic-1].draw() + 1;
   return ret;
@@ -589,11 +589,11 @@ double Host::get_infectivity(int t) {
   
   // TODO - infectivity from distribution
   /*
-  // get probability of being infected by sexual-stage innoculation
+  // get probability of being infected by sexual-stage inoculation
   int ret = 0;
-  for (int i = 0; i < int(innoc_status_sexual.size()); ++i) {
-    if (innoc_status_sexual[i] == Active_sexual) {
-      int time_diff = t - innoc_time_infective[i];
+  for (int i = 0; i < int(inoc_status_sexual.size()); ++i) {
+    if (inoc_status_sexual[i] == Active_sexual) {
+      int time_diff = t - inoc_time_infective[i];
       //infectivity_acute
     }
   }
@@ -603,21 +603,21 @@ double Host::get_infectivity(int t) {
 }
 
 //------------------------------------------------
-// get next free innoculation slot
-int Host::get_free_innoc_slot() {
+// get next free inoculation slot
+int Host::get_free_inoc_slot() {
   
   // loop until find inactive slot
   int ret = 0;
-  for (int i = 0; i < max_innoculations; ++i) {
-    if (!innoc_active[i]) {
+  for (int i = 0; i < max_inoculations; ++i) {
+    if (!inoc_active[i]) {
       break;
     }
     ret++;
   }
   
   // error check for outside range
-  if (ret == max_innoculations) {
-    Rcpp::stop("could not find free innoculation slot");
+  if (ret == max_inoculations) {
+    Rcpp::stop("could not find free inoculation slot");
   }
   
   return ret;

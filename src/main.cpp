@@ -31,7 +31,7 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args) {
                          rcpp_to_matrix_double(args["duration_chronic"]),
                          rcpp_to_matrix_double(args["infectivity_acute"]),
                          rcpp_to_matrix_double(args["infectivity_chronic"]),
-                         rcpp_to_int(args["max_innoculations"]));
+                         rcpp_to_int(args["max_inoculations"]));
   
   params.load_deme_params(rcpp_to_vector_int(args["H"]),
                           rcpp_to_vector_int(args["seed_infections"]),

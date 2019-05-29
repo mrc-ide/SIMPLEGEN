@@ -20,7 +20,7 @@ simplegen_project <- function() {
                    "prob_infection", "prob_acute", "prob_AC",
                    "duration_acute", "duration_chronic",
                    "infectivity_acute", "infectivity_chronic",
-                   "max_innoculations",
+                   "max_inoculations",
                    "H", "seed_infections", "M",
                    "life_table")
   project$sim_parameters <- replicate(length(param_names), NULL)

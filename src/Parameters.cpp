@@ -13,7 +13,7 @@ double Parameters::mu;
 int Parameters::u;
 int Parameters::v;
 int Parameters::g;
-int Parameters::max_innoculations;
+int Parameters::max_inoculations;
 
 // epi distributions
 vector<double> Parameters::prob_infection;
@@ -65,7 +65,7 @@ void Parameters::load_epi_params(double a, double p, double mu,
                                  vector<vector<double>> duration_chronic,
                                  vector<vector<double>> infectivity_acute,
                                  vector<vector<double>> infectivity_chronic,
-                                 int max_innoculations) {
+                                 int max_inoculations) {
   
   // define scalars
   this->a = a;
@@ -74,7 +74,7 @@ void Parameters::load_epi_params(double a, double p, double mu,
   this->u = u;
   this->v = v;
   this->g = g;
-  this->max_innoculations = max_innoculations;
+  this->max_inoculations = max_inoculations;
   
   // distributions
   this->prob_infection = prob_infection;
@@ -161,7 +161,7 @@ void Parameters::summary() {
   print("u:", u);
   print("v:", v);
   print("g:", g);
-  print("max_innoculations:", max_innoculations);
+  print("max_inoculations:", max_inoculations);
   
   // print epi distributions
   print("prob_infection:");

@@ -15,7 +15,7 @@ public:
   
   // scalar epi parameters
   static double a, p, mu;
-  static int u, v, g, max_innoculations;
+  static int u, v, g, max_inoculations;
   
   // epi distributions
   static std::vector<double> prob_infection;
@@ -69,7 +69,7 @@ public:
                        std::vector<std::vector<double>> duration_chronic,
                        std::vector<std::vector<double>> infectivity_acute,
                        std::vector<std::vector<double>> infectivity_chronic,
-                       int max_innoculations);
+                       int max_inoculations);
   
   void load_deme_params(std::vector<int> H_init,
                         std::vector<int> seed_infections,
