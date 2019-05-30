@@ -22,6 +22,8 @@ public:
   Sampler sampler_age_death;
   std::vector<Sampler> sampler_duration_acute;
   std::vector<Sampler> sampler_duration_chronic;
+  std::vector<Sampler> sampler_time_treatment_acute;
+  std::vector<Sampler> sampler_time_treatment_chronic;
   
   // scheduler objects
   std::vector<std::set<int>> schedule_death;
@@ -30,6 +32,9 @@ public:
   std::vector<std::vector<std::pair<int, int>>> schedule_Ah_to_Ch;
   std::vector<std::vector<std::pair<int, int>>> schedule_Ah_to_Sh;
   std::vector<std::vector<std::pair<int, int>>> schedule_Ch_to_Sh;
+  std::vector<std::set<int>> schedule_Ah_to_Ph;
+  std::vector<std::set<int>> schedule_Ch_to_Ph;
+  std::vector<std::set<int>> schedule_Ph_to_Sh;
   std::vector<std::vector<std::pair<int, int>>> schedule_infective_acute;
   std::vector<std::vector<std::pair<int, int>>> schedule_infective_chronic;
   std::vector<std::vector<std::pair<int, int>>> schedule_infective_recovery;
@@ -40,10 +45,12 @@ public:
   std::vector<int> Eh;
   std::vector<int> Ah;
   std::vector<int> Ch;
+  std::vector<int> Ph;
   
   // population of human hosts
   std::vector<Host> host_pop;
   int next_host_ID;
+  unsigned int next_inoc_ID;
   
   // store the integer index of hosts in each deme
   std::vector<std::vector<int>> host_index;

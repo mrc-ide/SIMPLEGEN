@@ -18,6 +18,7 @@ int Parameters::max_inoculations;
 // epi distributions
 vector<double> Parameters::prob_infection;
 int Parameters::n_prob_infection;
+double Parameters::max_prob_infection;
 vector<double> Parameters::prob_acute;
 int Parameters::n_prob_acute;
 vector<double> Parameters::prob_AC;
@@ -26,6 +27,10 @@ vector<vector<double>> Parameters::duration_acute;
 int Parameters::n_duration_acute;
 vector<vector<double>> Parameters::duration_chronic;
 int Parameters::n_duration_chronic;
+vector<vector<double>> Parameters::time_treatment_acute;
+int Parameters::n_time_treatment_acute;
+vector<vector<double>> Parameters::time_treatment_chronic;
+int Parameters::n_time_treatment_chronic;
 vector<vector<double>> Parameters::infectivity_acute;
 int Parameters::n_infectivity_acute;
 vector<vector<double>> Parameters::infectivity_chronic;
@@ -63,6 +68,8 @@ void Parameters::load_epi_params(double a, double p, double mu,
                                  vector<double> prob_AC,
                                  vector<vector<double>> duration_acute,
                                  vector<vector<double>> duration_chronic,
+                                 vector<vector<double>> time_treatment_acute,
+                                 vector<vector<double>> time_treatment_chronic,
                                  vector<vector<double>> infectivity_acute,
                                  vector<vector<double>> infectivity_chronic,
                                  int max_inoculations) {
@@ -87,10 +94,17 @@ void Parameters::load_epi_params(double a, double p, double mu,
   n_duration_acute = int(duration_acute.size());
   this->duration_chronic = duration_chronic;
   n_duration_chronic = int(duration_chronic.size());
+  this->time_treatment_acute = time_treatment_acute;
+  n_time_treatment_acute = int(time_treatment_acute.size());
+  this->time_treatment_chronic = time_treatment_chronic;
+  n_time_treatment_chronic = int(time_treatment_chronic.size());
   this->infectivity_acute = infectivity_acute;
   n_infectivity_acute = int(infectivity_acute.size());
   this->infectivity_chronic = infectivity_chronic;
   n_infectivity_chronic = int(infectivity_chronic.size());
+  
+  // get max prob_infection
+  max_prob_infection = max(prob_infection);
   
   // get max infectivity over all distributions
   max_infectivity = 0.0;

@@ -29,6 +29,8 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args) {
                          rcpp_to_vector_double(args["prob_AC"]),
                          rcpp_to_matrix_double(args["duration_acute"]),
                          rcpp_to_matrix_double(args["duration_chronic"]),
+                         rcpp_to_matrix_double(args["time_treatment_acute"]),
+                         rcpp_to_matrix_double(args["time_treatment_chronic"]),
                          rcpp_to_matrix_double(args["infectivity_acute"]),
                          rcpp_to_matrix_double(args["infectivity_chronic"]),
                          rcpp_to_int(args["max_inoculations"]));

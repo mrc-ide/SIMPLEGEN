@@ -26,7 +26,7 @@ public:
   
   // identifiers
   int index;      // where in the population (vector of hosts) this host resides
-  int ID;         // unique ID, incremented upon death
+  int host_ID;    // unique ID, incremented upon death
   int home_deme;  // deme into which this host is born
   int deme;       // deme in which this host currently resides
   
@@ -45,6 +45,8 @@ public:
   Sampler* sampler_age_death_ptr;
   std::vector<Sampler>* sampler_duration_acute_ptr;
   std::vector<Sampler>* sampler_duration_chronic_ptr;
+  std::vector<Sampler>* sampler_time_treatment_acute_ptr;
+  std::vector<Sampler>* sampler_time_treatment_chronic_ptr;
   
   // pointers to scheduler objects, for adding events to schedulers
   std::vector<std::set<int>>* schedule_death_ptr;
@@ -53,6 +55,9 @@ public:
   std::vector<std::vector<std::pair<int, int>>>* schedule_Ah_to_Ch_ptr;
   std::vector<std::vector<std::pair<int, int>>>* schedule_Ah_to_Sh_ptr;
   std::vector<std::vector<std::pair<int, int>>>* schedule_Ch_to_Sh_ptr;
+  std::vector<std::set<int>>* schedule_Ah_to_Ph_ptr;
+  std::vector<std::set<int>>* schedule_Ch_to_Ph_ptr;
+  std::vector<std::set<int>>* schedule_Ph_to_Sh_ptr;
   std::vector<std::vector<std::pair<int, int>>>* schedule_infective_acute_ptr;
   std::vector<std::vector<std::pair<int, int>>>* schedule_infective_chronic_ptr;
   std::vector<std::vector<std::pair<int, int>>>* schedule_infective_recovery_ptr;
@@ -67,11 +72,15 @@ public:
   int birth_day;
   int death_day;
   
+  // host characteristics
+  double treatment_seeking;
+  
   // inoculation objects
   std::vector<bool> inoc_active;
   std::vector<Status_asexual> inoc_status_asexual;
   std::vector<Status_sexual> inoc_status_sexual;
   std::vector<int> inoc_time_infective;
+  std::vector<unsigned int> inoc_IDs;
   
   
   // PUBLIC FUNCTIONS
@@ -80,7 +89,7 @@ public:
   Host() {};
   
   // other methods
-  void init(int index, int &ID, int deme,
+  void init(int index, int &host_ID, int deme,
             std::vector<int> &Sh, std::vector<int> &Eh, std::vector<int> &Ah, std::vector<int> &Ch,
             std::vector<std::vector<int>> &host_infective_index,
             std::vector<std::set<int>> &schedule_death,
@@ -89,21 +98,29 @@ public:
             std::vector<std::vector<std::pair<int, int>>> &schedule_Ah_to_Ch,
             std::vector<std::vector<std::pair<int, int>>> &schedule_Ah_to_Sh,
             std::vector<std::vector<std::pair<int, int>>> &schedule_Ch_to_Sh,
+            std::vector<std::set<int>> &schedule_Ah_to_Ph,
+            std::vector<std::set<int>> &schedule_Ch_to_Ph,
+            std::vector<std::set<int>> &schedule_Ph_to_Sh,
             std::vector<std::vector<std::pair<int, int>>> &schedule_infective_acute,
             std::vector<std::vector<std::pair<int, int>>> &schedule_infective_chronic,
             std::vector<std::vector<std::pair<int, int>>> &schedule_infective_recovery,
-            Sampler &sampler_age_stable, Sampler &sampler_age_death,
-            std::vector<Sampler> &sampler_duration_acute, std::vector<Sampler> &sampler_duration_chronic);
+            Sampler &sampler_age_stable,
+            Sampler &sampler_age_death,
+            std::vector<Sampler> &sampler_duration_acute,
+            std::vector<Sampler> &sampler_duration_chronic,
+            std::vector<Sampler> &sampler_time_treatment_acute,
+            std::vector<Sampler> &sampler_time_treatment_chronic);
   
   void draw_starting_age();
-  void death(int &ID, int birth_day);
-  void denovo_infection(int t);
-  void infection(int t);
+  void death(int &host_ID, int birth_day);
+  void denovo_infection(int t, unsigned int &inoc_ID);
+  void infection(int t, unsigned int &inoc_ID);
   void Eh_to_Ah(int this_slot);
   void Eh_to_Ch(int this_slot);
   void Ah_to_Ch(int this_slot);
   void Ah_to_Sh(int this_slot);
   void Ch_to_Sh(int this_slot);
+  void Ah_to_Ph();
   void begin_infective_acute(int this_slot, int t);
   void begin_infective_chronic(int this_slot, int t);
   void end_infective(int this_slot);
@@ -122,6 +139,8 @@ public:
   double get_prob_AC();
   int get_duration_acute();
   int get_duration_chronic();
+  int get_time_treatment_acute();
+  int get_time_treatment_chronic();
   double get_infectivity(int t);
   int get_free_inoc_slot();
 };

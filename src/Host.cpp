@@ -7,7 +7,7 @@ using namespace std;
 
 //------------------------------------------------
 // initialise host
-void Host::init(int index, int &ID, int deme,
+void Host::init(int index, int &host_ID, int deme,
                 vector<int> &Sh, vector<int> &Eh, vector<int> &Ah, vector<int> &Ch,
                 vector<vector<int>> &host_infective_index,
                 vector<set<int>> &schedule_death,
@@ -16,15 +16,22 @@ void Host::init(int index, int &ID, int deme,
                 vector<vector<pair<int, int>>> &schedule_Ah_to_Ch,
                 vector<vector<pair<int, int>>> &schedule_Ah_to_Sh,
                 vector<vector<pair<int, int>>> &schedule_Ch_to_Sh,
+                vector<set<int>> &schedule_Ah_to_Ph,
+                vector<set<int>> &schedule_Ch_to_Ph,
+                vector<set<int>> &schedule_Ph_to_Sh,
                 vector<vector<pair<int, int>>> &schedule_infective_acute,
                 vector<vector<pair<int, int>>> &schedule_infective_chronic,
                 vector<vector<pair<int, int>>> &schedule_infective_recovery,
-                Sampler &sampler_age_stable, Sampler &sampler_age_death,
-                vector<Sampler> &sampler_duration_acute, vector<Sampler> &sampler_duration_chronic) {
+                Sampler &sampler_age_stable,
+                Sampler &sampler_age_death,
+                vector<Sampler> &sampler_duration_acute,
+                vector<Sampler> &sampler_duration_chronic,
+                vector<Sampler> &sampler_time_treatment_acute,
+                vector<Sampler> &sampler_time_treatment_chronic) {
   
   // identifiers
   this->index = index;
-  this->ID = ID++;
+  this->host_ID = host_ID++;
   home_deme = deme;
   this->deme = deme;
   
@@ -43,6 +50,8 @@ void Host::init(int index, int &ID, int deme,
   sampler_age_death_ptr = &sampler_age_death;
   sampler_duration_acute_ptr = &sampler_duration_acute;
   sampler_duration_chronic_ptr = &sampler_duration_chronic;
+  sampler_time_treatment_acute_ptr = &sampler_time_treatment_acute;
+  sampler_time_treatment_chronic_ptr = &sampler_time_treatment_chronic;
   
   // pointers to scheduler objects, for adding events to schedulers
   schedule_death_ptr = &schedule_death;
@@ -51,6 +60,9 @@ void Host::init(int index, int &ID, int deme,
   schedule_Ah_to_Ch_ptr = &schedule_Ah_to_Ch;
   schedule_Ah_to_Sh_ptr = &schedule_Ah_to_Sh;
   schedule_Ch_to_Sh_ptr = &schedule_Ch_to_Sh;
+  schedule_Ah_to_Ph_ptr = &schedule_Ah_to_Ph;
+  schedule_Ch_to_Ph_ptr = &schedule_Ch_to_Ph;
+  schedule_Ph_to_Sh_ptr = &schedule_Ph_to_Sh;
   schedule_infective_acute_ptr = &schedule_infective_acute;
   schedule_infective_chronic_ptr = &schedule_infective_chronic;
   schedule_infective_recovery_ptr = &schedule_infective_recovery;
@@ -64,11 +76,15 @@ void Host::init(int index, int &ID, int deme,
   // draw age from stable demography distribution
   draw_starting_age();
   
+  // initialise host characteristics
+  treatment_seeking = 0.5;
+  
   // initialise inoculation objects
   inoc_active = vector<bool>(max_inoculations, false);
   inoc_status_asexual = vector<Status_asexual>(max_inoculations, Inactive_asexual);
   inoc_status_sexual = vector<Status_sexual>(max_inoculations, Inactive_sexual);
   inoc_time_infective = vector<int>(max_inoculations);
+  inoc_IDs = vector<unsigned int>(max_inoculations);
   
 }
 
@@ -76,7 +92,7 @@ void Host::init(int index, int &ID, int deme,
 // draw birth and death days given a known stable demography distribution, and
 // schedule death for future. Only needed at start of simulation, after which
 // hosts that die are instantly re-born and have death drawn from entire life
-// table.
+// table
 void Host::draw_starting_age() {
   
   // draw age from stable demography distribution
@@ -94,10 +110,10 @@ void Host::draw_starting_age() {
   // dying this year is therefore p = 1 - exp(-r). We know p from life table,
   // from which we can derive r = -log(1-p). If we are already a proportion x
   // through this year, then the probability of dying in the remaining time is
-  // Pr(die) = 1 - exp(-r(1-x)). Sustituting in r and simplifying we get
-  // Pr(die) = 1 - (1-p)exp(1-x). Notice that if p=1 from the life table then we
-  // are certain to die this year, irrespective of how far through the year we
-  // have got already.
+  // Pr(die) = 1 - exp(-r(1-x)). Sustituting in r and simplifying we get Pr(die)
+  // = 1 - (1-p)exp(1-x). Notice that if p = 1 from the life table then we are
+  // certain to die this year, irrespective of how far through the year we have
+  // got already.
   int life_days = 0;
   double prop_year_remaining = 1.0 - extra_days/365.0; // (x in the above derivation)
   double prob_die_this_year = 1.0 - (1.0 - life_table[age_years])*exp(1.0 - prop_year_remaining);
@@ -117,7 +133,9 @@ void Host::draw_starting_age() {
   // calculate final birth and death days from age at time 0 and life_days
   birth_day = -age_days;
   death_day = life_days - age_days;
-  if (death_day == 0) {  // cannot die on day 0
+  
+  // cannot die on day 0
+  if (death_day == 0) {
     death_day = 1;
   }
   
@@ -130,7 +148,7 @@ void Host::draw_starting_age() {
 
 //------------------------------------------------
 // death
-void Host::death(int &ID, int birth_day) {
+void Host::death(int &host_ID, int birth_day) {
   
   // drop from infective list if necessary
   if (get_n_infective() > 0) {
@@ -150,9 +168,9 @@ void Host::death(int &ID, int birth_day) {
   }
   
   // new unique ID
-  this->ID = ID++;
+  this->host_ID = host_ID++;
   
-  // make current deme home deme
+  // set current deme equal to home deme
   home_deme = deme;
   
   // reset cumulative counts
@@ -185,9 +203,9 @@ void Host::death(int &ID, int birth_day) {
 
 //------------------------------------------------
 // de-novo infection
-void Host::denovo_infection(int t) {
+void Host::denovo_infection(int t, unsigned int &inoc_ID) {
   
-  infection(t);
+  infection(t, inoc_ID);
   
   /*
   // generating starting genotype in a dummy mosquito
@@ -203,14 +221,11 @@ void Host::denovo_infection(int t) {
 //------------------------------------------------
 // new infection
 //void Host::new_infection(Mosquito &mosq, int t) {
-void Host::infection(int t) {
-  
-  // update infection_index irrespective of whether exit due to reaching max
-  // inoculations
-  infection_index++;
+void Host::infection(int t, unsigned int &inoc_ID) {
   
   // return if already at max_inoculations
   if (get_n_active_inoc() == max_inoculations) {
+    infection_index++;
     return;
   }
   
@@ -226,48 +241,94 @@ void Host::infection(int t) {
   // add new inoculation
   inoc_active[this_slot] = true;
   inoc_status_asexual[this_slot] = Liverstage_asexual;
+  inoc_IDs[this_slot] = inoc_ID++;
   
-  // schedule future events
+  // schedule future events. This is where we look through the tree of all
+  // possible future trajectories, for example whether the inoculation
+  // transitions to acute stage or directly to chronic stage etc.
   int t1 = t + u;
   if (t1 < (death_day-1) && t1 < max_time) {
     
+    // whether to transition initially to acute stage
     bool acute = rbernoulli1(get_prob_acute());
     if (acute) {
       
+      // schedule change of state
       (*schedule_Eh_to_Ah_ptr)[t1].emplace_back(index, this_slot);
+      
+      // schedule become acutely infective
       int t2 = t1 + g;
       if (t2 < (death_day-1) && t2 < max_time) {
         (*schedule_infective_acute_ptr)[t2].emplace_back(index, this_slot);
       }
       
+      // draw duration of acute phase
       int duration_acute = get_duration_acute();
-      int t3 = t1 + duration_acute;
+      
+      // draw time to considering seeking treatment
+      int time_treatment = get_time_treatment_acute();
+      
+      // get time of acute stage ending
+      int acute_end = (duration_acute < time_treatment) ? duration_acute : time_treatment;
+      int t3 = t1 + acute_end;
       if (t3 < (death_day-1) && t3 < max_time) {
         
-        bool acute_to_chronic = rbernoulli1(get_prob_AC());
-        if (acute_to_chronic) {
+        // determine whether disease clears naturally or via treatment
+        bool natural_clearance = (duration_acute < time_treatment);
+        if (!natural_clearance) {
+          natural_clearance = rbernoulli1(1 - treatment_seeking);
+        }
+        
+        if (natural_clearance) {
           
-          (*schedule_Ah_to_Ch_ptr)[t3].emplace_back(index, this_slot);
-          int t4 = t3 + g;
-          if (t4 < (death_day-1) && t4 < max_time) {
-            (*schedule_infective_chronic_ptr)[t4].emplace_back(index, this_slot);
-          }
-          
-          int duration_chronic = get_duration_chronic();
-          int t5 = t3 + duration_chronic;
-          if (t5 < (death_day-1) && t5 < max_time) {
+          // whether to transition to chronic stage prior to recovery
+          bool acute_to_chronic = rbernoulli1(get_prob_AC());
+          if (acute_to_chronic) {
             
-            (*schedule_Ch_to_Sh_ptr)[t5].emplace_back(index, this_slot);
-            int t6 = t5 + g;
-            if (t6 < death_day && t6 < max_time) {
-              (*schedule_infective_recovery_ptr)[t6].emplace_back(index, this_slot);
+            // schedule change of state
+            (*schedule_Ah_to_Ch_ptr)[t3].emplace_back(index, this_slot);
+            
+            // schedule become chronically infective
+            int t4 = t3 + g;
+            if (t4 < (death_day-1) && t4 < max_time) {
+              (*schedule_infective_chronic_ptr)[t4].emplace_back(index, this_slot);
+            }
+            
+            // draw duration of chronic phase
+            int duration_chronic = get_duration_chronic();
+            int t5 = t3 + duration_chronic;
+            if (t5 < (death_day-1) && t5 < max_time) {
+              
+              // schedule change of state
+              (*schedule_Ch_to_Sh_ptr)[t5].emplace_back(index, this_slot);
+              
+              // schedule recover from infective
+              int t6 = t5 + g;
+              if (t6 < death_day && t6 < max_time) {
+                (*schedule_infective_recovery_ptr)[t6].emplace_back(index, this_slot);
+              }
+              
+            }
+            
+          } else {  // transition directly from acute to recovery
+            
+            // schedule change of state
+            (*schedule_Ah_to_Sh_ptr)[t3].emplace_back(index, this_slot);
+            
+            // schedule recover from infective
+            int t4 = t3 + g;
+            if (t4 < (death_day-1) && t4 < max_time) {
+              (*schedule_infective_recovery_ptr)[t4].emplace_back(index, this_slot);
             }
             
           }
           
-        } else {
+        } else {  // acute disease treated
           
-          (*schedule_Ah_to_Sh_ptr)[t3].emplace_back(index, this_slot);
+          // schedule change of state
+          (*schedule_Ah_to_Ph_ptr)[t3].insert(index);
+          
+          // schedule recover from infective
           int t4 = t3 + g;
           if (t4 < (death_day-1) && t4 < max_time) {
             (*schedule_infective_recovery_ptr)[t4].emplace_back(index, this_slot);
@@ -276,28 +337,38 @@ void Host::infection(int t) {
         }
       }
       
-    } else {
+    } else {  // transition initially to chronic stage
       
+      // schedule change of state
       (*schedule_Eh_to_Ch_ptr)[t1].emplace_back(index, this_slot);
+      
+      // schedule become chronically infective
       int t2 = t1 + g;
       if (t2 < (death_day-1) && t2 < max_time) {
         (*schedule_infective_chronic_ptr)[t2].emplace_back(index, this_slot);
       }
       
+      // draw duration of chronic phase
       int duration_chronic = get_duration_chronic();
       int t3 = t1 + duration_chronic;
       if (t3 < (death_day-1) && t3 < max_time) {
         
+        // schedule change of state
         (*schedule_Ch_to_Sh_ptr)[t3].emplace_back(index, this_slot);
+        
+        // schedule recover from infective
         int t4 = t3 + g;
         if (t4 < (death_day-1) && t4 < max_time) {
           (*schedule_infective_recovery_ptr)[t4].emplace_back(index, this_slot);
         }
-        
       }
       
     }
   }
+  
+  // update indices
+  infection_index++;
+  inoc_index++;
   
 }
 
@@ -392,6 +463,27 @@ void Host::Ch_to_Sh(int this_slot) {
   // update status
   inoc_status_asexual[this_slot] = Inactive_asexual;
   
+}
+
+//------------------------------------------------
+// host treatment in acute stage
+void Host::Ah_to_Ph() {
+  /*
+  // update deme counts
+  if (get_n_bloodstage_acute() == 0) {
+    if (get_n_bloodstage_chronic() == 1) {
+      (*Ch_ptr)[deme]--;
+      if (get_n_liverstage() > 0) {
+        (*Eh_ptr)[deme]++;
+      } else {
+        (*Sh_ptr)[deme]++;
+      }
+    }
+  }
+  
+  // update status
+  inoc_status_asexual[this_slot] = Inactive_asexual;
+  */
 }
 
 //------------------------------------------------
@@ -526,7 +618,7 @@ int Host::get_n_asexual() {
 // get total number of infective (sexual stage) inoculations
 int Host::get_n_infective() {
   int ret = 0;
-  for (int i = 0; i < int(inoc_status_sexual.size()); ++i) {
+  for (int i = 0; i < max_inoculations; ++i) {
     if (inoc_status_sexual[i] == Acute_sexual || inoc_status_sexual[i] == Chronic_sexual) {
       ret ++;
     }
@@ -537,69 +629,88 @@ int Host::get_n_infective() {
 //------------------------------------------------
 // get current probability of infection
 double Host::get_prob_infection() {
-  if (infection_index < (n_prob_infection-1)) {
-    return prob_infection[infection_index];
-  }
-  return prob_infection[n_prob_infection-1];
+  int index = (infection_index < n_prob_infection) ? infection_index : n_prob_infection - 1;
+  return prob_infection[index];
 }
 
 //------------------------------------------------
 // get current probability of going to acute infection
 double Host::get_prob_acute() {
-  if (inoc_index < (n_prob_acute-1)) {
-    return prob_acute[inoc_index];
-  }
-  return prob_acute[n_prob_acute-1];
+  int index = (inoc_index < n_prob_acute) ? inoc_index : n_prob_acute - 1;
+  return prob_acute[index];
 }
 
 //------------------------------------------------
 // get current probability of going to chronic from acute infection
 double Host::get_prob_AC() {
-  if (inoc_index < (n_prob_AC-1)) {
-    return prob_AC[inoc_index];
-  }
-  return prob_AC[n_prob_AC-1];
+  int index = (inoc_index < n_prob_AC) ? inoc_index : n_prob_AC - 1;
+  return prob_AC[index];
 }
 
 //------------------------------------------------
 // get duration of acute disease
 int Host::get_duration_acute() {
-  int ret;
-  if (inoc_index < (n_duration_acute-1)) {
-    ret = (*sampler_duration_acute_ptr)[inoc_index].draw() + 1;
-  }
-  ret = (*sampler_duration_acute_ptr)[n_duration_acute-1].draw() + 1;
-  return ret;
+  int index = (inoc_index < n_duration_acute) ? inoc_index : n_duration_acute - 1;
+  return (*sampler_duration_acute_ptr)[index].draw() + 1;
 }
 
 //------------------------------------------------
 // get duration of chronic disease
 int Host::get_duration_chronic() {
-  int ret;
-  if (inoc_index < (n_duration_chronic-1)) {
-    ret = (*sampler_duration_chronic_ptr)[inoc_index].draw() + 1;
-  }
-  ret = (*sampler_duration_chronic_ptr)[n_duration_chronic-1].draw() + 1;
-  return ret;
+  int index = (inoc_index < n_duration_chronic) ? inoc_index : n_duration_chronic - 1;
+  return (*sampler_duration_chronic_ptr)[index].draw() + 1;
+}
+
+//------------------------------------------------
+// get time until treatment of acute disease
+int Host::get_time_treatment_acute() {
+  int index = (inoc_index < n_time_treatment_acute) ? inoc_index : n_time_treatment_acute - 1;
+  return (*sampler_time_treatment_acute_ptr)[index].draw() + 1;
+}
+
+//------------------------------------------------
+// get time until treatment of chronic disease
+int Host::get_time_treatment_chronic() {
+  int index = (inoc_index < n_time_treatment_chronic) ? inoc_index : n_time_treatment_chronic - 1;
+  return (*sampler_time_treatment_chronic_ptr)[index].draw() + 1;
 }
 
 //------------------------------------------------
 // get current infectivity
 double Host::get_infectivity(int t) {
   
-  // TODO - infectivity from distribution
-  /*
-  // get probability of being infected by sexual-stage inoculation
-  int ret = 0;
-  for (int i = 0; i < int(inoc_status_sexual.size()); ++i) {
-    if (inoc_status_sexual[i] == Active_sexual) {
+  // host infectivity is the max infectivity over all inoculations
+  double ret = 0;
+  for (int i = 0; i < max_inoculations; ++i) {
+    if (inoc_status_sexual[i] == Acute_sexual || inoc_status_sexual[i] == Chronic_sexual) {
+      
+      // get time since became infective
       int time_diff = t - inoc_time_infective[i];
-      //infectivity_acute
+      
+      // split by acute vs. chronic infectivity
+      double inoc_infectivity;
+      if (inoc_status_sexual[i] == Acute_sexual) {
+        
+        // get infectivity from appropriate distribution
+        int tmp1 = (inoc_index < n_infectivity_acute) ? inoc_index : n_infectivity_acute-1;
+        int tmp2 = (time_diff < int(infectivity_acute[tmp1].size())) ? time_diff : int(infectivity_acute[tmp1].size())-1;
+        inoc_infectivity = infectivity_acute[tmp1][tmp2];
+        
+      } else {
+        
+        // get infectivity from appropriate distribution
+        int tmp1 = (inoc_index < n_infectivity_chronic) ? inoc_index : n_infectivity_chronic-1;
+        int tmp2 = (time_diff < int(infectivity_chronic[tmp1].size())) ? time_diff : int(infectivity_chronic[tmp1].size())-1;
+        inoc_infectivity = infectivity_chronic[tmp1][tmp2];
+        
+      }
+      
+      // ret is max of ret and inoc_infectivity
+      ret = (ret > inoc_infectivity) ? ret : inoc_infectivity;
     }
   }
-  */
   
-  return max_infectivity;
+  return ret;
 }
 
 //------------------------------------------------

@@ -20,6 +20,7 @@ public:
   // epi distributions
   static std::vector<double> prob_infection;
   static int n_prob_infection;
+  static double max_prob_infection;
   static std::vector<double> prob_acute;
   static int n_prob_acute;
   static std::vector<double> prob_AC;
@@ -28,6 +29,10 @@ public:
   static int n_duration_acute;
   static std::vector<std::vector<double>> duration_chronic;
   static int n_duration_chronic;
+  static std::vector<std::vector<double>> time_treatment_acute;
+  static int n_time_treatment_acute;
+  static std::vector<std::vector<double>> time_treatment_chronic;
+  static int n_time_treatment_chronic;
   static std::vector<std::vector<double>> infectivity_acute;
   static int n_infectivity_acute;
   static std::vector<std::vector<double>> infectivity_chronic;
@@ -67,6 +72,8 @@ public:
                        std::vector<double> prob_AC,
                        std::vector<std::vector<double>> duration_acute,
                        std::vector<std::vector<double>> duration_chronic,
+                       std::vector<std::vector<double>> time_treatment_acute,
+                       std::vector<std::vector<double>> time_treatment_chronic,
                        std::vector<std::vector<double>> infectivity_acute,
                        std::vector<std::vector<double>> infectivity_chronic,
                        int max_inoculations);

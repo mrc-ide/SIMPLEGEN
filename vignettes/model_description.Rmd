@@ -28,7 +28,7 @@ SIMPLEGEN works with transmission records generated from *any* model, just as lo
 
 The SIMPLEGEN transmission model is closely aligned to the Griffin *et al.* (2016) model, but has some key differences both in assumptions and implementation. The model is designed to be a minimally sufficient description of the transmission cycle, capturing the majority of important features that are required for simulations to match observed data, but otherwise leaving out details. It is also designed to be highly flexible, allowing the user to specify complete distributions where possible rather than using fixed values.
 
-### Innoculations and host states
+### Inoculations and host states
 
 The most important concept in the model is the separation of 1) the infection state of a human host, 2) the individual states of infections that a human host receives, referred to as "inoculations", and 3) the genotypes within an individual. For purely epidemiological transmission models we can choose to focus on 1), as we only care about inoculations to the extent that they prolong the host infected state. However, for SIMPLEGEN we need to track both 1) and 2) in order to be able to generate 3) from the pruned transmission record.
 
@@ -40,23 +40,22 @@ The state of a host is defined directly from the state of its inoculations. If t
 
 ### Flexible distributions
 
-In a standard compartmental model there is a constant probability of moving between states, leading to exponential waiting times in each state. In SIMPLEGEN the user can define probability distributions in a more flexible way, allowing them to vary from one inoculation to the next. For example, the `prob_infection` parameter specifies the probability of an infectious bite taking hold (leading to a new innoculation). If this is defined as a vector then the first value is used for the first infectious bite, the second value for the second bite, etc. until the final value which is used for all remaining bites. Hence, infection-blocking immunity can be modelled by using a vector of decreasing probabilities. Similarly, the `duration_chronic` parameter can be input as a single vector, in which case it specifies the daily probability of leaving the chronic phase, or as a list of vectors, in which case the model steps through the distributions for each new innoculation.
+In a standard compartmental model there is a constant probability of moving between states, leading to exponential waiting times in each state. In SIMPLEGEN the user can define probability distributions in a more flexible way, allowing them to vary from one inoculation to the next. For example, the `prob_infection` parameter specifies the probability of an infectious bite taking hold (leading to a new inoculation). If this is defined as a vector then the first value is used for the first infectious bite, the second value for the second bite, etc. until the final value which is used for all remaining bites. Hence, infection-blocking immunity can be modelled by using a vector of decreasing probabilities. Similarly, the `duration_chronic` parameter can be input as a single vector, in which case it specifies the daily probability of leaving the chronic phase, or as a list of vectors, in which case the model steps through the distributions for each new inoculation.
 
 Parameters that can be varied include:
 
 - the probability of infection, given a bite from an infectious mosquito
 - the probability of going to acute stage vs. directly to chronic stage
 - the probability of an acute infection going to chronic stage on recovery vs. directly to susceptible
-- the duration of acute and chronic infection (daily distributions)
-- the probability of being treated in the acute and chronic stages (daily distributions)
-- the duration of treatment prophylaxis (daily distribution)
-- the onward infectivity of the acute and chronic stages (daily distributions)
-- detectability by microscopy in the acute and chronic stages (daily distributions)
-- detectability by PCR in the acute and chronic stages (daily distributions)
+- the duration of acute and chronic infection
+- the probability of being treated in the acute and chronic stages
+- the duration of treatment prophylaxis
+- the onward infectivity of the acute and chronic stages
+- detectability by microscopy and PCR in the acute and chronic stages
 
 ### Treatment
 
-The exception to the rule that inoculations are independent is treatment. Upon treatment, all blood stage innoculations are immediately cured, and the host enters a prophylactic stage in which no new innoculations are possible. Liver stage inoculations are not directly cured, however, inoculations that leave the liver stage while the host is in the prophylactic stage are considered immediately cured. Sexual stages are not directly cured, although the termination of the diseased stage will lead to the termination of the sexual stage after the appropriate lag.
+The exception to the rule that inoculations are independent is treatment. Upon treatment, all blood stage inoculations are immediately cured, and the host enters a prophylactic stage in which no new inoculations are possible. Liver stage inoculations are not directly cured, however, inoculations that leave the liver stage while the host is in the prophylactic stage are considered immediately cured. Sexual stages are not directly cured, although the termination of the diseased stage will lead to the termination of the sexual stage after the appropriate lag.
 
 Daily treatment probabilities apply independently for each inoculation. Thus, if a host has two inoculations, with daily treatment probabilities of 0.2 and 0.3, then the overall treatment probability is given by 1 - (1-0.2)*(1-0.3) = 0.44.
 
@@ -64,7 +63,7 @@ The raw daily treatment probabilities above are modified by host-specific access
 
 ### Infectivity and mosquitoes
 
-The onward infectivity of an inoculation to mosquitoes also goes through acute and chronic stages, which are lagged from the asexual stages. For example, take an inoculation that transitions from liver stage to acute stage on day 20, then to chronic infection on day 40, then recovers on day 100. If the gametocyte lag parameter `g` is equal to 10 days then the inoculation will enter the acute infective stage on day 30, the chronic infective stage on day 50, and will become uninfective on day 110. The daily infectivity of the acute and chronic stages can be defined flexibly by the user (see above).
+The onward infectivity of an inoculation to mosquitoes also goes through acute and chronic stages, which are lagged from the asexual stages. For example, take an inoculation that transitions from liver stage to acute stage on day 20, then to chronic infection on day 40, then recovers on day 100. If the gametocyte lag parameter `g` is equal to 10 days then the inoculation will enter the acute infective stage on day 30, the chronic infective stage on day 50, and will become uninfective on day 110. The daily infectivity of the acute and chronic stages can be defined flexibly by the user (see above). The oveall infectivity of a host is taken to be the *maximum* of the infectivity of its inoculations.
 
 Mosquitoes exist in three stages: susceptible, latently infected, and infectious. Upon biting an infectious human host and becoming infected, they enter the latent stage which has fixed duration `v` (the extrinsic incubation period). Upon leaving the latent stage they become infective to humans. Natural death occurs with constant rate `mu` throughout the mosquito lifetime, and every death is matched with a new birth in the susceptible stage, leading to a constant mosquito population size `M`.
 

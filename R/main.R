@@ -43,10 +43,10 @@ simplegen_file <- function(name) {
 }
 
 #------------------------------------------------
-#' @title Define epidemiological parameters
+#' @title Define SIMPLEGEN parameters
 #'
-#' @description Define the epidemiological parameters of a SIMPLEGEN project.
-#'   These parameters will be used when simulating epidemiolocal data.
+#' @description Define the parameters of a SIMPLEGEN project. These parameters
+#'   will be used when simulating epidemiolocal data.
 #'
 #' @param project a SIMPLEGEN project.
 #' @param a human blood feeding rate. The proportion of mosquitoes that feed on
@@ -71,20 +71,36 @@ simplegen_file <- function(name) {
 #'   vector then each value applies to each subsequent infection.
 #' @param duration_acute specifies the probability distribution of duration (in
 #'   days) of acute disease. Can be vector or list: if a list then the first
-#'   element specifies the distribution for the first incident of acute disease,
-#'   the second element for the second incident and so on (the final element is
-#'   used for all remaining incidents); if a vector then the same distribution
-#'   is used for all incidents of acute disease.
+#'   element specifies the probability distribution for the first incident of
+#'   acute disease, the second element for the second incident and so on (the
+#'   final element is used for all remaining incidents); if a vector then the
+#'   same probability distribution is used for all incidents of acute disease.
+#'   Values are automatically normalised to a proper probability mass
+#'   distribution internally (i.e. a distribution that sums to 1).
 #' @param duration_chronic equivalent to \code{duration_acute} but for chronic
 #'   disease.
-#' @param infectivity_acute specifies the probability that a mosquito becomes
-#'   infected upon biting an acutely infective human host. Values specify the
-#'   infectivity at each day since entering the infective state. Can be vector
-#'   or list: if a list then the first element specifies the infectivity for the
-#'   first incident of acute disease, the second element for the second incident
-#'   and so on (the final element is used for all remaining incidents); if a
-#'   vector then the same infectivity is used for all incidents of acute
-#'   disease.
+#' @param time_treatment_acute specifies the probability distribution of time
+#'   (in days since entering the acute stage) until considering seeking
+#'   treatment. If the infection clears naturally prior to this time then the
+#'   host does not seek treatment. Otherwise the host seeks treatment according
+#'   to their host-specific treatment seeking parameter (see
+#'   \code{treatment_seeking_alpha} and \code{treatment_seeking_beta}). Can be
+#'   vector or list: if a list then the first element specifies the probability
+#'   distribution for the first incident of acute disease, the second element
+#'   for the second incident and so on (the final element is used for all
+#'   remaining incidents); if a vector then the same probability distribution is
+#'   used for all incidents of acute disease. Values are automatically
+#'   normalised to a proper probability mass distribution internally (i.e. a
+#'   distribution that sums to 1).
+#' @param time_treatment_chronic equivalent to \code{time_treatment_acute} but
+#'   for chronic disease.
+#' @param infectivity_acute the probability that a mosquito becomes infected
+#'   upon biting an acutely infective human host, at each day since entering the
+#'   infective state. Can be vector or list: if a list then the first element
+#'   specifies the infectivity for the first incident of acute disease, the
+#'   second element for the second incident and so on (the final element is used
+#'   for all remaining incidents); if a vector then the same infectivity is used
+#'   for all incidents of acute disease.
 #' @param infectivity_chronic equivalent to \code{infectivity_acute} but for
 #'   chronic disease.
 #' @param max_inoculations maximum number of inoculations that an individual
@@ -113,7 +129,9 @@ define_params <- function(project,
                           prob_acute = 1.0,
                           prob_AC = 1.0,
                           duration_acute = dgeom(1:25, 1/5),
-                          duration_chronic = dgeom(1:25, 1/5),
+                          duration_chronic = dgeom(1:100, 1/20),
+                          time_treatment_acute = dgeom(1:25, 1/5),
+                          time_treatment_chronic = dgeom(1:100, 1/20),
                           infectivity_acute = 0.07,
                           infectivity_chronic = 0.07,
                           max_inoculations = 5,
@@ -147,6 +165,8 @@ define_params <- function(project,
                   prob_AC = prob_AC,
                   duration_acute = duration_acute,
                   duration_chronic = duration_chronic,
+                  time_treatment_acute = time_treatment_acute,
+                  time_treatment_chronic = time_treatment_chronic,
                   infectivity_acute = infectivity_acute,
                   infectivity_chronic = infectivity_chronic,
                   max_inoculations = max_inoculations,
@@ -184,6 +204,12 @@ process_params <- function(x) {
   if (!is.list(x$duration_chronic)) {
     x$duration_chronic <- list(x$duration_chronic)
   }
+  if (!is.list(x$time_treatment_acute)) {
+    x$time_treatment_acute <- list(x$time_treatment_acute)
+  }
+  if (!is.list(x$time_treatment_chronic)) {
+    x$time_treatment_chronic <- list(x$time_treatment_chronic)
+  }
   if (!is.list(x$infectivity_acute)) {
     x$infectivity_acute <- list(x$infectivity_acute)
   }
@@ -211,6 +237,8 @@ check_params <- function(x) {
   assert_bounded(x$prob_AC, name = "prob_AC")
   mapply(assert_pos, x$duration_acute, name = "duration_acute")
   mapply(assert_pos, x$duration_chronic, name = "duration_chronic")
+  mapply(assert_bounded, x$time_treatment_acute, name = "time_treatment_acute")
+  mapply(assert_bounded, x$time_treatment_chronic, name = "time_treatment_chronic")
   mapply(assert_bounded, x$infectivity_acute, name = "infectivity_acute")
   mapply(assert_bounded, x$infectivity_chronic, name = "infectivity_chronic")
   assert_single_pos_int(x$max_inoculations, zero_allowed = FALSE, name = "max_inoculations")
