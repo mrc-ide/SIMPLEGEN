@@ -1,6 +1,8 @@
 # SIMPLEGEN - instructions for contributors
 Bob Verity <r.verity@imperial.ac.uk>
 
+Those new to package to development may find the [instructions here](http://www.bobverity.com/home/making-better-r-packages/) useful also.
+
 
 ## Package structure
 
