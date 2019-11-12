@@ -80,7 +80,7 @@
       <h1>Model Description</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2019-05-28</h4>
+            <h4 class="date">2019-11-12</h4>
       
       
       <div class="hidden name"><code>model_description.Rmd</code></div>
@@ -92,60 +92,71 @@
 <div id="overview" class="section level2">
 <h2 class="hasAnchor">
 <a href="#overview" class="anchor"></a>Overview</h2>
-<p>SIMPLEGEN works by making a clean break between the generation of <em>P. falciparum</em> epidemiological data and the generation of genetic data. Epidemiological data is generated from a transmission model, which is then stored in a “transmission record” detailing who infected whom. The user then specifies the IDs of individuals from which to sample genotypes at a particular point in time (or at multiple points in time). The transmission record is then pruned down to just the historical transmission events that ultimately lead up to these sampled individuals - all other transmission events are discarded, leading to a much smaller transmission record. Finally, genetic data is generated from the pruned transmission record. Genetic parameters, such as the number of loci and the error rate, can be specified at this final stage.</p>
-<p>SIMPLEGEN works with transmission records generated from <em>any</em> model, just as long as the format is correct. However, a fairly complete transmission model is included in the program. Here we describe the transmission model, the format of the transmission record, the pruning process, and the generation of genetic data.</p>
+<p>SIMPLEGEN works by making a clean break between the generation of <em>P. falciparum</em> epidemiological and genetic data. The method consists of the following steps:</p>
+<ol style="list-style-type: decimal">
+<li>Epidemiological data is generated from a transmission model, which is then stored in a “transmission record” detailing who infected whom. This transmission record is written to file, and can be quite large.</li>
+<li>The user specifies the IDs of individuals from which to sample, and the sampling time(s). The transmission record is then read in and pruned down to just the historical transmission events that ultimately lead up to these sampled individuals, resulting in a much smaller version of the transmission record.</li>
+<li>Genetic data is generated from the pruned transmission record. This step invovles a set of genetic parameters, such as the number of loci and the recombination rate.</li>
+</ol>
+<p>SIMPLEGEN can work with <em>any</em> epidemiological model, just as long as it is capable of generating a transmission record in the correct format. That being said, a fairly complete transmission model is included in the program. Here we describe the SIMPLEGEN transmission model, the format of the transmission record, the pruning process, and the generation of genetic data.</p>
 </div>
 <div id="transmission-model" class="section level2">
 <h2 class="hasAnchor">
 <a href="#transmission-model" class="anchor"></a>Transmission model</h2>
-<p>The SIMPLEGEN transmission model is closely aligned to the Griffin <em>et al.</em> (2016) model, but has some key differences both in assumptions and implementation. The model is designed to be a minimally sufficient description of the transmission cycle, capturing the majority of important features that are required for simulations to match observed data, but otherwise leaving out details. It is also designed to be highly flexible, allowing the user to specify complete distributions where possible rather than using fixed values.</p>
-<div id="innoculations-and-host-states" class="section level3">
+<p>The SIMPLEGEN transmission model is closely aligned to the Griffin <em>et al.</em> (2016) model, but has some key differences both in assumptions and implementation. The model is designed to be a minimally sufficient description of the transmission cycle, capturing the majority of important features that are required for simulations to match observed data, but not trying to be a complete phenomenological description of the epidemiology of malaria. It is also designed to be highly flexible, allowing the user to specify complete distributions where possible rather than using fixed values.</p>
+<div id="inoculations-and-host-states" class="section level3">
 <h3 class="hasAnchor">
-<a href="#innoculations-and-host-states" class="anchor"></a>Innoculations and host states</h3>
-<p>The most important concept in the model is the separation of 1) the infection state of a human host, 2) the individual states of infections that a human host receives, referred to as “inoculations”, and 3) the genotypes within an individual. For purely epidemiological transmission models we can choose to focus on 1), as we only care about inoculations to the extent that they prolong the host infected state. However, for SIMPLEGEN we need to track both 1) and 2) in order to be able to generate 3) from the pruned transmission record.</p>
+<a href="#inoculations-and-host-states" class="anchor"></a>Inoculations and host states</h3>
+<p>The most important concept in the model is the separation of 1) the infection state of a human host, 2) the individual states of infections that a human host receives, referred to as “inoculations”, and 3) the genotypes within an individual. The majority of purely epidemiological transmission models focus on the host state, as they only care about inoculations to the extent that they prolong the host infection. For SIMPLEGEN, however, we need to keep track of individual inoculations in order to be able to generate genetic data from the pruned transmission record.</p>
 <p>We define an inoculation as a population of parasites that are passed from mosquito to human host upon successful infection. Each host within SIMPLEGEN can be be thought of having multiple inoculation “slots”, and each new inoculation falls into a new slot. There are a finite number of slots available per host, defined by <code>max_inoculations</code>, but for most applications we can set this number to be large enough that hosts never saturate all their slots.</p>
-<p>Each inoculation can be thought of as an independent episode of malaria that goes through the following stages: 1) liver stage, 2) acute blood stage, 3) chronic blood stage, 4) recovery. Inoculations can pass through all four stages, or they can pass directly from 1) to 3), and also from 2) to 4) depending on the model parameters. The acute stage essentially represents the symptomatic stage of infection, although the word “acute” has been used rather than “symptomatic” to avoid forcing a clinical interpretation on the model. The chronic stage is designed to capture long-lasting infections, including possible asymptomatic and/or sub-patent stages.</p>
-<p>The state of a host is defined directly from the state of its inoculations. If there are any acute inoculations then the host is in the acute stage. Otherwise, if there are any chronic inoculations then the host is in the chronic stage. Otherwise, if there are any liver stage inoculations then the host is in the liver stage. Otherwise the host is in the susceptible stage. Thus, the state of the host roughly corresponds to the <em>most serious</em> of the inoculations it holds.</p>
+<p>Each inoculation can be thought of as an independent episode of malaria that goes through the following stages: 1) liver stage, 2) acute blood stage, 3) chronic blood stage, 4) recovery. Inoculations can pass through all four stages in order, or they can pass directly from 1) to 3), and also from 2) to 4) depending on the model parameters. The acute stage essentially represents the symptomatic stage of infection, although the word “acute” has been used rather than “symptomatic” to avoid forcing a clinical interpretation on the model. The chronic stage is designed to capture long-lasting infections, including possible asymptomatic and/or sub-patent stages (more on detection later).</p>
+<p>The state of a host is defined directly from the state of its inoculations. If there are <strong>any</strong> acute inoculations then the host is in the acute stage. Otherwise, if there are <strong>any</strong> chronic inoculations then the host is in the chronic stage. Otherwise, if there are <strong>any</strong> liver stage inoculations then the host is in the liver stage. Otherwise the host is in the susceptible stage. Thus, the state of the host roughly corresponds to the <em>most serious</em> of the inoculations it holds. The only host stage that is not dictated directly from its inoculations is the treated (aka prophylactic) stage, described below.</p>
 </div>
 <div id="flexible-distributions" class="section level3">
 <h3 class="hasAnchor">
 <a href="#flexible-distributions" class="anchor"></a>Flexible distributions</h3>
-<p>In a standard compartmental model there is a constant probability of moving between states, leading to exponential waiting times in each state. In SIMPLEGEN the user can define probability distributions in a more flexible way, allowing them to vary from one inoculation to the next. For example, the <code>prob_infection</code> parameter specifies the probability of an infectious bite taking hold (leading to a new innoculation). If this is defined as a vector then the first value is used for the first infectious bite, the second value for the second bite, etc. until the final value which is used for all remaining bites. Hence, infection-blocking immunity can be modelled by using a vector of decreasing probabilities. Similarly, the <code>duration_chronic</code> parameter can be input as a single vector, in which case it specifies the daily probability of leaving the chronic phase, or as a list of vectors, in which case the model steps through the distributions for each new innoculation.</p>
-<p>Parameters that can be varied include:</p>
+<p>In a standard compartmental model there is a constant probability of moving between states, leading to exponential waiting times in each state. In SIMPLEGEN the user can define probability distributions in a more flexible way, allowing probabilities to vary from one inoculation to the next. For example, the <code>prob_infection</code> parameter specifies the probability of an infectious bite taking hold, leading to a new inoculation. If this is defined as a vector then the first value is used for the first infectious bite, the second value for the second bite, etc. until the final value which is used for all remaining bites. Hence, infection-blocking immunity can be modelled by using a vector of decreasing probabilities. Similarly, the <code>duration_chronic</code> parameter can be input as a single vector, in which case it specifies the daily probability of leaving the chronic phase, or as a list of vectors, in which case the model steps through the distributions for each new inoculation.</p>
+<p>The following parameters can be defined in a flexible way:</p>
 <ul>
-<li>the probability of infection, given a bite from an infectious mosquito</li>
-<li>the probability of going to acute stage vs. directly to chronic stage</li>
-<li>the probability of an acute infection going to chronic stage on recovery vs. directly to susceptible</li>
-<li>the duration of acute and chronic infection (daily distributions)</li>
-<li>the probability of being treated in the acute and chronic stages (daily distributions)</li>
-<li>the duration of treatment prophylaxis (daily distribution)</li>
-<li>the onward infectivity of the acute and chronic stages (daily distributions)</li>
-<li>detectability by microscopy in the acute and chronic stages (daily distributions)</li>
-<li>detectability by PCR in the acute and chronic stages (daily distributions)</li>
+<li>
+<code>prob_infection</code>: the probability of infection, given a bite from an infectious mosquito</li>
+<li>
+<code>prob_acute</code>: the probability of going to acute stage vs. directly to chronic stage</li>
+<li>
+<code>prob_AC</code>: the probability of an acute infection going to chronic stage on recovery vs. directly to susceptible</li>
+<li>
+<code>duration_acute</code>, <code>duration_chronic</code>: the duration of acute and chronic infection</li>
+<li>
+<code>detectability_microscopy_acute</code>, <code>detectability_microscopy_chronic</code>: detectability by microscopy in the acute and chronic stages. Analogous parameters exist for detectability by polymerase chain reaction, replacing <code>microscopy</code> by <code>PCR</code> in the above</li>
+<li>
+<code>time_treatment_acute</code>, <code>time_treatment_chronic</code>: the time until <em>considering</em> seeking treatment in the acute and chronic stages (more info on treatment below)</li>
+<li>
+<code>duration_prophylactic</code>: the duration of post-treatment prophylaxis</li>
+<li>
+<code>infectivity_acute</code>, <code>infectivity_chronic</code>: the onward infectivity of the acute and chronic stages</li>
 </ul>
 </div>
 <div id="treatment" class="section level3">
 <h3 class="hasAnchor">
 <a href="#treatment" class="anchor"></a>Treatment</h3>
-<p>The exception to the rule that inoculations are independent is treatment. Upon treatment, all blood stage innoculations are immediately cured, and the host enters a prophylactic stage in which no new innoculations are possible. Liver stage inoculations are not directly cured, however, inoculations that leave the liver stage while the host is in the prophylactic stage are considered immediately cured. Sexual stages are not directly cured, although the termination of the diseased stage will lead to the termination of the sexual stage after the appropriate lag.</p>
-<p>Daily treatment probabilities apply independently for each inoculation. Thus, if a host has two inoculations, with daily treatment probabilities of 0.2 and 0.3, then the overall treatment probability is given by 1 - (1-0.2)*(1-0.3) = 0.44.</p>
-<p>The raw daily treatment probabilities above are modified by host-specific accessibility parameters. For each host, accessibility is drawn from a Beta distribution with user-defined mean and variance. Accessibility values are drawn once at birth and apply for the lifetime of a host, representing long-term inequalities in access to treatment. For example, if the treatment accessibility of a host is 0.5, and the raw treatment probability on the current day is 0.8, then the final probability of seeking treatment on this day is 0.8*0.5 = 0.4 for that host.</p>
+<p>Treatment is the exception to the rule that inoculations are independent. Upon treatment, all blood stage inoculations are immediately cured, and the host enters a prophylactic stage in which no new inoculations are possible. Liver stage inoculations are not directly cured, but inoculations that leave the liver stage while the host is in the prophylactic stage are considered immediately cured. Sexual stages are not directly cured, although the termination of the diseased stage will lead to the termination of the sexual stage after the appropriate lag.</p>
+<p>The input parameters define both the distribution of duration of disease (acute and chronic), and the distribution of time until seeking treatment. Whichever one of these occurs first takes precedence - in other words, these are competing hazards. If the disease clears naturally first then the host does not seek treatment. If treatment comes first then the host is considered <em>motivated</em> to seek treatment at this point in time, for example due to the emergence of clinical features, although treatment is still not guaranteed. Instead, the host draws whether to access care from its own treatment-seeking probability, <span class="math inline">\(p_i\)</span>. The value of <span class="math inline">\(p_i\)</span> is defined separately for each host at birth, and represents long-term factors that dictate a host’s propensity/ability to seek treatment. The value of <span class="math inline">\(p_i\)</span> is drawn from a Beta distribution with shape parameters <code>treatment_seeking_alpha</code> and <code>treatment_seeking_beta</code>, allowing the user to define both the mean access to care in the population, and the extent of inequality in access to care.</p>
 </div>
 <div id="infectivity-and-mosquitoes" class="section level3">
 <h3 class="hasAnchor">
 <a href="#infectivity-and-mosquitoes" class="anchor"></a>Infectivity and mosquitoes</h3>
-<p>The onward infectivity of an inoculation to mosquitoes also goes through acute and chronic stages, which are lagged from the asexual stages. For example, take an inoculation that transitions from liver stage to acute stage on day 20, then to chronic infection on day 40, then recovers on day 100. If the gametocyte lag parameter <code>g</code> is equal to 10 days then the inoculation will enter the acute infective stage on day 30, the chronic infective stage on day 50, and will become uninfective on day 110. The daily infectivity of the acute and chronic stages can be defined flexibly by the user (see above).</p>
+<p>The onward infectivity of an inoculation to mosquitoes also goes through acute and chronic stages, which are lagged from the asexual stages. For example, take an inoculation that transitions from liver stage to acute stage on day 20, then to chronic infection on day 40, then recovers on day 100. If the gametocyte lag parameter <code>g</code> is equal to 10 days then the inoculation will enter the acute infective stage on day 30, the chronic infective stage on day 50, and will become uninfective on day 110. The daily infectivity of the acute and chronic stages can be defined flexibly (see above). The overall infectivity of a host is taken to be the <em>maximum</em> of the infectivity of its inoculations.</p>
 <p>Mosquitoes exist in three stages: susceptible, latently infected, and infectious. Upon biting an infectious human host and becoming infected, they enter the latent stage which has fixed duration <code>v</code> (the extrinsic incubation period). Upon leaving the latent stage they become infective to humans. Natural death occurs with constant rate <code>mu</code> throughout the mosquito lifetime, and every death is matched with a new birth in the susceptible stage, leading to a constant mosquito population size <code>M</code>.</p>
 </div>
 <div id="demographics" class="section level3">
 <h3 class="hasAnchor">
 <a href="#demographics" class="anchor"></a>Demographics</h3>
-<p>The stable age distribution is calculated from life tables, which can be user-defined, or is taken from Mali demographic data by default. Human deaths are matched by new births, leading to a constant total human population size. Only natural death is considered, i.e. malaria does not lead to increased chance of death. Complete age distributions can be produced from the model at user-specified time points - for example the complete age distribution of clinical incidence.</p>
+<p>The stable age distribution of hosts is calculated from life tables. If no life table is supplied by the user then values are taken from Mali demographic data by default. Human deaths are matched by new births, leading to a constant total human population size. Only natural death is considered, i.e. malaria does not lead to increased chance of death.</p>
 </div>
 <div id="migration" class="section level3">
 <h3 class="hasAnchor">
 <a href="#migration" class="anchor"></a>Migration</h3>
-<p>All of the model description above applies to a single epidemiological unit - a single <em>deme</em>. Human migration is modelled as a stochastic process in which hosts move between demes. To make this process as realistic as possible, migration probabilities can vary by age as well as by source/destination. Migration events are seen as temporary trips of defined duration before returning to the home deme. Hence, migration can capture everything from short trips to nearby villages to long-distance seasonal migration patterns. Mosquito migration is not modelled.</p>
+<p>All of the model description above applies to a single epidemiological unit - a single <em>deme</em>. Human migration is modelled as a stochastic process in which hosts move between demes. Migration events are seen as temporary trips of defined duration before returning to the home deme. Hence, migration can capture everything from short trips to nearby villages to long-distance seasonal migration patterns. Mosquito migration is not modelled.</p>
 <p>For each deme, the overall probability of migration can be defined as a function of time. This is scaled by a factor that is defined separately for each one-year age group - for example, adults may migrate more than children. Given that migration occurs, the relative probability of migrating to each destination deme is defined using a deme-by-deme matrix, which is also free to vary over time. Finally, the trip duration can be specified between every pair of demes.</p>
 </div>
 </div>
@@ -178,7 +189,7 @@
 
 
       <footer><div class="copyright">
-  <p>Developed by Bob Verity.</p>
+  <p>Developed by Bob Verity, Sophie Berube, Daniel Larremore.</p>
 </div>
 
 <div class="pkgdown">

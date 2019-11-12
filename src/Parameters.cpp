@@ -13,6 +13,8 @@ double Parameters::mu;
 int Parameters::u;
 int Parameters::v;
 int Parameters::g;
+double Parameters::treatment_seeking_alpha;
+double Parameters::treatment_seeking_beta;
 int Parameters::max_inoculations;
 
 // epi distributions
@@ -27,10 +29,20 @@ vector<vector<double>> Parameters::duration_acute;
 int Parameters::n_duration_acute;
 vector<vector<double>> Parameters::duration_chronic;
 int Parameters::n_duration_chronic;
+vector<vector<double>> Parameters::detectability_microscopy_acute;
+int Parameters::n_detectability_microscopy_acute;
+vector<vector<double>> Parameters::detectability_microscopy_chronic;
+int Parameters::n_detectability_microscopy_chronic;
+vector<vector<double>> Parameters::detectability_PCR_acute;
+int Parameters::n_detectability_PCR_acute;
+vector<vector<double>> Parameters::detectability_PCR_chronic;
+int Parameters::n_detectability_PCR_chronic;
 vector<vector<double>> Parameters::time_treatment_acute;
 int Parameters::n_time_treatment_acute;
 vector<vector<double>> Parameters::time_treatment_chronic;
 int Parameters::n_time_treatment_chronic;
+vector<double> Parameters::duration_prophylactic;
+int Parameters::n_duration_prophylactic;
 vector<vector<double>> Parameters::infectivity_acute;
 int Parameters::n_infectivity_acute;
 vector<vector<double>> Parameters::infectivity_chronic;
@@ -50,9 +62,10 @@ vector<double> Parameters::age_stable;
 
 // run parameters
 int Parameters::max_time;
+bool Parameters::save_transmission_record;
+string Parameters::transmission_record_location;
 bool Parameters::output_daily_counts;
 bool Parameters::output_age_distributions;
-bool Parameters::output_infection_history;
 bool Parameters::silent;
 vector<int> Parameters::output_age_times;
 
@@ -68,8 +81,15 @@ void Parameters::load_epi_params(double a, double p, double mu,
                                  vector<double> prob_AC,
                                  vector<vector<double>> duration_acute,
                                  vector<vector<double>> duration_chronic,
+                                 vector<vector<double>> detectability_microscopy_acute,
+                                 vector<vector<double>> detectability_microscopy_chronic,
+                                 vector<vector<double>> detectability_PCR_acute,
+                                 vector<vector<double>> detectability_PCR_chronic,
                                  vector<vector<double>> time_treatment_acute,
                                  vector<vector<double>> time_treatment_chronic,
+                                 double treatment_seeking_alpha,
+                                 double treatment_seeking_beta,
+                                 vector<double> duration_prophylactic,
                                  vector<vector<double>> infectivity_acute,
                                  vector<vector<double>> infectivity_chronic,
                                  int max_inoculations) {
@@ -81,6 +101,8 @@ void Parameters::load_epi_params(double a, double p, double mu,
   this->u = u;
   this->v = v;
   this->g = g;
+  this->treatment_seeking_alpha = treatment_seeking_alpha;
+  this->treatment_seeking_beta = treatment_seeking_beta;
   this->max_inoculations = max_inoculations;
   
   // distributions
@@ -94,10 +116,20 @@ void Parameters::load_epi_params(double a, double p, double mu,
   n_duration_acute = int(duration_acute.size());
   this->duration_chronic = duration_chronic;
   n_duration_chronic = int(duration_chronic.size());
+  this->detectability_microscopy_acute = detectability_microscopy_acute;
+  n_detectability_microscopy_acute = int(detectability_microscopy_acute.size());
+  this->detectability_microscopy_chronic = detectability_microscopy_chronic;
+  n_detectability_microscopy_chronic = int(detectability_microscopy_chronic.size());
+  this->detectability_PCR_acute = detectability_PCR_acute;
+  n_detectability_PCR_acute = int(detectability_PCR_acute.size());
+  this->detectability_PCR_chronic = detectability_PCR_chronic;
+  n_detectability_PCR_chronic = int(detectability_PCR_chronic.size());
   this->time_treatment_acute = time_treatment_acute;
   n_time_treatment_acute = int(time_treatment_acute.size());
   this->time_treatment_chronic = time_treatment_chronic;
   n_time_treatment_chronic = int(time_treatment_chronic.size());
+  this->duration_prophylactic = duration_prophylactic;
+  n_duration_prophylactic = int(duration_prophylactic.size());
   this->infectivity_acute = infectivity_acute;
   n_infectivity_acute = int(infectivity_acute.size());
   this->infectivity_chronic = infectivity_chronic;
@@ -148,19 +180,21 @@ void Parameters::load_demog_params(vector<double> life_table,
 //------------------------------------------------
 // load run parameter values
 void Parameters::load_run_params(int max_time,
+                                 bool save_transmission_record,
+                                 string transmission_record_location,
                                  bool output_daily_counts,
                                  bool output_age_distributions,
-                                 bool output_infection_history,
-                                 bool silent,
-                                 std::vector<int> output_age_times) {
+                                 std::vector<int> output_age_times,
+                                 bool silent) {
   
   // load values
   this->max_time = max_time;
+  this->save_transmission_record = save_transmission_record;
+  this->transmission_record_location = transmission_record_location;
   this->output_daily_counts = output_daily_counts;
   this->output_age_distributions = output_age_distributions;
-  this->output_infection_history = output_infection_history;
-  this->silent = silent;
   this->output_age_times = output_age_times;
+  this->silent = silent;
   
 }
 
@@ -175,6 +209,8 @@ void Parameters::summary() {
   print("u:", u);
   print("v:", v);
   print("g:", g);
+  print("treatment_seeking_alpha:", treatment_seeking_alpha);
+  print("treatment_seeking_beta:", treatment_seeking_beta);
   print("max_inoculations:", max_inoculations);
   
   // print epi distributions
@@ -188,6 +224,20 @@ void Parameters::summary() {
   print_matrix(duration_acute);
   print("duration_chronic:");
   print_matrix(duration_chronic);
+  print("detectability_microscopy_acute:");
+  print_matrix(detectability_microscopy_acute);
+  print("detectability_microscopy_chronic:");
+  print_matrix(detectability_microscopy_chronic);
+  print("detectability_PCR_acute:");
+  print_matrix(detectability_PCR_acute);
+  print("detectability_PCR_chronic:");
+  print_matrix(detectability_PCR_chronic);
+  print("time_treatment_acute:");
+  print_matrix(time_treatment_acute);
+  print("time_treatment_chronic:");
+  print_matrix(time_treatment_chronic);
+  print("duration_prophylactic:");
+  print_vector(duration_prophylactic);
   print("infectivity_acute:");
   print_matrix(infectivity_acute);
   print("infectivity_chronic:");
@@ -211,9 +261,10 @@ void Parameters::summary() {
   
   // print run scalars
   print("max_time:", max_time);
+  print("save_transmission_record:", save_transmission_record);
+  print("transmission_record_location:", transmission_record_location);
   print("output_daily_counts:", output_daily_counts);
   print("output_age_distributions:", output_age_distributions);
-  print("output_infection_history:", output_infection_history);
   print("silent:", silent);
   
   // print run vectors

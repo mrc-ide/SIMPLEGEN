@@ -90,14 +90,21 @@
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#simplegen" class="anchor"></a>SIMPLEGEN</h1></div>
 <p>Simulating Plasmodium Epidemiological and Genetic Data</p>
-<p>Forwards-in time simulation of Plasmodium falciparum genetic data can be computationally intensive, as many genotypes are tracked but ultimately lost. SIMPLEGEN avoids this problem by splitting simulation into three steps - first, simulating transmission under a simple individual-based model, second, pruning the infection history to focus on nodes that contribute to the final sample, and third, simulating genetic data. A secondary advantage is that any third-party epidemiological simulator can be used for the first step as long as it outputs in the correct format. The major limitation of SIMPLEGEN is that assumes the epidemiological and genetic processes are seperable, and hence is limited to neutral variation, and cannot model selection.</p>
+<p>Forwards-in-time simulation of Plasmodium falciparum genetic data can be computationally intensive, as many genotypes are tracked but ultimately lost when the host clears infection. SIMPLEGEN avoids this problem by splitting simulation into three steps - first, simulating transmission under a simple individual-based model, second, pruning the transmission record down to focus on hosts that contribute to the final sample, and third, simulating genetic data from the pruned transmission record. The main advantage of this method is speed, which can be several orders of magnitude faster than ordinary forwards-in-time simulation. A secondary advantage is that any third-party epidemiological simulator can be used for the first step as long as it outputs in the correct format. The major limitation of SIMPLEGEN is that it assumes the epidemiological and genetic processes are seperable, hence it cannot be used to model selection (i.e. drug resistance).</p>
 <p><em>This package is currently in development. Code contributors <strong>must</strong> read the guidelines <a href="https://github.com/mrc-ide/SIMPLEGEN/tree/style_guide">here</a> before contributing.</em></p>
 </div>
 
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <div class="license">
+    <div class="links">
+<h2>Links</h2>
+<ul class="list-unstyled">
+<li>Report a bug at <br><a href="https://github.com/mrc-ide/SIMPLEGEN/issues">https://​github.com/​mrc-ide/​SIMPLEGEN/​issues</a>
+</li>
+</ul>
+</div>
+<div class="license">
 <h2>License</h2>
 <ul class="list-unstyled">
 <li>
@@ -109,6 +116,8 @@
 <h2>Developers</h2>
 <ul class="list-unstyled">
 <li>Bob Verity <br><small class="roles"> Author, maintainer </small>  </li>
+<li>Sophie Berube <br><small class="roles"> Author </small>  </li>
+<li>Daniel Larremore <br><small class="roles"> Author </small>  </li>
 </ul>
 </div>
 
@@ -124,7 +133,7 @@
 </div>
 
       <footer><div class="copyright">
-  <p>Developed by Bob Verity.</p>
+  <p>Developed by Bob Verity, Sophie Berube, Daniel Larremore.</p>
 </div>
 
 <div class="pkgdown">

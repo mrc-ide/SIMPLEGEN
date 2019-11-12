@@ -1,6 +1,6 @@
 
 #include "Dispatcher.h"
-#include "probability_v2.h"
+#include "probability_v7.h"
 
 using namespace std;
 
@@ -28,24 +28,6 @@ Dispatcher::Dispatcher() {
     sampler_time_treatment_chronic[i] = Sampler(time_treatment_chronic[i], 1000);
   }
   
-  // events are enacted using scheduler objects. New events (e.g. infection) are
-  // generated in the current time step, and future events (e.g. transition to
-  // blood-stage) are scheduled for future time steps using these objects. This
-  // avoids the need to loop through every host in every time step, as we only
-  // need to modify the hosts for which we have scheduled events.
-  schedule_death = vector<set<int>>(max_time);
-  schedule_Eh_to_Ah = vector<vector<pair<int, int>>>(max_time);
-  schedule_Eh_to_Ch = vector<vector<pair<int, int>>>(max_time);
-  schedule_Ah_to_Ch = vector<vector<pair<int, int>>>(max_time);
-  schedule_Ah_to_Sh = vector<vector<pair<int, int>>>(max_time);
-  schedule_Ch_to_Sh = vector<vector<pair<int, int>>>(max_time);
-  schedule_Ah_to_Ph = vector<set<int>>(max_time);
-  schedule_Ch_to_Ph = vector<set<int>>(max_time);
-  schedule_Ph_to_Sh = vector<set<int>>(max_time);
-  schedule_infective_acute = vector<vector<pair<int, int>>>(max_time);
-  schedule_infective_chronic = vector<vector<pair<int, int>>>(max_time);
-  schedule_infective_recovery = vector<vector<pair<int, int>>>(max_time);
-  
   // counts of host types
   H = H_init;
   Sh = H;
@@ -60,7 +42,6 @@ Dispatcher::Dispatcher() {
   // simply change the "deme" attribute of a host to represent migration
   host_pop = vector<Host>(sum(H));
   next_host_ID = 0;
-  next_inoc_ID = 0;
   
   // for each deme, store the integer index of all hosts in that deme, and the
   // integer index of infective hosts only. Infections are seeded in the latent
@@ -80,11 +61,6 @@ Dispatcher::Dispatcher() {
       host_pop[this_host].init(this_host, next_host_ID, k,
                                Sh, Eh, Ah, Ch,
                                host_infective_index,
-                               schedule_death,
-                               schedule_Eh_to_Ah, schedule_Eh_to_Ch, schedule_Ah_to_Ch,
-                               schedule_Ah_to_Sh, schedule_Ch_to_Sh,
-                               schedule_Ah_to_Ph, schedule_Ch_to_Ph, schedule_Ph_to_Sh,
-                               schedule_infective_acute, schedule_infective_chronic, schedule_infective_recovery,
                                sampler_age_stable, sampler_age_death,
                                sampler_duration_acute, sampler_duration_chronic,
                                sampler_time_treatment_acute, sampler_time_treatment_chronic);
@@ -94,7 +70,7 @@ Dispatcher::Dispatcher() {
   // seed initial infections
   for (int k = 0; k < n_demes; ++k) {
     for (int i = 0; i < seed_infections[k]; ++i) {
-      host_pop[host_index[k][i]].denovo_infection(0, next_inoc_ID);
+      host_pop[host_index[k][i]].denovo_infection(0);
     }
   }
   
@@ -139,73 +115,86 @@ void Dispatcher::run_simulation() {
     // update ring buffer index
     v_ringbuffer = (v_ringbuffer == v-1) ? 0 : v_ringbuffer + 1;
     
-    // skip over first iteration to ensure user-defined values appear first as
-    // first result
+    // skip over first iteration to ensure user-defined values appear as first
+    // result
     if (t != 0) {
+      
+      
+      //-------- MIGRATION --------
+      // TODO - loop through hosts - check for migration
+      
       
       //-------- SCHEDULED HUMAN EVENTS --------
       
-      // scheduled deaths
-      for (auto it = schedule_death[t].begin(); it != schedule_death[t].end(); ++it) {
-        int this_host = *it;
-        host_pop[this_host].death(next_host_ID, t);
-      }
-      
-      // scheduled Eh to Ah
-      for (auto it = schedule_Eh_to_Ah[t].begin(); it != schedule_Eh_to_Ah[t].end(); ++it) {
-        int this_host = it->first;
-        int this_slot = it->second;
-        host_pop[this_host].Eh_to_Ah(this_slot);
-      }
-      
-      // scheduled Eh to Ch
-      for (auto it = schedule_Eh_to_Ch[t].begin(); it != schedule_Eh_to_Ch[t].end(); ++it) {
-        int this_host = it->first;
-        int this_slot = it->second;
-        host_pop[this_host].Eh_to_Ch(this_slot);
-      }
-      
-      // scheduled Ah to Ch
-      for (auto it = schedule_Ah_to_Ch[t].begin(); it != schedule_Ah_to_Ch[t].end(); ++it) {
-        int this_host = it->first;
-        int this_slot = it->second;
-        host_pop[this_host].Ah_to_Ch(this_slot);
-      }
-      
-      // scheduled Ah to Sh
-      for (auto it = schedule_Ah_to_Sh[t].begin(); it != schedule_Ah_to_Sh[t].end(); ++it) {
-        int this_host = it->first;
-        int this_slot = it->second;
-        host_pop[this_host].Ah_to_Sh(this_slot);
-      }
-      
-      // scheduled Ch to Sh
-      for (auto it = schedule_Ch_to_Sh[t].begin(); it != schedule_Ch_to_Sh[t].end(); ++it) {
-        int this_host = it->first;
-        int this_slot = it->second;
-        host_pop[this_host].Ch_to_Sh(this_slot);
-      }
-      
-      // scheduled become acutely infective
-      for (auto it = schedule_infective_acute[t].begin(); it != schedule_infective_acute[t].end(); ++it) {
-        int this_host = it->first;
-        int this_slot = it->second;
-        host_pop[this_host].begin_infective_acute(this_slot, t);
-      }
-      
-      // scheduled become chronically infective
-      for (auto it = schedule_infective_chronic[t].begin(); it != schedule_infective_chronic[t].end(); ++it) {
-        int this_host = it->first;
-        int this_slot = it->second;
-        host_pop[this_host].begin_infective_chronic(this_slot, t);
-      }
-      
-      // scheduled infective recovery
-      for (auto it = schedule_infective_recovery[t].begin(); it != schedule_infective_recovery[t].end(); ++it) {
-        int this_host = it->first;
-        int this_slot = it->second;
-        host_pop[this_host].end_infective(this_slot);
-      }
+      // loop through all hosts, find those with events scheduled at time t
+      for (int i = 0; i < int(host_pop.size()); ++i) {
+        if (host_pop[i].t_next_event == t) {
+          
+          // find which event occurs at time t
+          int update_t_next_event = max_time + 1;
+          for (int j = 0; j < int(host_pop[i].events.size()); ++j) {
+            
+            // get details of this event
+            int this_t_next_event = get<0>(host_pop[i].events[j]);
+            Event this_event = get<1>(host_pop[i].events[j]);
+            int this_slot = get<2>(host_pop[i].events[j]);
+            
+            // get next value of t_next_event
+            if (this_t_next_event > t && this_t_next_event < update_t_next_event) {
+              update_t_next_event = this_t_next_event;
+            }
+            
+            // if this event occurs at time t
+            if (this_t_next_event == t) {
+              
+              // switch on event
+              switch(this_event) {
+              case Event_death:
+                host_pop[i].death(next_host_ID, t);
+                break;
+              case Event_Eh_to_Ah:
+                host_pop[i].Eh_to_Ah(this_slot);
+                break;
+              case Event_Eh_to_Ch:
+                host_pop[i].Eh_to_Ch(this_slot);
+                break;
+              case Event_Ah_to_Ch:
+                host_pop[i].Ah_to_Ch(this_slot);
+                break;
+              case Event_Ah_to_Sh:
+                host_pop[i].Ah_to_Sh(this_slot);
+                break;
+              case Event_Ch_to_Sh:
+                host_pop[i].Ch_to_Sh(this_slot);
+                break;
+              case Event_Ah_to_Ph:
+                host_pop[i].Ah_to_Ph();
+                break;
+              case Event_Ch_to_Ph:
+                host_pop[i].Ch_to_Ph();
+                break;
+              case Event_begin_infective_acute:
+                host_pop[i].begin_infective_acute(this_slot, t);
+                break;
+              case Event_begin_infective_chronic:
+                host_pop[i].begin_infective_chronic(this_slot, t);
+                break;
+              case Event_end_infective:
+                host_pop[i].end_infective(this_slot);
+                break;
+              default:
+                Rcpp::stop("invalid event in switch");
+                break;
+              }
+              
+            }
+          }  // end loop through events
+          
+          // update t_next_event
+          host_pop[i].t_next_event = update_t_next_event;
+          
+        }
+      }  // end loop through host_pop
       
       
       // loop through demes
@@ -215,7 +204,7 @@ void Dispatcher::run_simulation() {
         
         // get number of new infectious bites on humans
         EIR[k] = a*Iv[k]/double(H[k]);
-        double prob_infectious_bite = 1 - exp(-EIR[k]);                // probability of new infectious bite on host
+        double prob_infectious_bite = 1 - exp(-EIR[k]);  // probability of new infectious bite on host
         
         // one method of drawing infections in humans would be to draw the total
         // number of infectious bites from Binomial(H[k], prob_infectious_bite),
@@ -250,7 +239,7 @@ void Dispatcher::run_simulation() {
           if (rbernoulli1(host_pop[this_host].get_prob_infection()/max_prob_infection)) {
             
             // infect host
-            host_pop[this_host].infection(t, next_inoc_ID);
+            host_pop[this_host].infection(t);
           }
           
         }  // end loop over query infectious bites
@@ -336,6 +325,7 @@ void Dispatcher::run_simulation() {
       }  // end loop over demes
       
     }  // end skip over first time step
+    
     
     //-------- STORE RESULTS --------
     

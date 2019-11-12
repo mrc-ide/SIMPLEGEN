@@ -2,7 +2,7 @@
 #pragma once
 
 #include "Parameters.h"
-#include "Sampler_v1.h"
+#include "Sampler_v2.h"
 
 #include <vector>
 #include <set>
@@ -15,6 +15,14 @@ enum Status_sexual {Inactive_sexual, Acute_sexual, Chronic_sexual};
 //------------------------------------------------
 // enumerate possible host status
 enum Status_host {Host_Sh, Host_Eh, Host_Ah, Host_Ch};
+
+//------------------------------------------------
+// enumerate possible events
+enum Event {Event_death,
+            Event_Eh_to_Ah, Event_Eh_to_Ch, Event_Ah_to_Ch,
+            Event_Ah_to_Sh, Event_Ch_to_Sh,
+            Event_Ah_to_Ph, Event_Ch_to_Ph,
+            Event_begin_infective_acute, Event_begin_infective_chronic, Event_end_infective};
 
 //------------------------------------------------
 // class defining human host
@@ -48,20 +56,6 @@ public:
   std::vector<Sampler>* sampler_time_treatment_acute_ptr;
   std::vector<Sampler>* sampler_time_treatment_chronic_ptr;
   
-  // pointers to scheduler objects, for adding events to schedulers
-  std::vector<std::set<int>>* schedule_death_ptr;
-  std::vector<std::vector<std::pair<int, int>>>* schedule_Eh_to_Ah_ptr;
-  std::vector<std::vector<std::pair<int, int>>>* schedule_Eh_to_Ch_ptr;
-  std::vector<std::vector<std::pair<int, int>>>* schedule_Ah_to_Ch_ptr;
-  std::vector<std::vector<std::pair<int, int>>>* schedule_Ah_to_Sh_ptr;
-  std::vector<std::vector<std::pair<int, int>>>* schedule_Ch_to_Sh_ptr;
-  std::vector<std::set<int>>* schedule_Ah_to_Ph_ptr;
-  std::vector<std::set<int>>* schedule_Ch_to_Ph_ptr;
-  std::vector<std::set<int>>* schedule_Ph_to_Sh_ptr;
-  std::vector<std::vector<std::pair<int, int>>>* schedule_infective_acute_ptr;
-  std::vector<std::vector<std::pair<int, int>>>* schedule_infective_chronic_ptr;
-  std::vector<std::vector<std::pair<int, int>>>* schedule_infective_recovery_ptr;
-  
   // cumulative count of how many times this host has been bitten by infective
   // mosquito (infection_index) and how many times an infection has taken hold
   // (inoc_index)
@@ -80,7 +74,10 @@ public:
   std::vector<Status_asexual> inoc_status_asexual;
   std::vector<Status_sexual> inoc_status_sexual;
   std::vector<int> inoc_time_infective;
-  std::vector<unsigned int> inoc_IDs;
+  
+  // event objects
+  int t_next_event;
+  std::vector<std::tuple<int, Event, int>> events;
   
   
   // PUBLIC FUNCTIONS
@@ -92,18 +89,6 @@ public:
   void init(int index, int &host_ID, int deme,
             std::vector<int> &Sh, std::vector<int> &Eh, std::vector<int> &Ah, std::vector<int> &Ch,
             std::vector<std::vector<int>> &host_infective_index,
-            std::vector<std::set<int>> &schedule_death,
-            std::vector<std::vector<std::pair<int, int>>> &schedule_Eh_to_Ah,
-            std::vector<std::vector<std::pair<int, int>>> &schedule_Eh_to_Ch,
-            std::vector<std::vector<std::pair<int, int>>> &schedule_Ah_to_Ch,
-            std::vector<std::vector<std::pair<int, int>>> &schedule_Ah_to_Sh,
-            std::vector<std::vector<std::pair<int, int>>> &schedule_Ch_to_Sh,
-            std::vector<std::set<int>> &schedule_Ah_to_Ph,
-            std::vector<std::set<int>> &schedule_Ch_to_Ph,
-            std::vector<std::set<int>> &schedule_Ph_to_Sh,
-            std::vector<std::vector<std::pair<int, int>>> &schedule_infective_acute,
-            std::vector<std::vector<std::pair<int, int>>> &schedule_infective_chronic,
-            std::vector<std::vector<std::pair<int, int>>> &schedule_infective_recovery,
             Sampler &sampler_age_stable,
             Sampler &sampler_age_death,
             std::vector<Sampler> &sampler_duration_acute,
@@ -113,14 +98,16 @@ public:
   
   void draw_starting_age();
   void death(int &host_ID, int birth_day);
-  void denovo_infection(int t, unsigned int &inoc_ID);
-  void infection(int t, unsigned int &inoc_ID);
+  void denovo_infection(int t);
+  void infection(int t);
+  void new_event(int t, Event this_event, int this_slot);
   void Eh_to_Ah(int this_slot);
   void Eh_to_Ch(int this_slot);
   void Ah_to_Ch(int this_slot);
   void Ah_to_Sh(int this_slot);
   void Ch_to_Sh(int this_slot);
   void Ah_to_Ph();
+  void Ch_to_Ph();
   void begin_infective_acute(int this_slot, int t);
   void begin_infective_chronic(int this_slot, int t);
   void end_infective(int this_slot);

@@ -10,7 +10,6 @@ using namespace std;
 //------------------------------------------------
 // draw from simple individual-based model
 #ifdef RCPP_ACTIVE
-// [[Rcpp::export]]
 Rcpp::List indiv_sim_cpp(Rcpp::List args) {
   
   // start timer
@@ -29,8 +28,15 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args) {
                          rcpp_to_vector_double(args["prob_AC"]),
                          rcpp_to_matrix_double(args["duration_acute"]),
                          rcpp_to_matrix_double(args["duration_chronic"]),
+                         rcpp_to_matrix_double(args["detectability_microscopy_acute"]),
+                         rcpp_to_matrix_double(args["detectability_microscopy_chronic"]),
+                         rcpp_to_matrix_double(args["detectability_PCR_acute"]),
+                         rcpp_to_matrix_double(args["detectability_PCR_chronic"]),
                          rcpp_to_matrix_double(args["time_treatment_acute"]),
                          rcpp_to_matrix_double(args["time_treatment_chronic"]),
+                         rcpp_to_double(args["treatment_seeking_alpha"]),
+                         rcpp_to_double(args["treatment_seeking_beta"]),
+                         rcpp_to_vector_double(args["duration_prophylactic"]),
                          rcpp_to_matrix_double(args["infectivity_acute"]),
                          rcpp_to_matrix_double(args["infectivity_chronic"]),
                          rcpp_to_int(args["max_inoculations"]));
@@ -44,11 +50,12 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args) {
                            rcpp_to_vector_double(args["age_stable"]));
   
   params.load_run_params(rcpp_to_int(args["max_time"]),
+                         rcpp_to_bool(args["save_transmission_record"]),
+                         rcpp_to_string(args["transmission_record_location"]),
                          rcpp_to_bool(args["output_daily_counts"]),
                          rcpp_to_bool(args["output_age_distributions"]),
-                         rcpp_to_bool(args["output_infection_history"]),
-                         rcpp_to_bool(args["silent"]),
-                         rcpp_to_vector_int(args["output_age_times"]));
+                         rcpp_to_vector_int(args["output_age_times"]),
+                         rcpp_to_bool(args["silent"]));
   
   //params.summary();
   

@@ -1,7 +1,7 @@
 
-#include "Sampler_v1.h"
-#include "misc_v6.h"
-#include "probability_v2.h"
+#include "Sampler_v2.h"
+#include "misc_v8.h"
+#include "probability_v7.h"
 
 using namespace std;
 

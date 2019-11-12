@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "misc_v6.h"
+#include "misc_v8.h"
 
 #include <list>
 
@@ -14,7 +14,7 @@ public:
   // PUBLIC OBJECTS
   
   // scalar epi parameters
-  static double a, p, mu;
+  static double a, p, mu, treatment_seeking_alpha, treatment_seeking_beta;
   static int u, v, g, max_inoculations;
   
   // epi distributions
@@ -29,10 +29,20 @@ public:
   static int n_duration_acute;
   static std::vector<std::vector<double>> duration_chronic;
   static int n_duration_chronic;
+  static std::vector<std::vector<double>> detectability_microscopy_acute;
+  static int n_detectability_microscopy_acute;
+  static std::vector<std::vector<double>> detectability_microscopy_chronic;
+  static int n_detectability_microscopy_chronic;
+  static std::vector<std::vector<double>> detectability_PCR_acute;
+  static int n_detectability_PCR_acute;
+  static std::vector<std::vector<double>> detectability_PCR_chronic;
+  static int n_detectability_PCR_chronic;
   static std::vector<std::vector<double>> time_treatment_acute;
   static int n_time_treatment_acute;
   static std::vector<std::vector<double>> time_treatment_chronic;
   static int n_time_treatment_chronic;
+  static std::vector<double> duration_prophylactic;
+  static int n_duration_prophylactic;
   static std::vector<std::vector<double>> infectivity_acute;
   static int n_infectivity_acute;
   static std::vector<std::vector<double>> infectivity_chronic;
@@ -52,7 +62,8 @@ public:
   
   // run parameters
   static int max_time;
-  static bool output_daily_counts, output_age_distributions, output_infection_history, silent;
+  static bool save_transmission_record, output_daily_counts, output_age_distributions, silent;
+  static std::string transmission_record_location;
   static std::vector<int> output_age_times;
   
   // misc parameters
@@ -72,8 +83,15 @@ public:
                        std::vector<double> prob_AC,
                        std::vector<std::vector<double>> duration_acute,
                        std::vector<std::vector<double>> duration_chronic,
+                       std::vector<std::vector<double>> detectability_microscopy_acute,
+                       std::vector<std::vector<double>> detectability_microscopy_chronic,
+                       std::vector<std::vector<double>> detectability_PCR_acute,
+                       std::vector<std::vector<double>> detectability_PCR_chronic,
                        std::vector<std::vector<double>> time_treatment_acute,
                        std::vector<std::vector<double>> time_treatment_chronic,
+                       double treatment_seeking_alpha,
+                       double treatment_seeking_beta,
+                       std::vector<double> duration_prophylactic,
                        std::vector<std::vector<double>> infectivity_acute,
                        std::vector<std::vector<double>> infectivity_chronic,
                        int max_inoculations);
@@ -87,11 +105,12 @@ public:
                          std::vector<double> age_stable);
   
   void load_run_params(int max_time,
+                       bool save_transmission_record,
+                       std::string transmission_record_location,
                        bool output_daily_counts,
                        bool output_age_distributions,
-                       bool output_infection_history,
-                       bool silent,
-                       std::vector<int> output_age_times);
+                       std::vector<int> output_age_times,
+                       bool silent);
   
   void summary();
   

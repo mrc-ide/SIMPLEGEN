@@ -1,5 +1,5 @@
 
-#include "misc_v6.h"
+#include "misc_v8.h"
 
 #include <math.h>
 #include <fstream>
@@ -35,7 +35,7 @@ double log_sum(double logA, double logB) {
 // sum boolean values and return integer
 int sum_bool(const vector<bool> &x_vec) {
   int ret = 0;
-  for (int i=0; i<int(x_vec.size()); ++i) {
+  for (int i = 0; i < int(x_vec.size()); ++i) {
     ret += x_vec[i];
   }
   return ret;
@@ -66,7 +66,7 @@ int sum_bool(const vector<bool> &x_vec) {
 vector<int> seq_int(int from, int to, int by) {
   int n = floor((to-from)/double(by)) + 1;
   vector<int> ret(n,from);
-  for (int i=1; i<n; i++) {
+  for (int i = 1; i < n; ++i) {
     from += by;
     ret[i] = from;
   }
@@ -130,7 +130,7 @@ void chrono_timer(chrono::high_resolution_clock::time_point &t0, string message_
 // DEFINED IN HEADER
 
 //------------------------------------------------
-// helper function for printing contents of a vector
+// helper function for printing contents of a vector or set
 // print_vector
 // DEFINED IN HEADER
 
@@ -149,13 +149,13 @@ void chrono_timer(chrono::high_resolution_clock::time_point &t0, string message_
 void print_stars(int n, string title) {
 #ifdef RCPP_ACTIVE
   Rcpp::Rcout << title << " ";
-  for (int i=0; i<n; i++) {
+  for (int i = 0; i < n; ++i) {
     Rcpp::Rcout << "*";
   }
   Rcpp::Rcout << "\n";
 #else
   std::cout << title << " ";
-  for (int i=0; i<n; i++) {
+  for (int i = 0; i < n; ++i) {
     std::cout << "*";
   }
   std::cout << "\n";
@@ -255,7 +255,7 @@ string rcpp_to_string(SEXP x) {
 #ifdef RCPP_ACTIVE
 // converts input from Rcpp::List format to vector<bool> format.
 vector<bool> rcpp_to_vector_bool(SEXP x) {
-  return Rcpp::as<vector<bool> >(x);
+  return Rcpp::as<vector<bool>>(x);
 }
 #endif
 
@@ -263,7 +263,7 @@ vector<bool> rcpp_to_vector_bool(SEXP x) {
 #ifdef RCPP_ACTIVE
 // converts input from Rcpp::List format to vector<int> format.
 vector<int> rcpp_to_vector_int(SEXP x) {
-  return Rcpp::as<vector<int> >(x);
+  return Rcpp::as<vector<int>>(x);
 }
 #endif
 
@@ -271,7 +271,7 @@ vector<int> rcpp_to_vector_int(SEXP x) {
 #ifdef RCPP_ACTIVE
 // converts input from Rcpp::List format to vector<double> format.
 vector<double> rcpp_to_vector_double(SEXP x) {
-  return Rcpp::as<vector<double> >(x);
+  return Rcpp::as<vector<double>>(x);
 }
 #endif
 
@@ -279,7 +279,7 @@ vector<double> rcpp_to_vector_double(SEXP x) {
 #ifdef RCPP_ACTIVE
 // converts input from Rcpp::List format to vector<string> format.
 vector<string> rcpp_to_vector_string(SEXP x) {
-  return Rcpp::as<vector<string> >(x);
+  return Rcpp::as<vector<string>>(x);
 }
 #endif
 
@@ -289,8 +289,8 @@ vector<string> rcpp_to_vector_string(SEXP x) {
 vector<vector<bool>> rcpp_to_matrix_bool(Rcpp::List x) {
   int nrow = int(x.size());
   vector< vector<bool> > x_mat(nrow);
-  for (int i=0; i<nrow; i++) {
-    x_mat[i] = Rcpp::as<vector<bool> >(x[i]);
+  for (int i = 0; i < nrow; ++i) {
+    x_mat[i] = Rcpp::as<vector<bool>>(x[i]);
   }
   return x_mat;
 }
@@ -302,8 +302,8 @@ vector<vector<bool>> rcpp_to_matrix_bool(Rcpp::List x) {
 vector<vector<int>> rcpp_to_matrix_int(Rcpp::List x) {
   int nrow = int(x.size());
   vector< vector<int> > x_mat(nrow);
-  for (int i=0; i<nrow; i++) {
-    x_mat[i] = Rcpp::as<vector<int> >(x[i]);
+  for (int i = 0; i < nrow; ++i) {
+    x_mat[i] = Rcpp::as<vector<int>>(x[i]);
   }
   return x_mat;
 }
@@ -315,8 +315,8 @@ vector<vector<int>> rcpp_to_matrix_int(Rcpp::List x) {
 vector<vector<double>> rcpp_to_matrix_double(Rcpp::List x) {
   int nrow = int(x.size());
   vector< vector<double> > x_mat(nrow);
-  for (int i=0; i<nrow; i++) {
-    x_mat[i] = Rcpp::as<vector<double> >(x[i]);
+  for (int i = 0; i < nrow; ++i) {
+    x_mat[i] = Rcpp::as<vector<double>>(x[i]);
   }
   return x_mat;
 }
@@ -328,8 +328,8 @@ vector<vector<double>> rcpp_to_matrix_double(Rcpp::List x) {
 vector<vector<string>> rcpp_to_matrix_string(Rcpp::List x) {
   int nrow = int(x.size());
   vector< vector<string> > x_mat(nrow);
-  for (int i=0; i<nrow; i++) {
-    x_mat[i] = Rcpp::as<vector<string> >(x[i]);
+  for (int i = 0; i < nrow; ++i) {
+    x_mat[i] = Rcpp::as<vector<string>>(x[i]);
   }
   return x_mat;
 }
@@ -340,13 +340,13 @@ vector<vector<string>> rcpp_to_matrix_string(Rcpp::List x) {
 // converts input from Rcpp::List format to vector<vector<vector<int>>> format.
 vector<vector<vector<int>>> rcpp_to_array_int(Rcpp::List x) {
   int n1 = int(x.size());
-  vector< vector< vector<int> > > ret(n1);
-  for (int i=0; i<n1; i++) {
+  vector<vector<vector<int>>> ret(n1);
+  for (int i = 0; i < n1; ++i) {
     Rcpp::List x_i = x[i];
     int n2 = int(x_i.size());
-    ret[i] = vector< vector<int> >(n2);
-    for (int j=0; j<n2; j++) {
-      ret[i][j] = Rcpp::as<vector<int> >(x_i[j]);
+    ret[i] = vector<vector<int>>(n2);
+    for (int j = 0; j < n2; ++j) {
+      ret[i][j] = Rcpp::as<vector<int>>(x_i[j]);
     }
   }
   return ret;
@@ -358,13 +358,13 @@ vector<vector<vector<int>>> rcpp_to_array_int(Rcpp::List x) {
 // converts input from Rcpp::List format to vector<vector<vector<double>>> format.
 vector<vector<vector<double>>> rcpp_to_array_double(Rcpp::List x) {
   int n1 = int(x.size());
-  vector< vector< vector<double> > > ret(n1);
-  for (int i=0; i<n1; i++) {
+  vector<vector<vector<double>>> ret(n1);
+  for (int i = 0; i < n1; ++i) {
     Rcpp::List x_i = x[i];
     int n2 = int(x_i.size());
-    ret[i] = vector< vector<double> >(n2);
-    for (int j=0; j<n2; j++) {
-      ret[i][j] = Rcpp::as<vector<double> >(x_i[j]);
+    ret[i] = vector<vector<double>>(n2);
+    for (int j = 0; j < n2; ++j) {
+      ret[i][j] = Rcpp::as<vector<double>>(x_i[j]);
     }
   }
   return ret;
@@ -446,4 +446,31 @@ vector<vector<double>> file_to_matrix_double(string file_path) {
   }
   
   return ret;
+}
+
+//------------------------------------------------
+// calculate Cholesky decomposition of positive definite matrix sigma
+void cholesky(vector<vector<double>> &chol, vector<vector<double>> &sigma) {
+  
+  for (int i = 0; i < int(sigma.size()); ++i) {
+    for (int j = 0; j < (i+1); ++j) {
+      chol[i][j] = sigma[i][j];
+      if (i == j) {
+        if (i > 0) {
+          for (int k = 0; k < i; ++k) {
+            chol[i][i] -= chol[i][k]*chol[i][k];
+          }
+        }
+        chol[i][i] = sqrt(chol[i][i]);
+      } else {
+        if (j > 0) {
+          for (int k = 0; k < j; ++k) {
+            chol[i][j] -= chol[i][k]*chol[j][k];
+          }
+        }
+        chol[i][j] /= chol[j][j];
+      }
+    }
+  }
+  
 }

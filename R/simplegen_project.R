@@ -10,25 +10,10 @@
 
 simplegen_project <- function() {
   
-  # create null project
-  project <- list(sim_parameters = NULL,
-                  sim_output = NULL)
+  # create empty project
+  project <- list(epi_parameters = NULL,
+                  epi_output = NULL)
   class(project) <- "simplegen_project"
-  
-  # set all parameters to NULL
-  param_names <- c("a", "p", "mu", "u", "v", "g",
-                   "prob_infection", "prob_acute", "prob_AC",
-                   "duration_acute", "duration_chronic",
-                   "time_treatment_acute", "time_treatment_chronic",
-                   "infectivity_acute", "infectivity_chronic",
-                   "max_inoculations",
-                   "H", "seed_infections", "M",
-                   "life_table")
-  project$sim_parameters <- replicate(length(param_names), NULL)
-  names(project$sim_parameters) <- param_names
-  
-  # set parameters to default values
-  project <- define_params(project)
   
   # return
   invisible(project)

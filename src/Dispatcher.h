@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include "misc_v6.h"
+#include "misc_v8.h"
 #include "Parameters.h"
-#include "Sampler_v1.h"
+#include "Sampler_v2.h"
 #include "Host.h"
 #include "Mosquito.h"
 
@@ -25,20 +25,6 @@ public:
   std::vector<Sampler> sampler_time_treatment_acute;
   std::vector<Sampler> sampler_time_treatment_chronic;
   
-  // scheduler objects
-  std::vector<std::set<int>> schedule_death;
-  std::vector<std::vector<std::pair<int, int>>> schedule_Eh_to_Ah;
-  std::vector<std::vector<std::pair<int, int>>> schedule_Eh_to_Ch;
-  std::vector<std::vector<std::pair<int, int>>> schedule_Ah_to_Ch;
-  std::vector<std::vector<std::pair<int, int>>> schedule_Ah_to_Sh;
-  std::vector<std::vector<std::pair<int, int>>> schedule_Ch_to_Sh;
-  std::vector<std::set<int>> schedule_Ah_to_Ph;
-  std::vector<std::set<int>> schedule_Ch_to_Ph;
-  std::vector<std::set<int>> schedule_Ph_to_Sh;
-  std::vector<std::vector<std::pair<int, int>>> schedule_infective_acute;
-  std::vector<std::vector<std::pair<int, int>>> schedule_infective_chronic;
-  std::vector<std::vector<std::pair<int, int>>> schedule_infective_recovery;
-  
   // counts of host types
   std::vector<int> H;
   std::vector<int> Sh;
@@ -50,7 +36,6 @@ public:
   // population of human hosts
   std::vector<Host> host_pop;
   int next_host_ID;
-  unsigned int next_inoc_ID;
   
   // store the integer index of hosts in each deme
   std::vector<std::vector<int>> host_index;

@@ -2,7 +2,11 @@ Package: SIMPLEGEN
 Type: Package
 Title: Simulating Plasmodium Epidemiological and Genetic Data
 Version: 0.1.0
-Authors@R: person("Bob", "Verity", email = "r.verity@imperial.ac.uk", role = c("aut", "cre"))
+Authors@R: as.person(c(
+    "Bob Verity <r.verity@imperial.ac.uk> [aut, cre]", 
+    "Sophie Berube [aut]",
+    "Daniel Larremore [aut]"
+  ))
 Description: Forwards-in time simulation of Plasmodium falciparum genetic data can be
     computationally intensive, as many genotypes are tracked but ultimately lost. SIMPLEGEN
     avoids this problem by splitting simulation into three steps - first, simulating
@@ -12,6 +16,7 @@ Description: Forwards-in time simulation of Plasmodium falciparum genetic data c
     the first step as long as it outputs in the correct format. The major limitation of SIMPLEGEN
     is that assumes the epidemiological and genetic processes are seperable, and hence is limited
     to neutral variation, and cannot model selection.
+BugReports: https://github.com/mrc-ide/SIMPLEGEN/issues
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -21,7 +26,8 @@ LinkingTo:
 Imports: 
     Rcpp,
     data.table,
-    coda
+    coda,
+    magrittr
 SystemRequirements: C++11
 Suggests: 
     testthat,

@@ -32,10 +32,9 @@
 
 <meta property="og:title" content="Simulate from simple individual-based model — sim_epi" />
 
-<meta property="og:description" content="Simulate data from a simple individual-based model of humans and
-  mosquitoes. Parameters are taken from the values stored within the
-  sim_parameters slot of the project, and outputs are written to the
-  sim_output slot." />
+<meta property="og:description" content="Simulate from the inbuilt epidemiological model. Parameters are
+  taken from the epi_parameters slot of the project, and basic outputs are
+  written to the epi_output slot." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -121,27 +120,38 @@
 
     <div class="ref-description">
     
-    <p>Simulate data from a simple individual-based model of humans and
-  mosquitoes. Parameters are taken from the values stored within the
-  <code>sim_parameters</code> slot of the project, and outputs are written to the
-  <code>sim_output</code> slot.</p>
+    <p>Simulate from the inbuilt epidemiological model. Parameters are
+  taken from the <code>epi_parameters</code> slot of the project, and basic outputs are
+  written to the <code>epi_output</code> slot.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>sim_epi</span>(<span class='no'>project</span>, <span class='kw'>max_time</span> <span class='kw'>=</span> <span class='fl'>365</span>, <span class='kw'>output_daily_counts</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+    <pre class="usage"><span class='fu'>sim_epi</span>(<span class='no'>project</span>, <span class='kw'>max_time</span> <span class='kw'>=</span> <span class='fl'>365</span>, <span class='kw'>save_transmission_record</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>transmission_record_location</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>output_daily_counts</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>output_age_distributions</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>output_age_times</span> <span class='kw'>=</span> <span class='no'>max_time</span>,
-  <span class='kw'>output_infection_history</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>silent</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+  <span class='kw'>silent</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>project</th>
-      <td><p>a SIMPLEGEN project.</p></td>
+      <td><p>a SIMPLEGEN project, as produced by the
+<code><a href='simplegen_project.html'>simplegen_project()</a></code> function.</p></td>
     </tr>
     <tr>
       <th>max_time</th>
       <td><p>run simulation for this many days.</p></td>
+    </tr>
+    <tr>
+      <th>save_transmission_record</th>
+      <td><p>whether to write the transmission record to
+file.</p></td>
+    </tr>
+    <tr>
+      <th>transmission_record_location</th>
+      <td><p>the file path that the transmission
+record will be written to.</p></td>
     </tr>
     <tr>
       <th>output_daily_counts</th>
@@ -158,12 +168,8 @@ such as the number of infected hosts and the EIR.</p></td>
 are output.</p></td>
     </tr>
     <tr>
-      <th>output_infection_history</th>
-      <td><p>whether to output complete infection history.</p></td>
-    </tr>
-    <tr>
       <th>silent</th>
-      <td><p>whether to write messages to console.</p></td>
+      <td><p>whether to suppress written messages to the console.</p></td>
     </tr>
     </table>
     
@@ -180,7 +186,7 @@ are output.</p></td>
 
       <footer>
       <div class="copyright">
-  <p>Developed by Bob Verity.</p>
+  <p>Developed by Bob Verity, Sophie Berube, Daniel Larremore.</p>
 </div>
 
 <div class="pkgdown">

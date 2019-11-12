@@ -1,7 +1,7 @@
 
 #include "Host.h"
-#include "misc_v6.h"
-#include "probability_v2.h"
+#include "misc_v8.h"
+#include "probability_v7.h"
 
 using namespace std;
 
@@ -10,18 +10,6 @@ using namespace std;
 void Host::init(int index, int &host_ID, int deme,
                 vector<int> &Sh, vector<int> &Eh, vector<int> &Ah, vector<int> &Ch,
                 vector<vector<int>> &host_infective_index,
-                vector<set<int>> &schedule_death,
-                vector<vector<pair<int, int>>> &schedule_Eh_to_Ah,
-                vector<vector<pair<int, int>>> &schedule_Eh_to_Ch,
-                vector<vector<pair<int, int>>> &schedule_Ah_to_Ch,
-                vector<vector<pair<int, int>>> &schedule_Ah_to_Sh,
-                vector<vector<pair<int, int>>> &schedule_Ch_to_Sh,
-                vector<set<int>> &schedule_Ah_to_Ph,
-                vector<set<int>> &schedule_Ch_to_Ph,
-                vector<set<int>> &schedule_Ph_to_Sh,
-                vector<vector<pair<int, int>>> &schedule_infective_acute,
-                vector<vector<pair<int, int>>> &schedule_infective_chronic,
-                vector<vector<pair<int, int>>> &schedule_infective_recovery,
                 Sampler &sampler_age_stable,
                 Sampler &sampler_age_death,
                 vector<Sampler> &sampler_duration_acute,
@@ -53,20 +41,6 @@ void Host::init(int index, int &host_ID, int deme,
   sampler_time_treatment_acute_ptr = &sampler_time_treatment_acute;
   sampler_time_treatment_chronic_ptr = &sampler_time_treatment_chronic;
   
-  // pointers to scheduler objects, for adding events to schedulers
-  schedule_death_ptr = &schedule_death;
-  schedule_Eh_to_Ah_ptr = &schedule_Eh_to_Ah;
-  schedule_Eh_to_Ch_ptr = &schedule_Eh_to_Ch;
-  schedule_Ah_to_Ch_ptr = &schedule_Ah_to_Ch;
-  schedule_Ah_to_Sh_ptr = &schedule_Ah_to_Sh;
-  schedule_Ch_to_Sh_ptr = &schedule_Ch_to_Sh;
-  schedule_Ah_to_Ph_ptr = &schedule_Ah_to_Ph;
-  schedule_Ch_to_Ph_ptr = &schedule_Ch_to_Ph;
-  schedule_Ph_to_Sh_ptr = &schedule_Ph_to_Sh;
-  schedule_infective_acute_ptr = &schedule_infective_acute;
-  schedule_infective_chronic_ptr = &schedule_infective_chronic;
-  schedule_infective_recovery_ptr = &schedule_infective_recovery;
-  
   // cumulative count of how many times this host has been bitten by infective
   // mosquito (infection_index) and how many times an infection has taken hold
   // (inoc_index)
@@ -77,14 +51,16 @@ void Host::init(int index, int &host_ID, int deme,
   draw_starting_age();
   
   // initialise host characteristics
-  treatment_seeking = 0.5;
+  treatment_seeking = 0;//0.5;
   
   // initialise inoculation objects
   inoc_active = vector<bool>(max_inoculations, false);
   inoc_status_asexual = vector<Status_asexual>(max_inoculations, Inactive_asexual);
   inoc_status_sexual = vector<Status_sexual>(max_inoculations, Inactive_sexual);
   inoc_time_infective = vector<int>(max_inoculations);
-  inoc_IDs = vector<unsigned int>(max_inoculations);
+  
+  // event objects
+  t_next_event = max_time + 1;
   
 }
 
@@ -139,10 +115,8 @@ void Host::draw_starting_age() {
     death_day = 1;
   }
   
-  // add death_day to scheduler
-  if (death_day < max_time) {
-    (*schedule_death_ptr)[death_day].insert(index);
-  }
+  // shedule death
+  new_event(death_day, Event_death, 0);
   
 }
 
@@ -183,15 +157,15 @@ void Host::death(int &host_ID, int birth_day) {
   // draw life duration from demography distribution
   int life_years = sampler_age_death_ptr->draw();
   int life_days = life_years*365 + sample2(0, 364);
-  if (life_days == 0) {  // cannot die on same day born
+  
+  // cannot die on same day born
+  if (life_days == 0) {
     life_days = 1;
   }
   death_day = birth_day + life_days;
   
-  // add new death_day to scheduler
-  if (death_day < max_time) {
-    (*schedule_death_ptr)[death_day].insert(index);
-  }
+  // shedule death
+  new_event(death_day, Event_death, 0);
   
   // reset inoculation objects
   fill(inoc_active.begin(), inoc_active.end(), false);
@@ -199,13 +173,16 @@ void Host::death(int &host_ID, int birth_day) {
   fill(inoc_status_sexual.begin(), inoc_status_sexual.end(), Inactive_sexual);
   fill(inoc_time_infective.begin(), inoc_time_infective.end(), 0);
   
+  // clear all events
+  events.clear();
+  
 }
 
 //------------------------------------------------
 // de-novo infection
-void Host::denovo_infection(int t, unsigned int &inoc_ID) {
+void Host::denovo_infection(int t) {
   
-  infection(t, inoc_ID);
+  infection(t);
   
   /*
   // generating starting genotype in a dummy mosquito
@@ -221,7 +198,7 @@ void Host::denovo_infection(int t, unsigned int &inoc_ID) {
 //------------------------------------------------
 // new infection
 //void Host::new_infection(Mosquito &mosq, int t) {
-void Host::infection(int t, unsigned int &inoc_ID) {
+void Host::infection(int t) {
   
   // return if already at max_inoculations
   if (get_n_active_inoc() == max_inoculations) {
@@ -241,135 +218,117 @@ void Host::infection(int t, unsigned int &inoc_ID) {
   // add new inoculation
   inoc_active[this_slot] = true;
   inoc_status_asexual[this_slot] = Liverstage_asexual;
-  inoc_IDs[this_slot] = inoc_ID++;
   
   // schedule future events. This is where we look through the tree of all
   // possible future trajectories, for example whether the inoculation
   // transitions to acute stage or directly to chronic stage etc.
   int t1 = t + u;
-  if (t1 < (death_day-1) && t1 < max_time) {
+  bool acute = rbernoulli1(get_prob_acute());
+  if (acute) {
     
-    // whether to transition initially to acute stage
-    bool acute = rbernoulli1(get_prob_acute());
-    if (acute) {
+    // schedule change of state
+    new_event(t1, Event_Eh_to_Ah, this_slot);
+    
+    // schedule become acutely infective
+    int t2 = t1 + g;
+    new_event(t2, Event_begin_infective_acute, this_slot);
+    
+    // draw duration of acute phase
+    int duration_acute = get_duration_acute();
+    
+    // draw time to considering seeking treatment
+    int time_treatment = get_time_treatment_acute();
+    
+    // find smallest of time to natural clearance vs. treatment
+    int acute_end = (duration_acute < time_treatment) ? duration_acute : time_treatment;
+    int t3 = t1 + acute_end;
+    
+    // determine whether disease clears naturally or via treatment
+    bool natural_clearance = (duration_acute < time_treatment);
+    if (!natural_clearance) {
+      natural_clearance = rbernoulli1(1 - treatment_seeking);
+    }
+    if (natural_clearance) {
       
-      // schedule change of state
-      (*schedule_Eh_to_Ah_ptr)[t1].emplace_back(index, this_slot);
-      
-      // schedule become acutely infective
-      int t2 = t1 + g;
-      if (t2 < (death_day-1) && t2 < max_time) {
-        (*schedule_infective_acute_ptr)[t2].emplace_back(index, this_slot);
-      }
-      
-      // draw duration of acute phase
-      int duration_acute = get_duration_acute();
-      
-      // draw time to considering seeking treatment
-      int time_treatment = get_time_treatment_acute();
-      
-      // get time of acute stage ending
-      int acute_end = (duration_acute < time_treatment) ? duration_acute : time_treatment;
-      int t3 = t1 + acute_end;
-      if (t3 < (death_day-1) && t3 < max_time) {
-        
-        // determine whether disease clears naturally or via treatment
-        bool natural_clearance = (duration_acute < time_treatment);
-        if (!natural_clearance) {
-          natural_clearance = rbernoulli1(1 - treatment_seeking);
-        }
-        
-        if (natural_clearance) {
-          
-          // whether to transition to chronic stage prior to recovery
-          bool acute_to_chronic = rbernoulli1(get_prob_AC());
-          if (acute_to_chronic) {
-            
-            // schedule change of state
-            (*schedule_Ah_to_Ch_ptr)[t3].emplace_back(index, this_slot);
-            
-            // schedule become chronically infective
-            int t4 = t3 + g;
-            if (t4 < (death_day-1) && t4 < max_time) {
-              (*schedule_infective_chronic_ptr)[t4].emplace_back(index, this_slot);
-            }
-            
-            // draw duration of chronic phase
-            int duration_chronic = get_duration_chronic();
-            int t5 = t3 + duration_chronic;
-            if (t5 < (death_day-1) && t5 < max_time) {
-              
-              // schedule change of state
-              (*schedule_Ch_to_Sh_ptr)[t5].emplace_back(index, this_slot);
-              
-              // schedule recover from infective
-              int t6 = t5 + g;
-              if (t6 < death_day && t6 < max_time) {
-                (*schedule_infective_recovery_ptr)[t6].emplace_back(index, this_slot);
-              }
-              
-            }
-            
-          } else {  // transition directly from acute to recovery
-            
-            // schedule change of state
-            (*schedule_Ah_to_Sh_ptr)[t3].emplace_back(index, this_slot);
-            
-            // schedule recover from infective
-            int t4 = t3 + g;
-            if (t4 < (death_day-1) && t4 < max_time) {
-              (*schedule_infective_recovery_ptr)[t4].emplace_back(index, this_slot);
-            }
-            
-          }
-          
-        } else {  // acute disease treated
-          
-          // schedule change of state
-          (*schedule_Ah_to_Ph_ptr)[t3].insert(index);
-          
-          // schedule recover from infective
-          int t4 = t3 + g;
-          if (t4 < (death_day-1) && t4 < max_time) {
-            (*schedule_infective_recovery_ptr)[t4].emplace_back(index, this_slot);
-          }
-          
-        }
-      }
-      
-    } else {  // transition initially to chronic stage
-      
-      // schedule change of state
-      (*schedule_Eh_to_Ch_ptr)[t1].emplace_back(index, this_slot);
-      
-      // schedule become chronically infective
-      int t2 = t1 + g;
-      if (t2 < (death_day-1) && t2 < max_time) {
-        (*schedule_infective_chronic_ptr)[t2].emplace_back(index, this_slot);
-      }
-      
-      // draw duration of chronic phase
-      int duration_chronic = get_duration_chronic();
-      int t3 = t1 + duration_chronic;
-      if (t3 < (death_day-1) && t3 < max_time) {
+      // whether to transition to chronic stage prior to recovery
+      bool acute_to_chronic = rbernoulli1(get_prob_AC());
+      if (acute_to_chronic) {
         
         // schedule change of state
-        (*schedule_Ch_to_Sh_ptr)[t3].emplace_back(index, this_slot);
+        new_event(t3, Event_Ah_to_Ch, this_slot);
+        
+        // schedule become chronically infective
+        int t4 = t3 + g;
+        new_event(t4, Event_begin_infective_chronic, this_slot);
+        
+        // draw duration of chronic phase
+        int duration_chronic = get_duration_chronic();
+        int t5 = t3 + duration_chronic;
+        
+        // schedule change of state
+        new_event(t5, Event_Ch_to_Sh, this_slot);
+        
+        // schedule recover from infective
+        int t6 = t5 + g;
+        new_event(t6, Event_end_infective, this_slot);
+        
+      } else {  // transition directly from acute to recovery
+        
+        // schedule change of state
+        new_event(t3, Event_Ah_to_Sh, this_slot);
         
         // schedule recover from infective
         int t4 = t3 + g;
-        if (t4 < (death_day-1) && t4 < max_time) {
-          (*schedule_infective_recovery_ptr)[t4].emplace_back(index, this_slot);
-        }
+        new_event(t4, Event_end_infective, this_slot);
+        
       }
       
+    } else {  // acute disease treated
+      
+      // TODO - apply to all inoculations
+      
+      // schedule change of state
+      new_event(t3, Event_Ah_to_Ph, 0);
+      
+      // schedule recover from infective
+      int t4 = t3 + g;
+      new_event(t3, Event_end_infective, this_slot);
+      
     }
+    
+  } else {  // transition initially to chronic stage
+    
+    // schedule change of state
+    new_event(t1, Event_Eh_to_Ch, this_slot);
+    
+    // schedule become chronically infective
+    int t2 = t1 + g;
+    new_event(t2, Event_begin_infective_chronic, this_slot);
+    
+    // draw duration of chronic phase
+    int duration_chronic = get_duration_chronic();
+    int t3 = t1 + duration_chronic;
+      
+    // schedule change of state
+    new_event(t3, Event_Ch_to_Sh, this_slot);
+    
+    // schedule recover from infective
+    int t4 = t3 + g;
+    new_event(t4, Event_end_infective, this_slot);
+    
   }
   
   // update indices
   infection_index++;
   inoc_index++;
   
+}
+
+//------------------------------------------------
+// add new event to list
+void Host::new_event(int t, Event this_event, int this_slot) {
+  t_next_event = (t < t_next_event) ? t : t_next_event;
+  events.push_back(make_tuple(t, this_event, this_slot));
 }
 
 //------------------------------------------------
@@ -484,6 +443,12 @@ void Host::Ah_to_Ph() {
   // update status
   inoc_status_asexual[this_slot] = Inactive_asexual;
   */
+}
+
+//------------------------------------------------
+// host treatment in chronic stage
+void Host::Ch_to_Ph() {
+  
 }
 
 //------------------------------------------------

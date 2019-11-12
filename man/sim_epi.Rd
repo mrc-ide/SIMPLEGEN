@@ -4,14 +4,22 @@
 \alias{sim_epi}
 \title{Simulate from simple individual-based model}
 \usage{
-sim_epi(project, max_time = 365, output_daily_counts = TRUE,
+sim_epi(project, max_time = 365, save_transmission_record = FALSE,
+  transmission_record_location = "", output_daily_counts = TRUE,
   output_age_distributions = TRUE, output_age_times = max_time,
-  output_infection_history = FALSE, silent = FALSE)
+  silent = FALSE)
 }
 \arguments{
-\item{project}{a SIMPLEGEN project.}
+\item{project}{a SIMPLEGEN project, as produced by the
+\code{simplegen_project()} function.}
 
 \item{max_time}{run simulation for this many days.}
+
+\item{save_transmission_record}{whether to write the transmission record to
+file.}
+
+\item{transmission_record_location}{the file path that the transmission
+record will be written to.}
 
 \item{output_daily_counts}{whether to output daily counts of key quantities,
 such as the number of infected hosts and the EIR.}
@@ -21,13 +29,10 @@ such as the number of infected hosts and the EIR.}
 \item{output_age_times}{a vector of times at which complete age distributions
 are output.}
 
-\item{output_infection_history}{whether to output complete infection history.}
-
-\item{silent}{whether to write messages to console.}
+\item{silent}{whether to suppress written messages to the console.}
 }
 \description{
-Simulate data from a simple individual-based model of humans and
-  mosquitoes. Parameters are taken from the values stored within the
-  \code{sim_parameters} slot of the project, and outputs are written to the
-  \code{sim_output} slot.
+Simulate from the inbuilt epidemiological model. Parameters are
+  taken from the \code{epi_parameters} slot of the project, and basic outputs are
+  written to the \code{epi_output} slot.
 }
