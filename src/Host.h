@@ -18,10 +18,14 @@ enum Status_host {Host_Sh, Host_Eh, Host_Ah, Host_Ch};
 
 //------------------------------------------------
 // enumerate possible events
-enum Event {Event_death,
-            Event_Eh_to_Ah, Event_Eh_to_Ch, Event_Ah_to_Ch,
-            Event_Ah_to_Sh, Event_Ch_to_Sh,
-            Event_Ah_to_Ph, Event_Ch_to_Ph,
+// NB, the order of this enum is important as inoc_events will be explored in
+// this order. For example, it is OK for Event_Eh_to_Ah and Event_Ah_to_Sh to
+// occur at the same time point as long as they are this way round, but not the
+// other way round
+enum Event {Event_treatment,
+            Event_Eh_to_Ah, Event_Eh_to_Ch,
+            Event_Ah_to_Ch, Event_Ah_to_Sh,
+            Event_Ch_to_Sh,
             Event_begin_infective_acute, Event_begin_infective_chronic, Event_end_infective};
 
 //------------------------------------------------
@@ -37,12 +41,6 @@ public:
   int host_ID;    // unique ID, incremented upon death
   int home_deme;  // deme into which this host is born
   int deme;       // deme in which this host currently resides
-  
-  // pointers to deme counts, for modifying counts e.g. upon death
-  std::vector<int>* Sh_ptr;
-  std::vector<int>* Eh_ptr;
-  std::vector<int>* Ah_ptr;
-  std::vector<int>* Ch_ptr;
   
   // pointer to indices of infective hosts in each deme
   std::vector<std::vector<int>>* host_infective_index_ptr;
@@ -69,15 +67,15 @@ public:
   // host characteristics
   double treatment_seeking;
   
-  // inoculation objects
+  // inoculation slots
   std::vector<bool> inoc_active;
   std::vector<Status_asexual> inoc_status_asexual;
   std::vector<Status_sexual> inoc_status_sexual;
   std::vector<int> inoc_time_infective;
   
-  // event objects
-  int t_next_event;
-  std::vector<std::tuple<int, Event, int>> events;
+  // events
+  std::vector<std::map<Event, int>> inoc_events;
+  int t_next_inoc_event;
   
   
   // PUBLIC FUNCTIONS
@@ -87,7 +85,6 @@ public:
   
   // other methods
   void init(int index, int &host_ID, int deme,
-            std::vector<int> &Sh, std::vector<int> &Eh, std::vector<int> &Ah, std::vector<int> &Ch,
             std::vector<std::vector<int>> &host_infective_index,
             Sampler &sampler_age_stable,
             Sampler &sampler_age_death,
@@ -95,19 +92,21 @@ public:
             std::vector<Sampler> &sampler_duration_chronic,
             std::vector<Sampler> &sampler_time_treatment_acute,
             std::vector<Sampler> &sampler_time_treatment_chronic);
-  
   void draw_starting_age();
-  void death(int &host_ID, int birth_day);
+  
+  void new_inoc_event(int t, Event this_event, int this_slot);
+  void check_inoc_event(int t);
+  
+  void death(int &host_ID, int t);
+  void treatment(int t);
   void denovo_infection(int t);
   void infection(int t);
-  void new_event(int t, Event this_event, int this_slot);
+  
   void Eh_to_Ah(int this_slot);
   void Eh_to_Ch(int this_slot);
   void Ah_to_Ch(int this_slot);
   void Ah_to_Sh(int this_slot);
   void Ch_to_Sh(int this_slot);
-  void Ah_to_Ph();
-  void Ch_to_Ph();
   void begin_infective_acute(int this_slot, int t);
   void begin_infective_chronic(int this_slot, int t);
   void end_infective(int this_slot);
@@ -130,4 +129,8 @@ public:
   int get_time_treatment_chronic();
   double get_infectivity(int t);
   int get_free_inoc_slot();
+  
+  // print methods
+  void print_inoc_events();
+  void print_inoc_status();
 };

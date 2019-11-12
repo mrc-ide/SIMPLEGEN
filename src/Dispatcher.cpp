@@ -50,7 +50,7 @@ Dispatcher::Dispatcher() {
   host_infective_index = vector<vector<int>>(n_demes);
   int tmp1 = 0;
   for (int k = 0; k < n_demes; ++k) {
-    host_index[k] = seq_int(tmp1, tmp1+H[k]-1);
+    host_index[k] = seq_int(tmp1, tmp1 + H[k] - 1);
     tmp1 += H[k];
   }
   
@@ -59,7 +59,6 @@ Dispatcher::Dispatcher() {
     for (int i = 0; i < H[k]; ++i) {
       int this_host = host_index[k][i];
       host_pop[this_host].init(this_host, next_host_ID, k,
-                               Sh, Eh, Ah, Ch,
                                host_infective_index,
                                sampler_age_stable, sampler_age_death,
                                sampler_duration_acute, sampler_duration_chronic,
@@ -126,76 +125,25 @@ void Dispatcher::run_simulation() {
       
       //-------- SCHEDULED HUMAN EVENTS --------
       
-      // loop through all hosts, find those with events scheduled at time t
+      // loop through all hosts
       for (int i = 0; i < int(host_pop.size()); ++i) {
-        if (host_pop[i].t_next_event == t) {
-          
-          // find which event occurs at time t
-          int update_t_next_event = max_time + 1;
-          for (int j = 0; j < int(host_pop[i].events.size()); ++j) {
-            
-            // get details of this event
-            int this_t_next_event = get<0>(host_pop[i].events[j]);
-            Event this_event = get<1>(host_pop[i].events[j]);
-            int this_slot = get<2>(host_pop[i].events[j]);
-            
-            // get next value of t_next_event
-            if (this_t_next_event > t && this_t_next_event < update_t_next_event) {
-              update_t_next_event = this_t_next_event;
-            }
-            
-            // if this event occurs at time t
-            if (this_t_next_event == t) {
-              
-              // switch on event
-              switch(this_event) {
-              case Event_death:
-                host_pop[i].death(next_host_ID, t);
-                break;
-              case Event_Eh_to_Ah:
-                host_pop[i].Eh_to_Ah(this_slot);
-                break;
-              case Event_Eh_to_Ch:
-                host_pop[i].Eh_to_Ch(this_slot);
-                break;
-              case Event_Ah_to_Ch:
-                host_pop[i].Ah_to_Ch(this_slot);
-                break;
-              case Event_Ah_to_Sh:
-                host_pop[i].Ah_to_Sh(this_slot);
-                break;
-              case Event_Ch_to_Sh:
-                host_pop[i].Ch_to_Sh(this_slot);
-                break;
-              case Event_Ah_to_Ph:
-                host_pop[i].Ah_to_Ph();
-                break;
-              case Event_Ch_to_Ph:
-                host_pop[i].Ch_to_Ph();
-                break;
-              case Event_begin_infective_acute:
-                host_pop[i].begin_infective_acute(this_slot, t);
-                break;
-              case Event_begin_infective_chronic:
-                host_pop[i].begin_infective_chronic(this_slot, t);
-                break;
-              case Event_end_infective:
-                host_pop[i].end_infective(this_slot);
-                break;
-              default:
-                Rcpp::stop("invalid event in switch");
-                break;
-              }
-              
-            }
-          }  // end loop through events
-          
-          // update t_next_event
-          host_pop[i].t_next_event = update_t_next_event;
-          
+        /*
+        if (t > 210 && t < 220 && (t % 1) == 0 && i == 0) {
+          print(t);
+          host_pop[i].print_inoc_events();
+          host_pop[i].print_inoc_status();
+          print_stars(50);
         }
-      }  // end loop through host_pop
-      
+        */
+        // check for host death
+        if (host_pop[i].death_day == t) {
+          host_pop[i].death(next_host_ID, t);
+        }
+        
+        // apply any scheduled inoc-level events
+        host_pop[i].check_inoc_event(t);
+        
+      }
       
       // loop through demes
       for (int k = 0; k < n_demes; ++k) {
@@ -329,6 +277,9 @@ void Dispatcher::run_simulation() {
     
     //-------- STORE RESULTS --------
     
+    // update counts of each host status in each deme
+    update_host_counts();
+    
     // store daily values
     for (int k = 0; k < n_demes; ++k) {
       daily_values[k][t] = {double(Sh[k]), double(Eh[k]), double(Ah[k]), double(Ch[k]),
@@ -337,6 +288,39 @@ void Dispatcher::run_simulation() {
     }
     
   }  // end loop through daily time steps
+  
+}
+
+//------------------------------------------------
+// update host counts
+void Dispatcher::update_host_counts() {
+  
+  // reset counts
+  fill(Sh.begin(), Sh.end(), 0);
+  fill(Eh.begin(), Eh.end(), 0);
+  fill(Ah.begin(), Ah.end(), 0);
+  fill(Ch.begin(), Ch.end(), 0);
+  
+  // loop through all hosts, update counts in given deme
+  for (int i = 0; i < int(host_pop.size()); ++i) {
+    int this_deme = host_pop[i].deme;
+    switch(host_pop[i].get_host_status()) {
+    case Host_Sh:
+      Sh[this_deme]++;
+      break;
+    case Host_Eh:
+      Eh[this_deme]++;
+      break;
+    case Host_Ah:
+      Ah[this_deme]++;
+      break;
+    case Host_Ch:
+      Ch[this_deme]++;
+      break;
+    default:
+      Rcpp::stop("invalid host status in update_host_counts()");
+    }
+  }
   
 }
 

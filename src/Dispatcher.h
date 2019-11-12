@@ -68,6 +68,7 @@ public:
   
   // methods
   void run_simulation();
+  void update_host_counts();
   
 };
 

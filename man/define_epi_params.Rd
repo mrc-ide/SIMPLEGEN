@@ -12,7 +12,7 @@ define_epi_params(project, a = 0.3, p = 0.85, mu = -log(p), u = 12,
   detectability_microscopy_chronic = 0.1, detectability_PCR_acute = 1,
   detectability_PCR_chronic = 1, time_treatment_acute = dgeom(1:25,
   1/5), time_treatment_chronic = dgeom(1:100, 1/20),
-  treatment_seeking_alpha = 1, treatment_seeking_beta = 1,
+  treatment_seeking_mean = 0.5, treatment_seeking_sd = 0.1,
   duration_prophylactic = dgeom(1:25, 1/5), infectivity_acute = 0.07,
   infectivity_chronic = 0.07, max_inoculations = 5, H = 1000,
   seed_infections = 100, M = 1000, life_table = life_table_Mali())
@@ -87,18 +87,19 @@ the same probability distribution is used for all incidents of disease.
 Values are automatically normalised to a proper probability mass
 distribution internally (i.e. a distribution that sums to 1).}
 
-\item{treatment_seeking_alpha, treatment_seeking_beta}{treatment seeking is
+\item{treatment_seeking_mean, treatment_seeking_sd}{treatment seeking is
 modelled in two stages; first, the time at which hosts \emph{consider}
 seeking treatment is drawn from the probability distribution in
-\code{time_treatment_acute} or \code{time_treatment_chronic}, and at this
-point whether they go ahead with treatment-seeking depends on their
-personal host-specific treatment-seeking probability. These latter
+\code{time_treatment_acute} or \code{time_treatment_chronic}, and second,
+whether they go ahead with treatment-seeking at this point in time depends
+on their personal host-specific treatment-seeking probability. These latter
 probabilities are drawn independently for each host at birth from a Beta
-distribution with shape parameters `treatment_seeking_alpha` and
-`treatment_seeking_beta`. The mean of this distribution defines the average
-treatment probability in the population, and is equal to
-`treatment_seeking_alpha/(treatment_seeking_alpha +
-treatment_seeking_beta)`.}
+distribution with mean `treatment_seeking_mean` and standard deviation
+`treatment_seeking_sd`. Hence, these parameters describe the average
+propensity to seek treatment in the population, and the degree of
+inequality in treatment seeking. Note that `treatment_seeking_sd`` must be
+less than `sqrt(treatment_seeking_mean*(1 - treatment_seeking_mean))``,
+otherwise the Beta distribution is undefined.}
 
 \item{duration_prophylactic}{vector defining the probability distribution of
 duration (in days) of prophylaxis following treatment.}

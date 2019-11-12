@@ -120,18 +120,19 @@ life_table_Mali <- function() {
 #'   the same probability distribution is used for all incidents of disease.
 #'   Values are automatically normalised to a proper probability mass
 #'   distribution internally (i.e. a distribution that sums to 1).
-#' @param treatment_seeking_alpha,treatment_seeking_beta treatment seeking is
+#' @param treatment_seeking_mean,treatment_seeking_sd treatment seeking is
 #'   modelled in two stages; first, the time at which hosts \emph{consider}
 #'   seeking treatment is drawn from the probability distribution in
-#'   \code{time_treatment_acute} or \code{time_treatment_chronic}, and at this
-#'   point whether they go ahead with treatment-seeking depends on their
-#'   personal host-specific treatment-seeking probability. These latter
+#'   \code{time_treatment_acute} or \code{time_treatment_chronic}, and second,
+#'   whether they go ahead with treatment-seeking at this point in time depends
+#'   on their personal host-specific treatment-seeking probability. These latter
 #'   probabilities are drawn independently for each host at birth from a Beta
-#'   distribution with shape parameters `treatment_seeking_alpha` and
-#'   `treatment_seeking_beta`. The mean of this distribution defines the average
-#'   treatment probability in the population, and is equal to
-#'   `treatment_seeking_alpha/(treatment_seeking_alpha +
-#'   treatment_seeking_beta)`.
+#'   distribution with mean `treatment_seeking_mean` and standard deviation
+#'   `treatment_seeking_sd`. Hence, these parameters describe the average
+#'   propensity to seek treatment in the population, and the degree of
+#'   inequality in treatment seeking. Note that `treatment_seeking_sd`` must be
+#'   less than `sqrt(treatment_seeking_mean*(1 - treatment_seeking_mean))``,
+#'   otherwise the Beta distribution is undefined.
 #' @param duration_prophylactic vector defining the probability distribution of
 #'   duration (in days) of prophylaxis following treatment.
 #' @param infectivity_acute,infectivity_chronic the probability that a mosquito
@@ -175,8 +176,8 @@ define_epi_params <- function(project,
                               detectability_PCR_chronic = 1,
                               time_treatment_acute = dgeom(1:25, 1/5),
                               time_treatment_chronic = dgeom(1:100, 1/20),
-                              treatment_seeking_alpha = 1,
-                              treatment_seeking_beta = 1,
+                              treatment_seeking_mean = 0.5,
+                              treatment_seeking_sd = 0.1,
                               duration_prophylactic = dgeom(1:25, 1/5),
                               infectivity_acute = 0.07,
                               infectivity_chronic = 0.07,
@@ -214,8 +215,8 @@ define_epi_params <- function(project,
                                    detectability_PCR_chronic = detectability_PCR_chronic,
                                    time_treatment_acute = time_treatment_acute,
                                    time_treatment_chronic = time_treatment_chronic,
-                                   treatment_seeking_alpha = treatment_seeking_alpha,
-                                   treatment_seeking_beta = treatment_seeking_beta,
+                                   treatment_seeking_mean = treatment_seeking_mean,
+                                   treatment_seeking_sd = treatment_seeking_sd,
                                    duration_prophylactic = duration_prophylactic,
                                    infectivity_acute = infectivity_acute,
                                    infectivity_chronic = infectivity_chronic,
@@ -292,12 +293,15 @@ check_params <- function(x) {
   assert_single_bounded(x$a, name = "a")
   assert_single_bounded(x$p, name = "p")
   assert_single_pos(x$mu, name = "mu")
+  
   assert_single_pos_int(x$u, zero_allowed = FALSE, name = "u")
   assert_single_pos_int(x$v, zero_allowed = FALSE, name = "v")
   assert_single_pos_int(x$g, zero_allowed = FALSE, name = "g")
+  
   assert_bounded(x$prob_infection, name = "prob_infection")
   assert_bounded(x$prob_acute, name = "prob_acute")
   assert_bounded(x$prob_AC, name = "prob_AC")
+  
   mapply(assert_pos, x$duration_acute, name = "duration_acute")
   mapply(assert_pos, x$duration_chronic, name = "duration_chronic")
   mapply(assert_pos, x$detectability_microscopy_acute, name = "detectability_microscopy_acute")
@@ -306,17 +310,25 @@ check_params <- function(x) {
   mapply(assert_pos, x$detectability_PCR_chronic, name = "detectability_PCR_chronic")
   mapply(assert_bounded, x$time_treatment_acute, name = "time_treatment_acute")
   mapply(assert_bounded, x$time_treatment_chronic, name = "time_treatment_chronic")
-  assert_single_pos(x$treatment_seeking_alpha, name = "treatment_seeking_alpha")
-  assert_single_pos(x$treatment_seeking_beta, name = "treatment_seeking_beta")
+  
+  assert_single_bounded(x$treatment_seeking_mean, name = "treatment_seeking_mean")
+  assert_single_pos(x$treatment_seeking_sd, zero_allowed = TRUE, name = "treatment_seeking_sd")
+  if (x$treatment_seeking_mean > 0 & x$treatment_seeking_mean < 1) {
+    assert_le(x$treatment_seeking_sd, sqrt(x$treatment_seeking_mean*(1 - x$treatment_seeking_mean))
+              , message = "treatment_seeking_sd must be less than sqrt(treatment_seeking_mean*(1 - treatment_seeking_mean)), otherwise the Beta distribution of treatment seeking in the population is undefined")
+  }
+  
   assert_pos(x$duration_prophylactic, name = "duration_prophylactic")
   mapply(assert_bounded, x$infectivity_acute, name = "infectivity_acute")
   mapply(assert_bounded, x$infectivity_chronic, name = "infectivity_chronic")
+  
   assert_single_pos_int(x$max_inoculations, zero_allowed = FALSE, name = "max_inoculations")
   assert_pos_int(x$H, name = "H")
   assert_pos_int(x$seed_infections, name = "seed_infections")
   assert_pos_int(x$M, name = "M")
   assert_same_length_multiple(x$H, x$seed_infections, x$M)
   assert_leq(x$seed_infections, x$H, name_x = "seed_infections", name_y = "H")
+  
   assert_bounded(x$life_table, name = "life_table")
   assert_eq(x$life_table[length(x$life_table)], 1, message = "the final value in the life table must be 1, representing a 100%% chance of dying, to ensure a closed population")
   
@@ -419,7 +431,7 @@ sim_epi <- function(project,
   args <- process_params(project$epi_parameters)
   check_params(args)
   
-  # get complete demog from life table
+  # get complete demography from life table
   demog <- get_demography(project$epi_parameters$life_table)
   args <- c(args,
             list(age_death = demog$age_death,
@@ -473,11 +485,9 @@ write_xcode_params <- function(args) {
   
   # write scalar epi parameters to file
   arg_file_path <- "R_ignore/SIMPLEGEN_Xcode/args/"
-  scalar_epi_params <- c("a", "p", "mu", "u", "v", "g", "treatment_seeking_alpha",
-                         "treatment_seeking_beta", "max_inoculations")
+  scalar_epi_params <- c("a", "p", "mu", "u", "v", "g", "treatment_seeking_mean",
+                         "treatment_seeking_sd", "max_inoculations")
   vector_to_file(unlist(args[scalar_epi_params]), paste0(arg_file_path, "scalar_epi_params.txt"))
-  
-  print(args[scalar_epi_params])
   
   # write epi vectors to file
   vector_to_file(args$prob_infection, paste0(arg_file_path, "prob_infection.txt"))

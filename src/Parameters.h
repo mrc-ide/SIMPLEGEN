@@ -14,7 +14,7 @@ public:
   // PUBLIC OBJECTS
   
   // scalar epi parameters
-  static double a, p, mu, treatment_seeking_alpha, treatment_seeking_beta;
+  static double a, p, mu, treatment_seeking_mean, treatment_seeking_sd;
   static int u, v, g, max_inoculations;
   
   // epi distributions
@@ -89,8 +89,8 @@ public:
                        std::vector<std::vector<double>> detectability_PCR_chronic,
                        std::vector<std::vector<double>> time_treatment_acute,
                        std::vector<std::vector<double>> time_treatment_chronic,
-                       double treatment_seeking_alpha,
-                       double treatment_seeking_beta,
+                       double treatment_seeking_mean,
+                       double treatment_seeking_sd,
                        std::vector<double> duration_prophylactic,
                        std::vector<std::vector<double>> infectivity_acute,
                        std::vector<std::vector<double>> infectivity_chronic,

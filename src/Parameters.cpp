@@ -13,8 +13,8 @@ double Parameters::mu;
 int Parameters::u;
 int Parameters::v;
 int Parameters::g;
-double Parameters::treatment_seeking_alpha;
-double Parameters::treatment_seeking_beta;
+double Parameters::treatment_seeking_mean;
+double Parameters::treatment_seeking_sd;
 int Parameters::max_inoculations;
 
 // epi distributions
@@ -87,8 +87,8 @@ void Parameters::load_epi_params(double a, double p, double mu,
                                  vector<vector<double>> detectability_PCR_chronic,
                                  vector<vector<double>> time_treatment_acute,
                                  vector<vector<double>> time_treatment_chronic,
-                                 double treatment_seeking_alpha,
-                                 double treatment_seeking_beta,
+                                 double treatment_seeking_mean,
+                                 double treatment_seeking_sd,
                                  vector<double> duration_prophylactic,
                                  vector<vector<double>> infectivity_acute,
                                  vector<vector<double>> infectivity_chronic,
@@ -101,8 +101,8 @@ void Parameters::load_epi_params(double a, double p, double mu,
   this->u = u;
   this->v = v;
   this->g = g;
-  this->treatment_seeking_alpha = treatment_seeking_alpha;
-  this->treatment_seeking_beta = treatment_seeking_beta;
+  this->treatment_seeking_mean = treatment_seeking_mean;
+  this->treatment_seeking_sd = treatment_seeking_sd;
   this->max_inoculations = max_inoculations;
   
   // distributions
@@ -209,8 +209,8 @@ void Parameters::summary() {
   print("u:", u);
   print("v:", v);
   print("g:", g);
-  print("treatment_seeking_alpha:", treatment_seeking_alpha);
-  print("treatment_seeking_beta:", treatment_seeking_beta);
+  print("treatment_seeking_mean:", treatment_seeking_mean);
+  print("treatment_seeking_sd:", treatment_seeking_sd);
   print("max_inoculations:", max_inoculations);
   
   // print epi distributions
