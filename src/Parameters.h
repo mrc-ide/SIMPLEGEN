@@ -6,6 +6,11 @@
 #include <list>
 
 //------------------------------------------------
+// enumerate sampling strategy methods
+enum Case_detection {active, passive};
+enum Diagnosis {microscopy, PCR};
+
+//------------------------------------------------
 // class defining all model parameters
 class Parameters {
   
@@ -14,10 +19,10 @@ public:
   // PUBLIC OBJECTS
   
   // scalar epi parameters
-  static double a, p, mu, treatment_seeking_mean, treatment_seeking_sd;
+  static double a, p, mu;
   static int u, v, g, max_inoculations;
   
-  // epi distributions
+  // state transition probabilities and durations
   static std::vector<double> prob_infection;
   static int n_prob_infection;
   static double max_prob_infection;
@@ -29,6 +34,8 @@ public:
   static int n_duration_acute;
   static std::vector<std::vector<double>> duration_chronic;
   static int n_duration_chronic;
+  
+  // detectability
   static std::vector<std::vector<double>> detectability_microscopy_acute;
   static int n_detectability_microscopy_acute;
   static std::vector<std::vector<double>> detectability_microscopy_chronic;
@@ -37,12 +44,17 @@ public:
   static int n_detectability_PCR_acute;
   static std::vector<std::vector<double>> detectability_PCR_chronic;
   static int n_detectability_PCR_chronic;
+  
+  // treatment
+  static double treatment_seeking_mean, treatment_seeking_sd;
   static std::vector<std::vector<double>> time_treatment_acute;
   static int n_time_treatment_acute;
   static std::vector<std::vector<double>> time_treatment_chronic;
   static int n_time_treatment_chronic;
   static std::vector<double> duration_prophylactic;
   static int n_duration_prophylactic;
+  
+  // infectivity
   static std::vector<std::vector<double>> infectivity_acute;
   static int n_infectivity_acute;
   static std::vector<std::vector<double>> infectivity_chronic;
@@ -60,6 +72,14 @@ public:
   static std::vector<double> age_death;
   static std::vector<double> age_stable;
   
+  // sampling strategy parameters
+  static bool obtain_samples;
+  static std::vector<int> ss_time;
+  static std::vector<int> ss_deme;
+  static std::vector<Case_detection> ss_case_detection;
+  static std::vector<Diagnosis> ss_diagnosis;
+  static std::vector<int> ss_n;
+  
   // run parameters
   static int max_time;
   static bool save_transmission_record, output_daily_counts, output_age_distributions, silent;
@@ -76,41 +96,11 @@ public:
   Parameters() {};
   
   // methods
-  void load_epi_params(double a, double p, double mu,
-                       int u, int v, int g,
-                       std::vector<double> prob_infection,
-                       std::vector<double> prob_acute,
-                       std::vector<double> prob_AC,
-                       std::vector<std::vector<double>> duration_acute,
-                       std::vector<std::vector<double>> duration_chronic,
-                       std::vector<std::vector<double>> detectability_microscopy_acute,
-                       std::vector<std::vector<double>> detectability_microscopy_chronic,
-                       std::vector<std::vector<double>> detectability_PCR_acute,
-                       std::vector<std::vector<double>> detectability_PCR_chronic,
-                       std::vector<std::vector<double>> time_treatment_acute,
-                       std::vector<std::vector<double>> time_treatment_chronic,
-                       double treatment_seeking_mean,
-                       double treatment_seeking_sd,
-                       std::vector<double> duration_prophylactic,
-                       std::vector<std::vector<double>> infectivity_acute,
-                       std::vector<std::vector<double>> infectivity_chronic,
-                       int max_inoculations);
-  
-  void load_deme_params(std::vector<int> H_init,
-                        std::vector<int> seed_infections,
-                        std::vector<int> M);
-  
-  void load_demog_params(std::vector<double> life_table,
-                         std::vector<double> age_death,
-                         std::vector<double> age_stable);
-  
-  void load_run_params(int max_time,
-                       bool save_transmission_record,
-                       std::string transmission_record_location,
-                       bool output_daily_counts,
-                       bool output_age_distributions,
-                       std::vector<int> output_age_times,
-                       bool silent);
+  void load_epi_params(Rcpp::List args);
+  void load_deme_params(Rcpp::List args);
+  void load_demog_params(Rcpp::List args);
+  void load_sampling_params(Rcpp::List args);
+  void load_run_params(Rcpp::List args);
   
   void summary();
   

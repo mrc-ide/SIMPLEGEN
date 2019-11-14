@@ -226,7 +226,7 @@ define_epi_params <- function(project,
                                    M = M,
                                    life_table = life_table)
     
-    return(project)
+    invisible(project)
   }
   
   # find which parameters are user-defined
@@ -237,17 +237,17 @@ define_epi_params <- function(project,
   project$epi_parameters[names(userlist)] <- mapply(eval, userlist, SIMPLIFY = FALSE)
   
   # standardise parameters (e.g. normalise distributions) and perform checks
-  params_processed <- process_params(project$epi_parameters)
-  check_params(params_processed)
+  params_processed <- process_epi_params(project$epi_parameters)
+  check_epi_params(params_processed)
   
   # return
   invisible(project)
 }
 
 #------------------------------------------------
-# convert parameters to standardised types
+# convert epi parameters to standardised types
 #' @noRd
-process_params <- function(x) {
+process_epi_params <- function(x) {
   
   # standardise parameters
   if (!is.list(x$duration_acute)) {
@@ -287,7 +287,7 @@ process_params <- function(x) {
 #------------------------------------------------
 # perform checks on parameters
 #' @noRd
-check_params <- function(x) {
+check_epi_params <- function(x) {
   
   # perform checks
   assert_single_bounded(x$a, name = "a")
@@ -374,11 +374,57 @@ get_demography <- function(life_table) {
 }
 
 #------------------------------------------------
+#' @title Define how samples are taken from epidemiological model
+#'
+#' @description TODO.
+#'
+#' @param project a SIMPLEGEN project, as produced by the
+#'   \code{simplegen_project()} function.
+#' @param x a dataframe containing all of the following columns:
+#'   \itemize{
+#'     \item time: the time (in days) at which samples are taken.
+#'     \item deme: the deme from which samples are taken.
+#'     \item case_detection: the method by which cases are identified. Either
+#'     "active" or "passive".
+#'     \item diagnosis: the method by which infected individuals are diagnosed.
+#'     Either "microscopy" or "PCR".
+#'     \item n: the number of individuals screened. Note that the actual number
+#'     of infected individuals (and hence the number of genotypes) may be lower
+#'     than this number.
+#'   }
+#'
+#' @export
+#' 
+define_sampling_strategy <- function(project, x) {
+  
+  # check inputs
+  assert_custom_class(project, "simplegen_project")
+  assert_dataframe(x)
+  assert_eq(names(x), c("time", "deme", "case_detection", "diagnosis", "n"))
+  assert_pos_int(x$time, zero_allowed = FALSE)
+  assert_pos_int(x$deme, zero_allowed = FALSE)
+  assert_in(x$case_detection, c("active", "passive"))
+  assert_in(x$diagnosis, c("microscopy", "PCR"))
+  assert_pos_int(x$n, zero_allowed = FALSE)
+  
+  # specify formats
+  x$case_detection <- as.character(x$case_detection)
+  x$diagnosis <- as.character(x$diagnosis)
+  
+  # load into project
+  project$sampling_strategy <- x
+  
+  invisible(project)
+}
+
+#------------------------------------------------
 #' @title Simulate from simple individual-based model
 #'
 #' @description Simulate from the inbuilt epidemiological model. Parameters are
-#'   taken from the \code{epi_parameters} slot of the project, and basic outputs are
-#'   written to the \code{epi_output} slot.
+#'   taken from the \code{epi_parameters} slot of the project, and basic outputs
+#'   are written to the \code{epi_output} slot. If a sampling strategy has been
+#'   defined then samples will also be obtained and saved in the
+#'   \code{sample_details} slot (see \code{?define_sampling_strategy()}).
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
@@ -387,6 +433,8 @@ get_demography <- function(life_table) {
 #'   file.
 #' @param transmission_record_location the file path that the transmission
 #'   record will be written to.
+#' @param overwrite_transmission_record if \code{TRUE} the transmission record
+#'   will overwrite any existing file by the same name. \code{FALSE} by default.
 #' @param output_daily_counts whether to output daily counts of key quantities,
 #'   such as the number of infected hosts and the EIR.
 #' @param output_age_distributions whether to output complete age distributions
@@ -394,12 +442,14 @@ get_demography <- function(life_table) {
 #'   are output.
 #' @param silent whether to suppress written messages to the console.
 #'
+#' @importFrom utils txtProgressBar
 #' @export
 
 sim_epi <- function(project,
                     max_time = 365,
                     save_transmission_record = FALSE,
                     transmission_record_location = "",
+                    overwrite_transmission_record = FALSE,
                     output_daily_counts = TRUE,
                     output_age_distributions = TRUE,
                     output_age_times = max_time,
@@ -412,12 +462,20 @@ sim_epi <- function(project,
   assert_single_pos_int(max_time, zero_allowed = FALSE)
   assert_single_logical(save_transmission_record)
   assert_string(transmission_record_location)
+  assert_single_logical(overwrite_transmission_record)
   assert_single_logical(output_daily_counts)
   assert_single_logical(output_age_distributions)
   assert_vector(output_age_times)
   assert_pos_int(output_age_times)
   assert_leq(output_age_times, max_time)
   assert_single_logical(silent)
+  
+  # optionally return warning if will overwrite transmission record file
+  if (save_transmission_record & !overwrite_transmission_record) {
+    if (file.exists(transmission_record_location)) {
+      stop(sprintf("file already exists at %s. Change target location, or use argument `overwrite_transmission_record = TRUE` to manually override this warning", transmission_record_location))
+    }
+  }
   
   
   # ---------- define argument lists ----------
@@ -428,14 +486,28 @@ sim_epi <- function(project,
   }
   
   # get project params into standardised format and perform checks
-  args <- process_params(project$epi_parameters)
-  check_params(args)
+  args <- process_epi_params(project$epi_parameters)
+  check_epi_params(args)
   
   # get complete demography from life table
   demog <- get_demography(project$epi_parameters$life_table)
   args <- c(args,
             list(age_death = demog$age_death,
                  age_stable = demog$age_stable))
+  
+  # add sampling strategy info
+  if (is.null(project$sampling_strategy)) {
+    args <- c(args, obtain_samples = FALSE)
+  } else {
+    ss <- project$sampling_strategy
+    args <- c(args,
+              list(obtain_samples = TRUE,
+                   ss_time = ss$time,
+                   ss_deme = ss$deme - 1,  # NB, subtract 1 to go from R to C++ indexing
+                   ss_case_detection = ss$case_detection,
+                   ss_diagnosis = ss$diagnosis,
+                   ss_n = ss$n))
+  }
   
   # append arguments
   args <- c(args,
@@ -446,6 +518,13 @@ sim_epi <- function(project,
                  output_age_distributions = output_age_distributions,
                  output_age_times = output_age_times,
                  silent = silent))
+  
+  # functions
+  args_functions <- list(update_progress = update_progress)
+  
+  # make progress bars
+  pb_sim <- txtProgressBar(min = 0, max = max_time, initial = NA, style = 3)
+  args_progress <- list(pb_sim = pb_sim)
   
   
   # ---------- run simulation ----------
@@ -460,11 +539,33 @@ sim_epi <- function(project,
   }
   
   # run efficient C++ function
-  output_raw <- indiv_sim_cpp(args)
+  output_raw <- indiv_sim_cpp(args, args_functions, args_progress)
+  
   
   # ---------- process output ----------
   
-  return(output_raw)
+  # get daily values into single dataframe
+  daily_values_list <- mapply(function(i) {
+    ret <- rcpp_to_matrix(output_raw$daily_values[[i]])
+    ret <- as.data.frame(cbind(1:nrow(ret), i, ret))
+    names(ret) <- c("time", "deme", "Sh", "Eh", "Ah", "Ch", "Sv", "Ev", "Iv", "EIR")
+    return(ret)
+  }, 1:length(output_raw$daily_values), SIMPLIFY = FALSE)
+  daily_values <- do.call(rbind, daily_values_list)
+  
+  # get sample details into dataframe
+  sample_details_list <- mapply(function(x) {
+    ret <- data.frame(time = x[1], deme = x[2], host_ID = x[3], positive = x[4])
+    ret$inoc_IDs <- list(x[-(1:4)])
+    return(ret)
+  }, output_raw$sample_details, SIMPLIFY = FALSE)
+  sample_details <- do.call(rbind, sample_details_list)
+  
+  # append to project
+  project$epi_output <- list(daily_values = daily_values)
+  project$sample_details <- sample_details
+  
+  invisible(project)
 }
 
 
@@ -526,3 +627,5 @@ write_xcode_params <- function(args) {
   vector_to_file(args$output_age_times, paste0(arg_file_path, "output_age_times.txt"))
   
 }
+
+

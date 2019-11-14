@@ -18,7 +18,8 @@ void Host::init(int index, int &host_ID, int deme,
                 vector<Sampler> &sampler_duration_acute,
                 vector<Sampler> &sampler_duration_chronic,
                 vector<Sampler> &sampler_time_treatment_acute,
-                vector<Sampler> &sampler_time_treatment_chronic) {
+                vector<Sampler> &sampler_time_treatment_chronic,
+                Sampler &sampler_duration_prophylatic) {
   
   // identifiers
   this->index = index;
@@ -37,6 +38,7 @@ void Host::init(int index, int &host_ID, int deme,
   sampler_duration_chronic_ptr = &sampler_duration_chronic;
   sampler_time_treatment_acute_ptr = &sampler_time_treatment_acute;
   sampler_time_treatment_chronic_ptr = &sampler_time_treatment_chronic;
+  sampler_duration_prophylatic_ptr = &sampler_duration_prophylatic;
   
   // cumulative count of how many times this host has been bitten by infective
   // mosquito (infection_index) and how many times an infection has taken hold
@@ -56,6 +58,7 @@ void Host::init(int index, int &host_ID, int deme,
   }
   
   // initialise inoculation slots
+  inoc_ID_vec = vector<int>(max_inoculations);
   inoc_active = vector<bool>(max_inoculations);
   inoc_status_asexual = vector<Status_asexual>(max_inoculations, Inactive_asexual);
   inoc_status_sexual = vector<Status_sexual>(max_inoculations, Inactive_sexual);
@@ -213,11 +216,13 @@ void Host::death(int &host_ID, int t) {
     erase_remove((*host_infective_index_ptr)[deme], index);
   }
   
-  // new unique ID
-  this->host_ID = host_ID++;
+  // TODO - move between host_index deme as needed
   
   // set current deme equal to home deme
   deme = home_deme;
+  
+  // new unique ID
+  this->host_ID = host_ID++;
   
   // reset cumulative counts
   infection_index = 0;
@@ -237,6 +242,7 @@ void Host::death(int &host_ID, int t) {
   death_day = birth_day + life_days;
   
   // reset inoculation slots
+  fill(inoc_ID_vec.begin(), inoc_ID_vec.end(), 0);
   fill(inoc_active.begin(), inoc_active.end(), false);
   fill(inoc_status_asexual.begin(), inoc_status_asexual.end(), Inactive_asexual);
   fill(inoc_status_sexual.begin(), inoc_status_sexual.end(), Inactive_sexual);
@@ -252,25 +258,20 @@ void Host::death(int &host_ID, int t) {
 
 //------------------------------------------------
 // de-novo infection
-void Host::denovo_infection(int t) {
+void Host::denovo_infection(int t, int &next_inoc_ID, std::ofstream &transmission_record) {
   
-  infection(t);
+  // generate dummy mosquito with no inoculations
+  vector<int> empty_vec;
+  Mosquito dummy_mosquito(empty_vec);
   
-  /*
-  // generating starting genotype in a dummy mosquito
-  Mosquito dummy_mosquito;
-  dummy_mosquito.init(param_ptr);
-  dummy_mosquito.denovo_infection();
+  // carry out infection 
+  infection(t, next_inoc_ID, dummy_mosquito, transmission_record);
   
-  // carry out infection
-  new_infection(dummy_mosquito, 0);
-  */
 }
 
 //------------------------------------------------
 // infection
-//void Host::new_infection(Mosquito &mosq, int t) {
-void Host::infection(int t) {
+void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &transmission_record) {
   
   // return if already at max_inoculations
   if (get_n_active_inoc() == max_inoculations) {
@@ -282,6 +283,7 @@ void Host::infection(int t) {
   int this_slot = get_free_inoc_slot();
   
   // add new inoculation
+  inoc_ID_vec[this_slot] = next_inoc_ID;
   inoc_status_asexual[this_slot] = Liverstage_asexual;
   inoc_active[this_slot] = true;
   
@@ -386,6 +388,18 @@ void Host::infection(int t) {
   infection_index++;
   inoc_index++;
   
+  // print to transmission record
+  if (save_transmission_record) {
+    transmission_record << next_inoc_ID;
+    for (const auto &x : mosq.inoc_ID) {
+      transmission_record << " " << x;
+    }
+    transmission_record << ";";
+  }
+  
+  // update inoc ID
+  next_inoc_ID++;
+  
 }
 
 //------------------------------------------------
@@ -393,7 +407,7 @@ void Host::infection(int t) {
 void Host::treatment(int t) {
   
   // draw duration of prophylaxis
-  int dur_prophylaxis = 10; //TODO - get_duration_acute();
+  int dur_prophylaxis = get_duration_prophylaxis();
   int t2 = t + dur_prophylaxis;
   
   // loop through inoculations
@@ -561,6 +575,18 @@ void Host::end_infective(int this_slot) {
 // GETTERS AND SETTERS
 
 //------------------------------------------------
+// return vector of inoc IDs taken from infective inoculations
+vector<int> Host::get_inoc_ID_vec() {
+  vector<int> ret;
+  for (int i = 0; i < max_inoculations; ++i) {
+    if (inoc_status_sexual[i] != Inactive_sexual) {
+      ret.push_back(inoc_ID_vec[i]);
+    }
+  }
+  return ret;
+}
+
+//------------------------------------------------
 // get total number of active inoculations
 int Host::get_n_active_inoc() {
   return sum_bool(inoc_active);
@@ -692,6 +718,12 @@ int Host::get_time_treatment_acute() {
 int Host::get_time_treatment_chronic() {
   int index = (inoc_index < n_time_treatment_chronic) ? inoc_index : n_time_treatment_chronic - 1;
   return (*sampler_time_treatment_chronic_ptr)[index].draw() + 1;
+}
+
+//------------------------------------------------
+// get duration of prophylaxis
+int Host::get_duration_prophylaxis() {
+  return (*sampler_duration_prophylatic_ptr).draw() + 1;
 }
 
 //------------------------------------------------

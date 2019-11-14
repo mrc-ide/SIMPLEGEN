@@ -1,11 +1,13 @@
 
 #pragma once
 
+#include "Mosquito.h"
 #include "Parameters.h"
 #include "Sampler_v2.h"
 
 #include <vector>
 #include <set>
+#include <fstream>
 
 //------------------------------------------------
 // enumerate possible asexual and sexual inoculation status
@@ -53,6 +55,7 @@ public:
   std::vector<Sampler>* sampler_duration_chronic_ptr;
   std::vector<Sampler>* sampler_time_treatment_acute_ptr;
   std::vector<Sampler>* sampler_time_treatment_chronic_ptr;
+  Sampler* sampler_duration_prophylatic_ptr;
   
   // cumulative count of how many times this host has been bitten by infective
   // mosquito (infection_index) and how many times an infection has taken hold
@@ -68,6 +71,7 @@ public:
   double treatment_seeking;
   
   // inoculation slots
+  std::vector<int> inoc_ID_vec;
   std::vector<bool> inoc_active;
   std::vector<Status_asexual> inoc_status_asexual;
   std::vector<Status_sexual> inoc_status_sexual;
@@ -91,7 +95,8 @@ public:
             std::vector<Sampler> &sampler_duration_acute,
             std::vector<Sampler> &sampler_duration_chronic,
             std::vector<Sampler> &sampler_time_treatment_acute,
-            std::vector<Sampler> &sampler_time_treatment_chronic);
+            std::vector<Sampler> &sampler_time_treatment_chronic,
+            Sampler &sampler_duration_prophylactic);
   void draw_starting_age();
   
   void new_inoc_event(int t, Event this_event, int this_slot);
@@ -99,8 +104,8 @@ public:
   
   void death(int &host_ID, int t);
   void treatment(int t);
-  void denovo_infection(int t);
-  void infection(int t);
+  void denovo_infection(int t, int &next_inoc_ID, std::ofstream &transmission_record);
+  void infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &transmission_record);
   
   void Eh_to_Ah(int this_slot);
   void Eh_to_Ch(int this_slot);
@@ -112,6 +117,7 @@ public:
   void end_infective(int this_slot);
   
   // getters and setters
+  std::vector<int> get_inoc_ID_vec();
   int get_n_active_inoc();
   Status_host get_host_status();
   int get_n_liverstage();
@@ -127,6 +133,7 @@ public:
   int get_duration_chronic();
   int get_time_treatment_acute();
   int get_time_treatment_chronic();
+  int get_duration_prophylaxis();
   double get_infectivity(int t);
   int get_free_inoc_slot();
   

@@ -6,19 +6,21 @@
 using namespace Rcpp;
 
 // indiv_sim_cpp
-Rcpp::List indiv_sim_cpp(Rcpp::List args);
-RcppExport SEXP _SIMPLEGEN_indiv_sim_cpp(SEXP argsSEXP) {
+Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List args_progress);
+RcppExport SEXP _SIMPLEGEN_indiv_sim_cpp(SEXP argsSEXP, SEXP args_functionsSEXP, SEXP args_progressSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
-    rcpp_result_gen = Rcpp::wrap(indiv_sim_cpp(args));
+    Rcpp::traits::input_parameter< Rcpp::List >::type args_functions(args_functionsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type args_progress(args_progressSEXP);
+    rcpp_result_gen = Rcpp::wrap(indiv_sim_cpp(args, args_functions, args_progress));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_SIMPLEGEN_indiv_sim_cpp", (DL_FUNC) &_SIMPLEGEN_indiv_sim_cpp, 1},
+    {"_SIMPLEGEN_indiv_sim_cpp", (DL_FUNC) &_SIMPLEGEN_indiv_sim_cpp, 3},
     {NULL, NULL, 0}
 };
 

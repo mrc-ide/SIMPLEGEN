@@ -10,63 +10,31 @@ using namespace std;
 //------------------------------------------------
 // draw from simple individual-based model
 #ifdef RCPP_ACTIVE
-Rcpp::List indiv_sim_cpp(Rcpp::List args) {
+Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List args_progress) {
   
   // start timer
   chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
   
   // define parameters object and load values
   Parameters params;
-  params.load_epi_params(rcpp_to_double(args["a"]),
-                         rcpp_to_double(args["p"]),
-                         rcpp_to_double(args["mu"]),
-                         rcpp_to_int(args["u"]),
-                         rcpp_to_int(args["v"]),
-                         rcpp_to_int(args["g"]),
-                         rcpp_to_vector_double(args["prob_infection"]),
-                         rcpp_to_vector_double(args["prob_acute"]),
-                         rcpp_to_vector_double(args["prob_AC"]),
-                         rcpp_to_matrix_double(args["duration_acute"]),
-                         rcpp_to_matrix_double(args["duration_chronic"]),
-                         rcpp_to_matrix_double(args["detectability_microscopy_acute"]),
-                         rcpp_to_matrix_double(args["detectability_microscopy_chronic"]),
-                         rcpp_to_matrix_double(args["detectability_PCR_acute"]),
-                         rcpp_to_matrix_double(args["detectability_PCR_chronic"]),
-                         rcpp_to_matrix_double(args["time_treatment_acute"]),
-                         rcpp_to_matrix_double(args["time_treatment_chronic"]),
-                         rcpp_to_double(args["treatment_seeking_mean"]),
-                         rcpp_to_double(args["treatment_seeking_sd"]),
-                         rcpp_to_vector_double(args["duration_prophylactic"]),
-                         rcpp_to_matrix_double(args["infectivity_acute"]),
-                         rcpp_to_matrix_double(args["infectivity_chronic"]),
-                         rcpp_to_int(args["max_inoculations"]));
-  
-  params.load_deme_params(rcpp_to_vector_int(args["H"]),
-                          rcpp_to_vector_int(args["seed_infections"]),
-                          rcpp_to_vector_int(args["M"]));
-  
-  params.load_demog_params(rcpp_to_vector_double(args["life_table"]),
-                           rcpp_to_vector_double(args["age_death"]),
-                           rcpp_to_vector_double(args["age_stable"]));
-  
-  params.load_run_params(rcpp_to_int(args["max_time"]),
-                         rcpp_to_bool(args["save_transmission_record"]),
-                         rcpp_to_string(args["transmission_record_location"]),
-                         rcpp_to_bool(args["output_daily_counts"]),
-                         rcpp_to_bool(args["output_age_distributions"]),
-                         rcpp_to_vector_int(args["output_age_times"]),
-                         rcpp_to_bool(args["silent"]));
+  params.load_epi_params(args);
+  params.load_deme_params(args);
+  params.load_demog_params(args);
+  params.load_sampling_params(args);
+  params.load_run_params(args);
   
   //params.summary();
   
   // create dispatcher object and run simulations
   Dispatcher dispatcher;
-  dispatcher.run_simulation();
+  dispatcher.init();
+  dispatcher.run_simulation(args_functions, args_progress);
   
   // end timer
   chrono_timer(t1);
   
-  return Rcpp::List::create(Rcpp::Named("daily_values") = dispatcher.daily_values);
+  return Rcpp::List::create(Rcpp::Named("daily_values") = dispatcher.daily_values,
+                            Rcpp::Named("sample_details") = dispatcher.sample_details);
 }
 #else
 int main(int argc, const char * argv[]) {  // main function when not using Rcpp

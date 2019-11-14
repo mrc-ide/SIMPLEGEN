@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <vector>
+
 //------------------------------------------------
 // class defining mosquito
 class Mosquito {
@@ -8,16 +10,12 @@ class Mosquito {
 public:
   
   // PUBLIC OBJECTS
-  int host_ID;
-  int infection_time;
+  std::vector<int> inoc_ID;
   
   // PUBLIC FUNCTIONS
   
   // constructors
   Mosquito() {};
-  Mosquito(int host_ID, int infection_time);
-  
-  // other methods
-  //void init();
+  Mosquito(std::vector<int> &inoc_ID);
   
 };

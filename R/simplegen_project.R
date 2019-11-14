@@ -12,7 +12,9 @@ simplegen_project <- function() {
   
   # create empty project
   project <- list(epi_parameters = NULL,
-                  epi_output = NULL)
+                  sampling_strategy = NULL,
+                  epi_output = NULL,
+                  sample_details = NULL)
   class(project) <- "simplegen_project"
   
   # return

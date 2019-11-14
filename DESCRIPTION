@@ -27,7 +27,9 @@ Imports:
     Rcpp,
     data.table,
     coda,
-    magrittr
+    magrittr,
+    ggplot2,
+    tidyr
 SystemRequirements: C++11
 Suggests: 
     testthat,

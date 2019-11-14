@@ -13,11 +13,9 @@ double Parameters::mu;
 int Parameters::u;
 int Parameters::v;
 int Parameters::g;
-double Parameters::treatment_seeking_mean;
-double Parameters::treatment_seeking_sd;
 int Parameters::max_inoculations;
 
-// epi distributions
+// state transition probabilities and durations
 vector<double> Parameters::prob_infection;
 int Parameters::n_prob_infection;
 double Parameters::max_prob_infection;
@@ -29,6 +27,8 @@ vector<vector<double>> Parameters::duration_acute;
 int Parameters::n_duration_acute;
 vector<vector<double>> Parameters::duration_chronic;
 int Parameters::n_duration_chronic;
+
+// detectability
 vector<vector<double>> Parameters::detectability_microscopy_acute;
 int Parameters::n_detectability_microscopy_acute;
 vector<vector<double>> Parameters::detectability_microscopy_chronic;
@@ -37,12 +37,18 @@ vector<vector<double>> Parameters::detectability_PCR_acute;
 int Parameters::n_detectability_PCR_acute;
 vector<vector<double>> Parameters::detectability_PCR_chronic;
 int Parameters::n_detectability_PCR_chronic;
+
+// treatment
+double Parameters::treatment_seeking_mean;
+double Parameters::treatment_seeking_sd;
 vector<vector<double>> Parameters::time_treatment_acute;
 int Parameters::n_time_treatment_acute;
 vector<vector<double>> Parameters::time_treatment_chronic;
 int Parameters::n_time_treatment_chronic;
 vector<double> Parameters::duration_prophylactic;
 int Parameters::n_duration_prophylactic;
+
+// infectivity
 vector<vector<double>> Parameters::infectivity_acute;
 int Parameters::n_infectivity_acute;
 vector<vector<double>> Parameters::infectivity_chronic;
@@ -60,6 +66,14 @@ vector<double> Parameters::life_table;
 vector<double> Parameters::age_death;
 vector<double> Parameters::age_stable;
 
+// sampling strategy parameters
+bool Parameters::obtain_samples;
+vector<int> Parameters::ss_time;
+vector<int> Parameters::ss_deme;
+vector<Case_detection> Parameters::ss_case_detection;
+vector<Diagnosis> Parameters::ss_diagnosis;
+vector<int> Parameters::ss_n;
+
 // run parameters
 int Parameters::max_time;
 bool Parameters::save_transmission_record;
@@ -74,65 +88,53 @@ double Parameters::prob_mosq_death;
 
 //------------------------------------------------
 // load epi parameter values
-void Parameters::load_epi_params(double a, double p, double mu,
-                                 int u, int v, int g,
-                                 vector<double> prob_infection,
-                                 vector<double> prob_acute,
-                                 vector<double> prob_AC,
-                                 vector<vector<double>> duration_acute,
-                                 vector<vector<double>> duration_chronic,
-                                 vector<vector<double>> detectability_microscopy_acute,
-                                 vector<vector<double>> detectability_microscopy_chronic,
-                                 vector<vector<double>> detectability_PCR_acute,
-                                 vector<vector<double>> detectability_PCR_chronic,
-                                 vector<vector<double>> time_treatment_acute,
-                                 vector<vector<double>> time_treatment_chronic,
-                                 double treatment_seeking_mean,
-                                 double treatment_seeking_sd,
-                                 vector<double> duration_prophylactic,
-                                 vector<vector<double>> infectivity_acute,
-                                 vector<vector<double>> infectivity_chronic,
-                                 int max_inoculations) {
+void Parameters::load_epi_params(Rcpp::List args) {
   
-  // define scalars
-  this->a = a;
-  this->p = p;
-  this->mu = mu;
-  this->u = u;
-  this->v = v;
-  this->g = g;
-  this->treatment_seeking_mean = treatment_seeking_mean;
-  this->treatment_seeking_sd = treatment_seeking_sd;
-  this->max_inoculations = max_inoculations;
+  // scalar epi parameters
+  a = rcpp_to_double(args["a"]);
+  p = rcpp_to_double(args["p"]);
+  mu = rcpp_to_double(args["mu"]);
+  u = rcpp_to_int(args["u"]);
+  v = rcpp_to_int(args["v"]);
+  g = rcpp_to_int(args["g"]);
+  max_inoculations = rcpp_to_int(args["max_inoculations"]);
   
-  // distributions
-  this->prob_infection = prob_infection;
+  // state transition probabilities and durations
+  prob_infection = rcpp_to_vector_double(args["prob_infection"]);
   n_prob_infection = int(prob_infection.size());
-  this->prob_acute = prob_acute;
+  prob_acute = rcpp_to_vector_double(args["prob_acute"]);
   n_prob_acute = int(prob_acute.size());
-  this->prob_AC = prob_AC;
+  prob_AC = rcpp_to_vector_double(args["prob_AC"]);
   n_prob_AC = int(prob_AC.size());
-  this->duration_acute = duration_acute;
+  duration_acute = rcpp_to_matrix_double(args["duration_acute"]);
   n_duration_acute = int(duration_acute.size());
-  this->duration_chronic = duration_chronic;
+  duration_chronic = rcpp_to_matrix_double(args["duration_chronic"]);
   n_duration_chronic = int(duration_chronic.size());
-  this->detectability_microscopy_acute = detectability_microscopy_acute;
+  
+  // detectability
+  detectability_microscopy_acute = rcpp_to_matrix_double(args["detectability_microscopy_acute"]);
   n_detectability_microscopy_acute = int(detectability_microscopy_acute.size());
-  this->detectability_microscopy_chronic = detectability_microscopy_chronic;
+  detectability_microscopy_chronic = rcpp_to_matrix_double(args["detectability_microscopy_chronic"]);
   n_detectability_microscopy_chronic = int(detectability_microscopy_chronic.size());
-  this->detectability_PCR_acute = detectability_PCR_acute;
+  detectability_PCR_acute = rcpp_to_matrix_double(args["detectability_PCR_acute"]);
   n_detectability_PCR_acute = int(detectability_PCR_acute.size());
-  this->detectability_PCR_chronic = detectability_PCR_chronic;
+  detectability_PCR_chronic = rcpp_to_matrix_double(args["detectability_PCR_chronic"]);
   n_detectability_PCR_chronic = int(detectability_PCR_chronic.size());
-  this->time_treatment_acute = time_treatment_acute;
+  
+  // treatment
+  treatment_seeking_mean = rcpp_to_double(args["treatment_seeking_mean"]);
+  treatment_seeking_sd = rcpp_to_double(args["treatment_seeking_sd"]);
+  time_treatment_acute = rcpp_to_matrix_double(args["time_treatment_acute"]);
   n_time_treatment_acute = int(time_treatment_acute.size());
-  this->time_treatment_chronic = time_treatment_chronic;
+  time_treatment_chronic = rcpp_to_matrix_double(args["time_treatment_chronic"]);
   n_time_treatment_chronic = int(time_treatment_chronic.size());
-  this->duration_prophylactic = duration_prophylactic;
+  duration_prophylactic = rcpp_to_vector_double(args["duration_prophylactic"]);
   n_duration_prophylactic = int(duration_prophylactic.size());
-  this->infectivity_acute = infectivity_acute;
+  
+  // infectivity
+  infectivity_acute = rcpp_to_matrix_double(args["infectivity_acute"]);
   n_infectivity_acute = int(infectivity_acute.size());
-  this->infectivity_chronic = infectivity_chronic;
+  infectivity_chronic = rcpp_to_matrix_double(args["infectivity_chronic"]);
   n_infectivity_chronic = int(infectivity_chronic.size());
   
   // get max prob_infection
@@ -154,47 +156,82 @@ void Parameters::load_epi_params(double a, double p, double mu,
 
 //------------------------------------------------
 // load deme parameter values
-void Parameters::load_deme_params(vector<int> H_init,
-                                  vector<int> seed_infections,
-                                  vector<int> M) {
+void Parameters::load_deme_params(Rcpp::List args) {
   
   // distributions
-  this->H_init = H_init;
-  this->seed_infections = seed_infections;
-  this->M = M;
+  H_init = rcpp_to_vector_int(args["H"]);
+  seed_infections = rcpp_to_vector_int(args["seed_infections"]);
+  M = rcpp_to_vector_int(args["M"]);
   n_demes = int(H_init.size());
+  
 }
 
 //------------------------------------------------
 // load demography parameter values
-void Parameters::load_demog_params(vector<double> life_table,
-                                   vector<double> age_death,
-                                   vector<double> age_stable) {
+void Parameters::load_demog_params(Rcpp::List args) {
   
   // distributions
-  this->life_table = life_table;
-  this->age_death = age_death;
-  this->age_stable = age_stable;
+  life_table = rcpp_to_vector_double(args["life_table"]);
+  age_death = rcpp_to_vector_double(args["age_death"]);
+  age_stable = rcpp_to_vector_double(args["age_stable"]);
+  
+}
+
+//------------------------------------------------
+// load sampling strategy parameter values
+void Parameters::load_sampling_params(Rcpp::List args) {
+  
+  // whether samples are being obtained
+  obtain_samples = rcpp_to_bool(args["obtain_samples"]);
+  
+  // if so, load other parameters
+  if (obtain_samples) {
+    ss_time = rcpp_to_vector_int(args["ss_time"]);
+    ss_deme = rcpp_to_vector_int(args["ss_deme"]);
+    int n_row = int(ss_time.size());
+    
+    vector<string> ss_case_detection_string = rcpp_to_vector_string(args["ss_case_detection"]);
+    ss_case_detection = vector<Case_detection>(n_row);
+    for (int i = 0; i < int(ss_case_detection_string.size()); ++i) {
+      if (ss_case_detection_string[i] == "active") {
+        ss_case_detection[i] = active;
+      } else if (ss_case_detection_string[i] == "passive") {
+        ss_case_detection[i] = passive;
+      } else {
+        Rcpp::stop("error in Parameters::load_sampling_params(): case detection method not recognised");
+      }
+    }
+    
+    vector<string> ss_diagnosis_string = rcpp_to_vector_string(args["ss_diagnosis"]);
+    ss_diagnosis = vector<Diagnosis>(n_row);
+    for (int i = 0; i < int(ss_diagnosis_string.size()); ++i) {
+      if (ss_diagnosis_string[i] == "microscopy") {
+        ss_diagnosis[i] = microscopy;
+      } else if (ss_diagnosis_string[i] == "PCR") {
+        ss_diagnosis[i] = PCR;
+      } else {
+        Rcpp::stop("error in Parameters::load_sampling_params(): diagnosis method not recognised");
+      }
+    }
+    
+    ss_n = rcpp_to_vector_int(args["ss_n"]);
+    
+  }
+  
 }
 
 //------------------------------------------------
 // load run parameter values
-void Parameters::load_run_params(int max_time,
-                                 bool save_transmission_record,
-                                 string transmission_record_location,
-                                 bool output_daily_counts,
-                                 bool output_age_distributions,
-                                 std::vector<int> output_age_times,
-                                 bool silent) {
+void Parameters::load_run_params(Rcpp::List args) {
   
   // load values
-  this->max_time = max_time;
-  this->save_transmission_record = save_transmission_record;
-  this->transmission_record_location = transmission_record_location;
-  this->output_daily_counts = output_daily_counts;
-  this->output_age_distributions = output_age_distributions;
-  this->output_age_times = output_age_times;
-  this->silent = silent;
+  max_time = rcpp_to_int(args["max_time"]);
+  save_transmission_record = rcpp_to_bool(args["save_transmission_record"]);
+  transmission_record_location = rcpp_to_string(args["transmission_record_location"]);
+  output_daily_counts = rcpp_to_bool(args["output_daily_counts"]);
+  output_age_distributions = rcpp_to_bool(args["output_age_distributions"]);
+  output_age_times = rcpp_to_vector_int(args["output_age_times"]);
+  silent = rcpp_to_bool(args["silent"]);
   
 }
 

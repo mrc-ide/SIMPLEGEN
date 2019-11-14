@@ -5,7 +5,8 @@
 \title{Simulate from simple individual-based model}
 \usage{
 sim_epi(project, max_time = 365, save_transmission_record = FALSE,
-  transmission_record_location = "", output_daily_counts = TRUE,
+  transmission_record_location = "",
+  overwrite_transmission_record = FALSE, output_daily_counts = TRUE,
   output_age_distributions = TRUE, output_age_times = max_time,
   silent = FALSE)
 }
@@ -21,6 +22,9 @@ file.}
 \item{transmission_record_location}{the file path that the transmission
 record will be written to.}
 
+\item{overwrite_transmission_record}{if \code{TRUE} the transmission record
+will overwrite any existing file by the same name. \code{FALSE} by default.}
+
 \item{output_daily_counts}{whether to output daily counts of key quantities,
 such as the number of infected hosts and the EIR.}
 
@@ -33,6 +37,8 @@ are output.}
 }
 \description{
 Simulate from the inbuilt epidemiological model. Parameters are
-  taken from the \code{epi_parameters} slot of the project, and basic outputs are
-  written to the \code{epi_output} slot.
+  taken from the \code{epi_parameters} slot of the project, and basic outputs
+  are written to the \code{epi_output} slot. If a sampling strategy has been
+  defined then samples will also be obtained and saved in the
+  \code{sample_details} slot (see \code{?define_sampling_strategy()}).
 }

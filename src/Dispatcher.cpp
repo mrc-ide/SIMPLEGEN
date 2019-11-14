@@ -5,28 +5,50 @@
 using namespace std;
 
 //------------------------------------------------
-// constructor
-Dispatcher::Dispatcher() {
+// initialise
+void Dispatcher::init() {
+  
+  // open filestream to write transmission record to file
+  if (save_transmission_record) {
+    
+    // open filestream
+    if (!silent) {
+      print("Opening filestream to transmission record");
+    }
+    transmission_record.open(transmission_record_location);
+    
+    // check that open
+    if (!transmission_record.is_open()) {
+      Rcpp::stop("unable to create transmission record at specified location. Check the path exists, and that you have write access");
+      transmission_record.close();
+    }
+  }
+  
+  // initialise unique IDs for each inoculation
+  next_inoc_ID = 0;
   
   // objects for sampling from probability distributions
-  sampler_age_stable = Sampler(age_stable, 1000);
-  sampler_age_death = Sampler(age_death, 1000);
+  int sampler_draws = 1000;
+  sampler_age_stable = Sampler(age_stable, sampler_draws);
+  sampler_age_death = Sampler(age_death, sampler_draws);
+  
   sampler_duration_acute = vector<Sampler>(n_duration_acute);
   for (int i = 0; i < n_duration_acute; ++i) {
-    sampler_duration_acute[i] = Sampler(duration_acute[i], 1000);
+    sampler_duration_acute[i] = Sampler(duration_acute[i], sampler_draws);
   }
   sampler_duration_chronic = vector<Sampler>(n_duration_chronic);
   for (int i = 0; i < n_duration_chronic; ++i) {
-    sampler_duration_chronic[i] = Sampler(duration_chronic[i], 1000);
+    sampler_duration_chronic[i] = Sampler(duration_chronic[i], sampler_draws);
   }
   sampler_time_treatment_acute = vector<Sampler>(n_time_treatment_acute);
   for (int i = 0; i < n_time_treatment_acute; ++i) {
-    sampler_time_treatment_acute[i] = Sampler(time_treatment_acute[i], 1000);
+    sampler_time_treatment_acute[i] = Sampler(time_treatment_acute[i], sampler_draws);
   }
   sampler_time_treatment_chronic = vector<Sampler>(n_time_treatment_chronic);
   for (int i = 0; i < n_time_treatment_chronic; ++i) {
-    sampler_time_treatment_chronic[i] = Sampler(time_treatment_chronic[i], 1000);
+    sampler_time_treatment_chronic[i] = Sampler(time_treatment_chronic[i], sampler_draws);
   }
+  sampler_duration_prophylactic = Sampler(duration_prophylactic, sampler_draws);
   
   // counts of host types
   H = H_init;
@@ -62,14 +84,8 @@ Dispatcher::Dispatcher() {
                                host_infective_index,
                                sampler_age_stable, sampler_age_death,
                                sampler_duration_acute, sampler_duration_chronic,
-                               sampler_time_treatment_acute, sampler_time_treatment_chronic);
-    }
-  }
-  
-  // seed initial infections
-  for (int k = 0; k < n_demes; ++k) {
-    for (int i = 0; i < seed_infections[k]; ++i) {
-      host_pop[host_index[k][i]].denovo_infection(0);
+                               sampler_time_treatment_acute, sampler_time_treatment_chronic,
+                               sampler_duration_prophylactic);
     }
   }
   
@@ -86,8 +102,8 @@ Dispatcher::Dispatcher() {
   Ev_pop = vector<vector<vector<Mosquito>>>(n_demes, vector<vector<Mosquito>>(v));
   Iv_pop = vector<vector<Mosquito>>(n_demes);
   
-  // objects for storing daily values:
-  // 0 = Sh, 1 = Eh, 2 = Ah, 3 = Ch, 4 = Sv, 5 = Ev, 6 = Iv, 7 = EIR
+  // objects for storing results
+  // daily values: 0 = Sh, 1 = Eh, 2 = Ah, 3 = Ch, 4 = Sv, 5 = Ev, 6 = Iv, 7 = EIR
   daily_values = vector<vector<vector<double>>>(n_demes, vector<vector<double>>(max_time, vector<double>(8)));
   
   // misc
@@ -97,26 +113,44 @@ Dispatcher::Dispatcher() {
 
 //------------------------------------------------
 // run main simulation
-void Dispatcher::run_simulation() {
+void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_progress) {
   
   // start message
   if (!silent) {
     print("Running simulation");
   }
   
+  // extract R utility functions
+  Rcpp::Function update_progress = args_functions["update_progress"];
+  
   // initialise ring buffer that loops back to 0 when it exceeds (v-1). Used for
   // keeping track of mosquito deaths in the latent phase.
   int v_ringbuffer = 0;
   
   // loop through daily time steps
+  int index_obtain_samples = 0;
   for (int t = 0; t < max_time; ++t) {
+    
+    // update progress bar
+    if (!silent) {
+      update_progress(args_progress, "pb_sim", t+1, max_time, true);
+    }
     
     // update ring buffer index
     v_ringbuffer = (v_ringbuffer == v-1) ? 0 : v_ringbuffer + 1;
     
-    // skip over first iteration to ensure user-defined values appear as first
-    // result
-    if (t != 0) {
+    // first generation is for seeding infecitons only. Subsequent generations
+    // run full transmission model
+    if (t == 0) {
+      
+      // seed initial infections
+      for (int k = 0; k < n_demes; ++k) {
+        for (int i = 0; i < seed_infections[k]; ++i) {
+          host_pop[host_index[k][i]].denovo_infection(t, next_inoc_ID, transmission_record);
+        }
+      }
+      
+    } else {
       
       
       //-------- MIGRATION --------
@@ -127,14 +161,7 @@ void Dispatcher::run_simulation() {
       
       // loop through all hosts
       for (int i = 0; i < int(host_pop.size()); ++i) {
-        /*
-        if (t > 210 && t < 220 && (t % 1) == 0 && i == 0) {
-          print(t);
-          host_pop[i].print_inoc_events();
-          host_pop[i].print_inoc_status();
-          print_stars(50);
-        }
-        */
+        
         // check for host death
         if (host_pop[i].death_day == t) {
           host_pop[i].death(next_host_ID, t);
@@ -186,8 +213,12 @@ void Dispatcher::run_simulation() {
           // determine whether infectious bite is successful
           if (rbernoulli1(host_pop[this_host].get_prob_infection()/max_prob_infection)) {
             
+            // choose mosquito at random
+            int rnd1 = sample2(0, Iv[k]-1);
+            
             // infect host
-            host_pop[this_host].infection(t);
+            host_pop[this_host].infection(t, next_inoc_ID, Iv_pop[k][rnd1], transmission_record);
+            
           }
           
         }  // end loop over query infectious bites
@@ -252,9 +283,11 @@ void Dispatcher::run_simulation() {
               
             } else {
               
-              // add to Ev_pop, to enter Iv_pop at future time
-              int this_host_ID = host_pop[this_host].host_ID;
-              Ev_pop[k][v_ringbuffer].emplace_back(this_host_ID, t);
+              // sample inoc IDs from host
+              vector<int> inoc_ID_vec = host_pop[this_host].get_inoc_ID_vec();
+              
+              // add to Ev_pop, scheduled to enter Iv_pop at future time
+              Ev_pop[k][v_ringbuffer].emplace_back(inoc_ID_vec);
               
             }
             
@@ -287,7 +320,33 @@ void Dispatcher::run_simulation() {
                               EIR[k]};
     }
     
+    // sample inoc IDs
+    if (obtain_samples) {
+      while (ss_time[index_obtain_samples] == t) {
+        
+        // get sampling parameters
+        int this_deme = ss_deme[index_obtain_samples];
+        int this_n = ss_n[index_obtain_samples];
+        
+        // obtain samples
+        for (int i = 0; i < this_n; ++i) {
+          get_sample_details(t, this_deme);
+        }
+        
+        // increment index
+        index_obtain_samples++;
+      }
+    }
+    
   }  // end loop through daily time steps
+  
+  // close filestream to transmission record
+  if (save_transmission_record) {
+    if (!silent) {
+      print("Closing filestream to transmission record");
+    }
+    transmission_record.close();
+  }
   
 }
 
@@ -322,5 +381,42 @@ void Dispatcher::update_host_counts() {
     }
   }
   
+}
+
+//------------------------------------------------
+// draw sample from deme
+void Dispatcher::get_sample_details(int t, int deme) {
+  
+  // push back time and deme
+  vector<int> this_details;
+  this_details.push_back(t);
+  this_details.push_back(deme);
+  
+  // choose a random host and push back host ID
+  int rnd1 = sample2(0, H[deme] - 1);
+  int this_index = host_index[deme][rnd1];
+  int this_host_ID = host_pop[this_index].host_ID;
+  this_details.push_back(this_host_ID);
+  
+  // find if positive for malaria parasites and push back test results
+  bool test_positive = false;
+  Status_host this_host_status = host_pop[this_index].get_host_status();
+  if (this_host_status == Host_Ah || this_host_status == Host_Ch) {
+    test_positive = true;
+  }
+  this_details.push_back(test_positive);
+  
+  // if positive, push back inoc IDs
+  if (test_positive) {
+    for (int i = 0; i < max_inoculations; ++i) {
+      Status_asexual this_asexual = host_pop[this_index].inoc_status_asexual[i];
+      if (this_asexual == Acute_asexual || this_asexual == Chronic_asexual) {
+        this_details.push_back(host_pop[this_index].inoc_ID_vec[i]);
+      }
+    }
+  }
+  
+  // push to sample_details
+  sample_details.push_back(this_details);
 }
 
