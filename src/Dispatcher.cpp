@@ -2,6 +2,8 @@
 #include "Dispatcher.h"
 #include "probability_v7.h"
 
+#include <fstream>
+
 using namespace std;
 
 //------------------------------------------------
@@ -20,7 +22,6 @@ void Dispatcher::init() {
     // check that open
     if (!transmission_record.is_open()) {
       Rcpp::stop("unable to create transmission record at specified location. Check the path exists, and that you have write access");
-      transmission_record.close();
     }
   }
   
@@ -151,7 +152,6 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
       }
       
     } else {
-      
       
       //-------- MIGRATION --------
       // TODO - loop through hosts - check for migration
@@ -337,6 +337,9 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
         index_obtain_samples++;
       }
     }
+    
+    // line break at end of this time step
+    transmission_record << "\n";
     
   }  // end loop through daily time steps
   

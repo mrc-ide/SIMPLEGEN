@@ -278,7 +278,16 @@ void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &tr
     infection_index++;
     return;
   }
-  
+  /*
+  //80710, 46067
+  if (next_inoc_ID == 46067) {
+    print("");
+    print_vector(mosq.inoc_ID);
+    print_inoc_status();
+    print_inoc_events();
+    print_stars(50);
+  }
+  */
   // get next free inoculation slot
   int this_slot = get_free_inoc_slot();
   
@@ -396,7 +405,16 @@ void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &tr
     }
     transmission_record << ";";
   }
-  
+  /*
+  //80710, 46067
+  if (next_inoc_ID == 46067) {
+    print("");
+    print_vector(mosq.inoc_ID);
+    print_inoc_status();
+    print_inoc_events();
+    Rcpp::stop("46067");
+  }
+  */
   // update inoc ID
   next_inoc_ID++;
   
