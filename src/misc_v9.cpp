@@ -1,5 +1,5 @@
 
-#include "misc_v8.h"
+#include "misc_v9.h"
 
 #include <math.h>
 #include <fstream>
@@ -103,6 +103,11 @@ vector<int> seq_int(int from, int to, int by) {
 //------------------------------------------------
 // return unique values in a vector
 // unique
+// DEFINED IN HEADER
+
+//------------------------------------------------
+// remove duplicated values from an already-sorted vector
+// remove_duplicates
 // DEFINED IN HEADER
 
 //------------------------------------------------
@@ -450,7 +455,7 @@ vector<vector<double>> file_to_matrix_double(string file_path) {
 
 //------------------------------------------------
 // calculate Cholesky decomposition of positive definite matrix sigma
-void cholesky(vector<vector<double>> &chol, vector<vector<double>> &sigma) {
+void cholesky(vector<vector<double>> &chol, const vector<vector<double>> &sigma) {
   
   for (int i = 0; i < int(sigma.size()); ++i) {
     for (int j = 0; j < (i+1); ++j) {

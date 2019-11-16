@@ -2,6 +2,8 @@
 #include "main.h"
 #include "Parameters.h"
 #include "Dispatcher.h"
+#include "Tree_node.h"
+#include "probability_v9.h"
 
 #include <chrono>
 
@@ -23,8 +25,6 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List 
   params.load_sampling_params(args);
   params.load_run_params(args);
   
-  //params.summary();
-  
   // create dispatcher object and run simulations
   Dispatcher dispatcher;
   dispatcher.init();
@@ -36,78 +36,6 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List 
   return Rcpp::List::create(Rcpp::Named("daily_values") = dispatcher.daily_values,
                             Rcpp::Named("sample_details") = dispatcher.sample_details);
 }
-#else
-int main(int argc, const char * argv[]) {  // main function when not using Rcpp
-  
-  // start timer
-  chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
-  
-  // define paths to arg files
-  string file_path = "/Users/rverity/Dropbox/Bob/Work/My Programs/Simulation/SIMPLEGEN/R_ignore/SIMPLEGEN_Xcode/args/";
-  
-  string epi_scalar_path = file_path + "epi_scalar.txt";
-  string prob_acute_path = file_path + "prob_acute.txt";
-  string prob_infection_path = file_path + "prob_infection.txt";
-  string infectivity_acute_path = file_path + "infectivity_acute.txt";
-  string infectivity_chronic_path = file_path + "infectivity_chronic.txt";
-  string duration_acute_path = file_path + "duration_acute.txt";
-  string duration_chronic_path = file_path + "duration_chronic.txt";
-  
-  string H_path = file_path + "H.txt";
-  string seed_infections_path = file_path + "seed_infections.txt";
-  string M_path = file_path + "M.txt";
-  
-  string life_table_path = file_path + "life_table.txt";
-  string age_death_path = file_path + "age_death.txt";
-  string age_stable_path = file_path + "age_stable.txt";
-  
-  string run_scalar_path = file_path + "run_scalar.txt";
-  string output_age_times_path = file_path + "output_age_times.txt";
-  
-  // read in scalar arguments from file
-  vector<double> epi_scalar = file_to_vector_double(epi_scalar_path);
-  vector<double> run_scalar = file_to_vector_double(run_scalar_path);
-  int max_time = int(run_scalar[0]);
-  bool output_daily_counts = int(run_scalar[1]);
-  bool output_age_distributions = int(run_scalar[2]);
-  bool output_infection_history = int(run_scalar[3]);
-  bool silent = int(run_scalar[4]);
-  
-  // define parameters object and load values
-  Parameters params;
-  params.load_epi_params(epi_scalar[0], epi_scalar[1], epi_scalar[2], epi_scalar[3],
-                         epi_scalar[4], epi_scalar[5], epi_scalar[6], epi_scalar[7],
-                         file_to_vector_double(prob_acute_path),
-                         file_to_vector_double(prob_infection_path),
-                         file_to_matrix_double(infectivity_acute_path),
-                         file_to_matrix_double(infectivity_chronic_path),
-                         file_to_matrix_double(duration_acute_path),
-                         file_to_matrix_double(duration_chronic_path));
-  
-  params.load_deme_params(file_to_vector_int(H_path),
-                          file_to_vector_int(seed_infections_path),
-                          file_to_vector_int(M_path));
-  
-  params.load_demog_params(file_to_vector_double(life_table_path),
-                           file_to_vector_double(age_death_path),
-                           file_to_vector_double(age_stable_path));
-  
-  params.load_run_params(max_time, output_daily_counts, output_age_distributions,
-                         output_infection_history, silent,
-                         file_to_vector_int(output_age_times_path));
-  
-  
-  //params.summary();
-  
-  // create dispatcher object and run simulations
-  Dispatcher dispatcher;
-  dispatcher.run_simulation();
-  
-  // end timer
-  chrono_timer(t1);
-  
-  return 0;
-}
 #endif
 
 //------------------------------------------------
@@ -115,6 +43,9 @@ int main(int argc, const char * argv[]) {  // main function when not using Rcpp
 // the final sample
 #ifdef RCPP_ACTIVE
 void prune_transmission_record_cpp(Rcpp::List args) {
+  
+  // start timer
+  chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
   
   // extract input args
   string transmission_record_location = rcpp_to_string(args["transmission_record_location"]);
@@ -124,7 +55,7 @@ void prune_transmission_record_cpp(Rcpp::List args) {
   
   // open filestream to transmission record and check that opened
   if (!silent) {
-    print("Opening filestream to read transmission record");
+    print("Opening filestream to transmission record");
   }
   ifstream infile;
   infile.open(transmission_record_location);
@@ -134,7 +65,7 @@ void prune_transmission_record_cpp(Rcpp::List args) {
   
   // open filestream to pruned record and check that opened
   if (!silent) {
-    print("Opening filestream to write pruned transmission record");
+    print("Opening filestream to pruned transmission record");
   }
   ofstream outfile;
   outfile.open(pruned_record_location);
@@ -263,8 +194,6 @@ void prune_transmission_record_cpp(Rcpp::List args) {
     
   }  // end t loop
   
-  //print_matrix(pop);
-  
   // write pruned record to file
   t = 0;
   for (const auto & x : pruned) {
@@ -286,10 +215,11 @@ void prune_transmission_record_cpp(Rcpp::List args) {
   infile.close();
   outfile.close();
   
-  //return Rcpp::List::create(Rcpp::Named("foo") = -9);
+  // end timer
+  chrono_timer(t1);
+  
 }
 #endif
-
 
 //------------------------------------------------
 // read in a vector of inoc_IDs. These are put in ascending order, and searched
@@ -343,5 +273,120 @@ void add_to_pop(vector<int> &inoc_IDs, const vector<pair<int, int>> &first_IDs,
     }
   }
   
+}
+
+//------------------------------------------------
+// read in a pruned transmission record, and simulate relatedness intervals
+// forwards-in-time through this tree
+Rcpp::List sim_relatedness_cpp(Rcpp::List args) {
+  
+  // start timer
+  chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
+  
+  // extract input args
+  string pruned_record_location = rcpp_to_string(args["pruned_record_location"]);
+  double r = rcpp_to_double(args["r"]);
+  double alpha = rcpp_to_double(args["alpha"]);
+  vector<double> oocyst_distribution = rcpp_to_vector_double(args["oocyst_distribution"]);
+  vector<double> hepatocyte_distribution = rcpp_to_vector_double(args["hepatocyte_distribution"]);
+  vector<int> contig_lengths = rcpp_to_vector_int(args["contig_lengths"]);
+  bool silent = rcpp_to_bool(args["silent"]);
+  
+  // open filestream to pruned record and check that opened
+  if (!silent) {
+    print("Opening filestream to pruned transmission record");
+  }
+  ifstream infile;
+  infile.open(pruned_record_location);
+  if (!infile.is_open()) {
+    Rcpp::stop("unable to open filestream at specified location. Check the path exists, and that you have read access");
+  }
+  
+  // create samplers for drawing number of oocysts and hepatocytes
+  Sampler sampler_oocyst(oocyst_distribution, 1000);
+  Sampler sampler_hepatocyte(hepatocyte_distribution, 1000);
+  
+  // read pruned record into an array. For each row, first value gives innoc_ID,
+  // second value gives time of creation, and any subsequent values give
+  // parental inoc_IDs that are ancestral
+  vector<vector<int>> pruned_array;
+  vector<int> this_line;
+  string line, block, element;
+  int t = 0;
+  while (getline(infile, line)) {
+    istringstream iss(line);
+    while (getline(iss, block, ';')) {
+      bool new_block = true;
+      istringstream iss2(block);
+      while (getline(iss2, element, ' ')) {
+        
+        if (new_block) {
+          this_line.clear();
+          int ID_key = stoi(element);
+          this_line.push_back(ID_key);
+          this_line.push_back(t);
+          new_block = false;
+        } else {
+          int ID_val = stoi(element);
+          this_line.push_back(ID_val);
+        }
+        
+      }
+      pruned_array.push_back(this_line);
+    }
+    t++;
+  }
+  
+  // create a map, where each element represents a node in the pruned
+  // transmission tree
+  map<int, Tree_node> tree;
+  
+  // populate map
+  int haplo_ID = 0;
+  for (int i = 0; i < int(pruned_array.size()); ++i) {
+    int ID_key = pruned_array[i][0];
+    tree[ID_key] = Tree_node(pruned_array[i][1], contig_lengths, sampler_oocyst, sampler_hepatocyte, tree);
+    
+    // create node de novo or from ancestral inoculations
+    if (pruned_array[i].size() == 2) {
+      tree[ID_key].draw_haplotypes_denovo(haplo_ID);
+    } else {
+      tree[ID_key].draw_haplotypes_recombine(haplo_ID, pruned_array[i], r, alpha);
+    }
+  }
+  
+  // get into more convenient output format
+  Rcpp::List ret;
+  for (int i = 0; i < int(pruned_array.size()); ++i) {
+    int ID_key = pruned_array[i][0];
+    
+    // get descriptive details of this node
+    Rcpp::List ret_details;
+    ret_details["inoc_ID"] = ID_key;
+    ret_details["time"] = tree[ID_key].t;
+    ret_details["haplo_IDs"] = tree[ID_key].haplo_ID_vec;
+    ret_details["haplo_densities"] = tree[ID_key].haplo_density;
+    
+    // get haplotype intervals
+    Rcpp::List ret_haplotypes;
+    for (int j = 0; j < tree[ID_key].n_haplotypes; ++j) {
+      ret_haplotypes.push_back(tree[ID_key].intervals[j]);
+    }
+    
+    // push to return list
+    ret.push_back(Rcpp::List::create(Rcpp::Named("details") = ret_details,
+                                     Rcpp::Named("haplotypes") = ret_haplotypes));
+  }
+  
+  // close filestreams
+  if (!silent) {
+    print("Closing filestream");
+  }
+  infile.close();
+  
+  // end timer
+  chrono_timer(t1);
+  
+  return ret;
 }
 

@@ -477,13 +477,13 @@ sim_epi <- function(project,
     }
   }
   
-  
-  # ---------- define argument lists ----------
-  
   # check for defined epi params
   if (is.null(project$epi_parameters)) {
     stop("no epi parameters defined. See ?define_epi_params")
   }
+  
+  
+  # ---------- define argument lists ----------
   
   # get project params into standardised format and perform checks
   args <- process_epi_params(project$epi_parameters)
@@ -687,29 +687,113 @@ prune_transmission_record <- function(project,
   # run efficient C++ code
   prune_transmission_record_cpp(args)
   
+  # return project unchanged
+  invisible(project)
 }
 
 #------------------------------------------------
-#' @title Define parameters of genetic simulation model
+#' @title Draw tree of genome-wide relatedness from pruned transmission record
 #'
-#' @description Define the parameters that will be used, alonside a pruned
-#'   transmission record, to generate genotypes.
+#' @description Reads in the pruned transmission record from file, and creates a
+#'   new node for each inoculation ID. Nodes at time zero are initialised with a
+#'   single haplotype, created de novo with a unique haplotype ID. In subsequent
+#'   generations, the nodes that are ancestral to the focal node are known from
+#'   the pruned transmission record. The haplotypes from ancestral nodes are
+#'   sampled at random, and brought together in pairs to produce oocysts. The
+#'   recombinant products of these oocysts are then sampled down to produce a
+#'   new generation of haplotype IDs for this node, along with the relative
+#'   densities of each haplotype.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
-#' @param a human blood feeding rate. The proportion of mosquitoes that feed on
-#'   humans each day.
+#' @param pruned_record_location the file path that the pruned transmission
+#'   record will be read from.
+#' @param r the rate of recombination in base pairs per generation.
+#' @param alpha parameter dictating the skew of haplotype densities. Small
+#'   values of \code{alpha} create a large skew, and hence make it likely that
+#'   an oocyst will be produced from the same parents. Large values of
+#'   \code{alpha} tend toward more even densities.
+#' @param oocyst_distribution vector specifying the probability distribution of
+#'   each number of oocysts within the mosquito midgut.
+#' @param hepatocyte_distribution vector specifying the probability distribution
+#'   of the number of infected hepatocytes in a human host. More broadly, this
+#'   defines the number of independent draws from the oocyst products that make
+#'   it into the host bloodstream upon a bite from an infectious mosquito.
+#' @param contig_lengths lengths (in bp) of each contig.
+#' @param silent whether to suppress written messages to the console.
 #'
+#' @importFrom stats dpois
 #' @export
 
-define_genetic_params <- function(project,
-                                  a = 0.3) {
+sim_relatedness <- function(project,
+                            pruned_record_location = "",
+                            r = 1e-6,
+                            alpha = 1.0,
+                            oocyst_distribution = dpois(1:10, lambda = 2),
+                            hepatocyte_distribution = dpois(1:10, lambda = 5),
+                            contig_lengths = c(643292, 947102, 1060087, 1204112, 1343552,
+                                               1418244, 1501717, 1419563, 1541723, 1687655,
+                                               2038337, 2271478, 2895605, 3291871),
+                            silent = FALSE) {
   
-  # NB. This function is written so that only parameters specified by the user
-  # are updated. Any parameters that already have values within the project are
-  # left alone
   
-  # check inputs
+  # ---------- check inputs ----------
+  
   assert_custom_class(project, "simplegen_project")
+  assert_string(pruned_record_location)
+  assert_single_pos(r, zero_allowed = TRUE)
+  assert_single_pos(alpha, zero_allowed = FALSE)
+  assert_vector(oocyst_distribution)
+  assert_pos(oocyst_distribution)
+  assert_vector(hepatocyte_distribution)
+  assert_pos(hepatocyte_distribution)
+  assert_vector(contig_lengths)
+  assert_pos_int(contig_lengths, zero_allowed = FALSE)
+  assert_single_logical(silent)
   
+  # check pruned record exists
+  if (!file.exists(pruned_record_location)) {
+    stop(sprintf("could not find file at %s", pruned_record_location))
+  }
+  
+  
+  # ---------- define argument lists ----------
+  
+  # append arguments
+  args <- c(args,
+            list(pruned_record_location = pruned_record_location,
+                 r = r,
+                 alpha = alpha,
+                 oocyst_distribution = oocyst_distribution,
+                 hepatocyte_distribution = hepatocyte_distribution,
+                 contig_lengths = contig_lengths,
+                 silent = silent))
+  
+  
+  # ---------- run simulation ----------
+  
+  # run efficient C++ code
+  output_raw <- sim_relatedness_cpp(args)
+  
+  
+  # ---------- process output ----------
+  
+  # nested mapply to wrangle raw output into list of dataframes
+  ret <- mapply(function(k) {
+           ret <- mapply(function(j) {
+             ret <- mapply(function(i) {
+               ret <- do.call(rbind, output_raw[[k]]$haplotypes[[j]][[i]])
+               cbind(i, ret)
+             }, 1:length(output_raw[[k]]$haplotypes[[j]]), SIMPLIFY = FALSE)
+             ret <- do.call(rbind, ret)
+             ret <- as.data.frame(cbind(output_raw[[k]]$details$haplo_IDs[j], ret))
+             names(ret) <- c("haplo_ID", "contig", "interval_start", "interval_end", "parent")
+             return(ret)
+           }, 1:length(output_raw[[k]]$haplotypes), SIMPLIFY = FALSE)
+           do.call(rbind, ret)
+         }, 1:length(output_raw), SIMPLIFY = FALSE)
+  
+  names(ret) <- mapply(function(x) x$details$inoc_ID, output_raw)
+  
+  return(ret)
 }
