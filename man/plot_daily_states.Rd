@@ -4,8 +4,8 @@
 \alias{plot_daily_states}
 \title{Plot daily counts of each host state}
 \usage{
-plot_daily_states(project, deme = 1, states = c("Sh", "Eh", "Ah",
-  "Ch"))
+plot_daily_states(project, deme = 1, states = c("S", "E", "A", "C",
+  "P"))
 }
 \arguments{
 \item{project}{a SIMPLEGEN project, as produced by the
@@ -13,8 +13,8 @@ plot_daily_states(project, deme = 1, states = c("Sh", "Eh", "Ah",
 
 \item{deme}{which deme to plot.}
 
-\item{states}{which states to plot. Can be any subset of \code{c("Sh", "Eh",
-"Ah", "Ch", "Sv", "Ev", "Iv")}.}
+\item{states}{which states to plot. Can be any subset of \code{c("S", "E",
+"A", "C", "P", "Sv", "Ev", "Iv")}.}
 }
 \description{
 TODO.

@@ -46,7 +46,8 @@ public:
   void init(int t, const std::vector<int> &contig_lengths, Sampler &sampler_oocyst,
             Sampler &sampler_hepatocyte, std::map<int, Tree_node> &tree);
   void draw_haplotypes_denovo(int &haplo_ID);
-  void draw_haplotypes_recombine(int &haplo_ID, const std::vector<int> &inoc_IDs, double r, double alpha);
+  //void draw_haplotypes_recombine(int &haplo_ID, const std::vector<int> &inoc_IDs, double r, double alpha);
+  void draw_haplotypes_recombine(int &haplo_ID, const std::vector<int> &inoc_IDs, double r, double alpha, std::map<int, Tree_node> &tree);
   void draw_intervals(int parent0, int parent1, double r);
   void print_intervals(int haplo = 0, int chrom = 0);
   

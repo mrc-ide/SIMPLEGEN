@@ -46,16 +46,12 @@ void Host::init(int index, int &host_ID, int deme,
   infection_index = 0;
   inoc_index = 0;
   
+  // prophylactic status
+  prophylaxis_on = false;
+  t_prophylaxis_stop = 0;
+  
   // initialise host-specific treatment-seeking probability
-  if (treatment_seeking_mean == 0 || treatment_seeking_mean == 1 || treatment_seeking_sd == 0) {
-    treatment_seeking = treatment_seeking_mean;
-  } else {
-    double m = treatment_seeking_mean;
-    double s = treatment_seeking_sd;
-    double alpha = m*m*(1 - m)/(s*2) - m;
-    double beta = m*(1 - m)*(1 - m)/(s*2) - (1 - m);
-    treatment_seeking = rbeta1(alpha, beta);
-  }
+  draw_treatment_seeking();
   
   // initialise inoculation slots
   inoc_ID_vec = vector<int>(max_inoculations);
@@ -119,13 +115,23 @@ void Host::draw_starting_age() {
   birth_day = -age_days;
   death_day = life_days - age_days;
   
-  // cannot die on day 0
-  if (death_day == 0) {
-    death_day = 1;
-  }
-  
 }
 
+//------------------------------------------------
+// draw host-specific treatment seeking parameter, either from Beta distribution
+// or Dirac delta distribution
+void Host::draw_treatment_seeking() {
+  
+  if (treatment_seeking_mean == 0 || treatment_seeking_mean == 1 || treatment_seeking_sd == 0) {
+    treatment_seeking = treatment_seeking_mean;
+  } else {
+    double m = treatment_seeking_mean;
+    double s = treatment_seeking_sd;
+    double alpha = m*m*(1 - m)/(s*s) - m;
+    double beta = m*(1 - m)*(1 - m)/(s*s) - (1 - m);
+    treatment_seeking = rbeta1(alpha, beta);
+  }
+}
 
 // ################################################################################################
 // EVENT SCHEDULERS
@@ -262,6 +268,10 @@ void Host::death(int &host_ID, int t) {
   infection_index = 0;
   inoc_index = 0;
   
+  // reset prophylactic status
+  prophylaxis_on = false;
+  t_prophylaxis_stop = 0;
+  
   // new host will be re-born today
   birth_day = t;
   
@@ -274,6 +284,9 @@ void Host::death(int &host_ID, int t) {
     life_days = 1;
   }
   death_day = birth_day + life_days;
+  
+  // re-draw host-specific treatment-seeking probability
+  draw_treatment_seeking();
   
   // reset inoculation slots
   fill(inoc_ID_vec.begin(), inoc_ID_vec.end(), 0);
@@ -313,6 +326,12 @@ void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &tr
     return;
   }
   
+  // return if in prophlactic state
+  if (prophylaxis_on) {
+    infection_index++;
+    return;
+  }
+  
   // get next free inoculation slot
   int this_slot = get_free_inoc_slot();
   
@@ -346,7 +365,7 @@ void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &tr
     time_consider_treatment = get_time_treatment_acute();
     
     // determine whether host actively seeks treatment
-    if (time_consider_treatment < dur_acute) {
+    if (time_consider_treatment <= dur_acute) {
       seek_treatment = rbernoulli1(treatment_seeking);
     }
     
@@ -400,7 +419,7 @@ void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &tr
     time_consider_treatment = get_time_treatment_chronic();
     
     // determine whether host actively seeks treatment
-    if (time_consider_treatment < dur_chronic) {
+    if (time_consider_treatment <= dur_chronic) {
       seek_treatment = rbernoulli1(treatment_seeking);
     }
     
@@ -445,24 +464,44 @@ void Host::treatment(int t) {
   int dur_prophylaxis = get_duration_prophylaxis();
   int t2 = t + dur_prophylaxis;
   
+  // activate prophylaxis
+  if (dur_prophylaxis > 0) {
+    prophylaxis_on = true;
+    t_prophylaxis_stop = t2;
+  }
+  
   // loop through inoculations
   for (int i = 0; i < max_inoculations; ++i) {
     
     // anything that is currently in the acute or chronic stages is cured
     if (inoc_status_asexual[i] == Acute_asexual || inoc_status_asexual[i] == Chronic_asexual) {
       
-      // update status
+      // if due to become infective at a future timepoint then store this
+      // timepoint
+      bool due_acute_infective = (inoc_events[i].count(Event_begin_infective_acute) != 0);
+      bool due_chronic_infective = (inoc_events[i].count(Event_begin_infective_chronic) != 0);
+      int t_infective_start;
+      if (due_acute_infective) {
+        t_infective_start = inoc_events[i][Event_begin_infective_acute];
+      } else if (due_chronic_infective) {
+        t_infective_start = inoc_events[i][Event_begin_infective_chronic];
+      }
+      
+      // clear bloodstage infection
       inoc_status_asexual[i] = Inactive_asexual;
       
-      // drop asexual progression events from inoc_events[i]
+      // clear all scheduled events
+      inoc_events[i].clear();
       
-      inoc_events[i].erase(Event_Ah_to_Ch);
-      inoc_events[i].erase(Event_Ah_to_Sh);
-      inoc_events[i].erase(Event_Ch_to_Sh);
-      inoc_events[i].erase(Event_treatment);
+      // reinstate infectious start if needed
+      if (due_acute_infective) {
+        new_inoc_event(t_infective_start, Event_begin_infective_acute, i);
+      } else if (due_chronic_infective) {
+        new_inoc_event(t_infective_start, Event_begin_infective_chronic, i);
+      }
       
-      // change timings of sexual progression events
-      inoc_events[i][Event_end_infective] = t + g;
+      // schedule new infectious end
+      new_inoc_event(t + g, Event_end_infective, i);
       
     }
     
@@ -470,21 +509,36 @@ void Host::treatment(int t) {
     // prophylactic period is cured immediately upon emergence
     if (inoc_status_asexual[i] == Liverstage_asexual) {
       
+      // DEBUG - DELETE THE FOLLOWING LINES ONCE COMPLETE
       if (inoc_events[i].count(Event_Eh_to_Ah) != 0 && inoc_events[i][Event_Eh_to_Ah] <= t2) {
+      //if (inoc_events[i].count(Event_Eh_to_Ah) != 0) {
+        
+        // store time at which due to emerge
         int t_emerge = inoc_events[i][Event_Eh_to_Ah];
+        
+        // clear all scheduled events
         inoc_events[i].clear();
-        inoc_events[i][Event_Eh_to_Ah] = t_emerge;
-        inoc_events[i][Event_Ah_to_Sh] = t_emerge;
-        inoc_events[i][Event_end_infective] = t_emerge;
-      }
-      if (inoc_events[i].count(Event_Eh_to_Ch) != 0 && inoc_events[i][Event_Eh_to_Ch] <= t2) {
+        
+        // reschedule progression directly to clearance
+        new_inoc_event(t_emerge, Event_Eh_to_Ah, i);
+        new_inoc_event(t_emerge, Event_Ah_to_Sh, i);
+        new_inoc_event(t_emerge, Event_end_infective, i);
+        
+      //} else if (inoc_events[i].count(Event_Eh_to_Ch) != 0) {
+      } else if (inoc_events[i].count(Event_Eh_to_Ch) != 0 && inoc_events[i][Event_Eh_to_Ch] <= t2) {
+        
+        // store time at which due to emerge
         int t_emerge = inoc_events[i][Event_Eh_to_Ch];
+        
+        // clear all scheduled events
         inoc_events[i].clear();
-        inoc_events[i][Event_Eh_to_Ch] = t_emerge;
-        inoc_events[i][Event_Ch_to_Sh] = t_emerge;
-        inoc_events[i][Event_end_infective] = t_emerge;
+        
+        // reschedule progression directly to clearance
+        new_inoc_event(t_emerge, Event_Eh_to_Ch, i);
+        new_inoc_event(t_emerge, Event_Ch_to_Sh, i);
+        new_inoc_event(t_emerge, Event_end_infective, i);
+        
       }
-      
     }
     
   }  // end i loop
@@ -494,6 +548,9 @@ void Host::treatment(int t) {
   for (int i = 0; i < max_inoculations; ++i) {
     for (const auto & x : inoc_events[i]) {
       if (x.second < t) {
+        print("time =", t);
+        print_inoc_status();
+        print_inoc_events();
         Rcpp::stop("in Host::treatment, events found that predate current time");
       }
       if (x.second < t_next_inoc_event) {
@@ -504,6 +561,11 @@ void Host::treatment(int t) {
   
 }
 
+//------------------------------------------------
+// end prophylactic period
+void Host::end_prophylaxis() {
+  prophylaxis_on = false;
+}
 
 // ################################################################################################
 // INOCULATION-LEVEL EVENTS
@@ -633,6 +695,9 @@ int Host::get_n_active_inoc() {
 //------------------------------------------------
 // get host status
 Status_host Host::get_host_status() {
+  if (prophylaxis_on) {
+    return Host_Ph;
+  }
   Status_host ret = Host_Sh;
   for (int i = 0; i < max_inoculations; ++i) {
     if (ret == Host_Sh && inoc_status_asexual[i] == Liverstage_asexual) {
@@ -734,34 +799,34 @@ double Host::get_prob_AC() {
 // get duration of acute disease
 int Host::get_duration_acute() {
   int index = (inoc_index < n_duration_acute) ? inoc_index : n_duration_acute - 1;
-  return (*sampler_duration_acute_ptr)[index].draw() + 1;
+  return (*sampler_duration_acute_ptr)[index].draw();
 }
 
 //------------------------------------------------
 // get duration of chronic disease
 int Host::get_duration_chronic() {
   int index = (inoc_index < n_duration_chronic) ? inoc_index : n_duration_chronic - 1;
-  return (*sampler_duration_chronic_ptr)[index].draw() + 1;
+  return (*sampler_duration_chronic_ptr)[index].draw();
 }
 
 //------------------------------------------------
 // get time until treatment of acute disease
 int Host::get_time_treatment_acute() {
   int index = (inoc_index < n_time_treatment_acute) ? inoc_index : n_time_treatment_acute - 1;
-  return (*sampler_time_treatment_acute_ptr)[index].draw() + 1;
+  return (*sampler_time_treatment_acute_ptr)[index].draw();
 }
 
 //------------------------------------------------
 // get time until treatment of chronic disease
 int Host::get_time_treatment_chronic() {
   int index = (inoc_index < n_time_treatment_chronic) ? inoc_index : n_time_treatment_chronic - 1;
-  return (*sampler_time_treatment_chronic_ptr)[index].draw() + 1;
+  return (*sampler_time_treatment_chronic_ptr)[index].draw();
 }
 
 //------------------------------------------------
 // get duration of prophylaxis
 int Host::get_duration_prophylaxis() {
-  return (*sampler_duration_prophylatic_ptr).draw() + 1;
+  return (*sampler_duration_prophylatic_ptr).draw();
 }
 
 //------------------------------------------------
@@ -838,14 +903,15 @@ void Host::print_inoc_events() {
 //------------------------------------------------
 // print status of inoc slots
 void Host::print_inoc_status() {
-  Rcpp::Rcout << "ID    : ";
+  Rcpp::Rcout << "host_ID: " << host_ID << "\n";
+  Rcpp::Rcout << "inoc_ID: ";
   print_vector(inoc_ID_vec);
-  Rcpp::Rcout << "active: ";
+  Rcpp::Rcout << "active : ";
   print_vector(inoc_active);
-  Rcpp::Rcout << "asex  : ";
+  Rcpp::Rcout << "asex   : ";
   print_vector(inoc_status_asexual);
-  Rcpp::Rcout << "sex   : ";
+  Rcpp::Rcout << "sex    : ";
   print_vector(inoc_status_sexual);
-  Rcpp::Rcout << "time  : ";
+  Rcpp::Rcout << "time   : ";
   print_vector(inoc_time_infective);
 }

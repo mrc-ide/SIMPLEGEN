@@ -16,7 +16,7 @@ enum Status_sexual {Inactive_sexual, Acute_sexual, Chronic_sexual};
 
 //------------------------------------------------
 // enumerate possible host status
-enum Status_host {Host_Sh, Host_Eh, Host_Ah, Host_Ch};
+enum Status_host {Host_Sh, Host_Eh, Host_Ah, Host_Ch, Host_Ph};
 
 //------------------------------------------------
 // enumerate possible events
@@ -67,6 +67,10 @@ public:
   int birth_day;
   int death_day;
   
+  // prophylactic status
+  bool prophylaxis_on;
+  int t_prophylaxis_stop;
+  
   // host characteristics
   double treatment_seeking;
   
@@ -98,14 +102,16 @@ public:
             std::vector<Sampler> &sampler_time_treatment_chronic,
             Sampler &sampler_duration_prophylactic);
   void draw_starting_age();
+  void draw_treatment_seeking();
   
   void new_inoc_event(int t, Event this_event, int this_slot);
   void check_inoc_event(int t);
   
   void death(int &host_ID, int t);
-  void treatment(int t);
   void denovo_infection(int t, int &next_inoc_ID, std::ofstream &transmission_record);
   void infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &transmission_record);
+  void treatment(int t);
+  void end_prophylaxis();
   
   void Eh_to_Ah(int this_slot);
   void Eh_to_Ch(int this_slot);

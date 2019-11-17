@@ -548,7 +548,7 @@ sim_epi <- function(project,
   daily_values_list <- mapply(function(i) {
     ret <- rcpp_to_matrix(output_raw$daily_values[[i]])
     ret <- as.data.frame(cbind(1:nrow(ret), i, ret))
-    names(ret) <- c("time", "deme", "Sh", "Eh", "Ah", "Ch", "Sv", "Ev", "Iv", "EIR")
+    names(ret) <- c("time", "deme", "S", "E", "A", "C", "P", "Sv", "Ev", "Iv", "EIR")
     return(ret)
   }, 1:length(output_raw$daily_values), SIMPLIFY = FALSE)
   daily_values <- do.call(rbind, daily_values_list)
@@ -774,7 +774,7 @@ sim_relatedness <- function(project,
   
   # run efficient C++ code
   output_raw <- sim_relatedness_cpp(args)
-  
+  return(output_raw)
   
   # ---------- process output ----------
   
