@@ -24,11 +24,11 @@ enum Status_host {Host_Sh, Host_Eh, Host_Ah, Host_Ch};
 // this order. For example, it is OK for Event_Eh_to_Ah and Event_Ah_to_Sh to
 // occur at the same time point as long as they are this way round, but not the
 // other way round
-enum Event {Event_treatment,
-            Event_Eh_to_Ah, Event_Eh_to_Ch,
+enum Event {Event_Eh_to_Ah, Event_Eh_to_Ch,
             Event_Ah_to_Ch, Event_Ah_to_Sh,
             Event_Ch_to_Sh,
-            Event_begin_infective_acute, Event_begin_infective_chronic, Event_end_infective};
+            Event_begin_infective_acute, Event_begin_infective_chronic, Event_end_infective,
+            Event_treatment};
 
 //------------------------------------------------
 // class defining human host
@@ -39,7 +39,7 @@ public:
   // PUBLIC OBJECTS
   
   // identifiers
-  int index;      // where in the population (vector of hosts) this host resides
+  int index;      // where in the population (vector of hosts) this host resides. The index never changes
   int host_ID;    // unique ID, incremented upon death
   int home_deme;  // deme into which this host is born
   int deme;       // deme in which this host currently resides

@@ -59,7 +59,7 @@ void Host::init(int index, int &host_ID, int deme,
   
   // initialise inoculation slots
   inoc_ID_vec = vector<int>(max_inoculations);
-  inoc_active = vector<bool>(max_inoculations);
+  inoc_active = vector<bool>(max_inoculations, false);
   inoc_status_asexual = vector<Status_asexual>(max_inoculations, Inactive_asexual);
   inoc_status_sexual = vector<Status_sexual>(max_inoculations, Inactive_sexual);
   inoc_time_infective = vector<int>(max_inoculations);
@@ -129,6 +129,20 @@ void Host::draw_starting_age() {
 
 // ################################################################################################
 // EVENT SCHEDULERS
+// 
+// rather than testing each generation to see if a host undergoes an event (e.g.
+// acute infection transitioning to chronic), instead we draw the timings of all
+// future events at the point of infection. These events are appended to
+// inoc_events for a particular inoculation slot. The value t_next_inoc_event is
+// used to describe the time of the very next event over all inoculation slots,
+// meaning all we have to do in a given generation is test whether the host has
+// an event scheduled for this day, and if not we move on to the next host.
+// 
+// When a scheduled event occurs we carry out the appropriate function, and
+// simultaneously recalculate t_next_inoc_event to be the time of the next
+// event. Similarly, when a new event is scheduled we append it to inoc_events,
+// and simultaneously ask whether the new event occurs before the current
+// t_next_inoc_event, in which case it must be updated.
 
 //------------------------------------------------
 // add new inoc event to list
@@ -146,12 +160,27 @@ void Host::check_inoc_event(int t) {
     return;
   }
   
-  // find event(s) that are scheduled for time t
+  // deal with treatment at time t first
+  bool treatment_break = false;
+  for (int i = 0; i < max_inoculations; ++i) {
+    for (const auto & x : inoc_events[i]) {
+      if (x.first == Event_treatment && x.second == t) {
+        treatment(t);
+        treatment_break = true;
+        break;
+      }
+    }
+    if (treatment_break) {
+      break;
+    }
+  }
+  
+  // find other event(s) that are scheduled for time t
   t_next_inoc_event = max_time + 1;
   for (int i = 0; i < max_inoculations; ++i) {
     
     // find event(s) that are scheduled for time t
-    for (auto it = inoc_events[i].begin(); it != inoc_events[i].end(); ) {
+    for (auto it = inoc_events[i].begin(); it != inoc_events[i].end();) {
       if (it->second == t) {
         
         // switch depending on event
@@ -180,12 +209,7 @@ void Host::check_inoc_event(int t) {
         case Event_end_infective:
           end_infective(i);
           break;
-        case Event_treatment:
-          treatment(t);
-          return;  // treatment changes innoc_events, therefore exit loop
-          break;
         default:
-          Rcpp::stop("invalid inoc-level event in switch");
           break;
         }
         
@@ -206,6 +230,16 @@ void Host::check_inoc_event(int t) {
 
 // ################################################################################################
 // HOST-LEVEL EVENTS
+// 
+// Functions for carrying out the main work of different types of event. Some of
+// these, for example infection, apply to a single inoculation slot and result
+// in new events being scheduled. Others, such as treatment and host death,
+// affect multiple inoculation slots, along with other host properties.
+// 
+// Some of these functions can be fiddly. For example, on treatment we move all
+// inoc_status_asexual slots to Inactive_asexual, which is simple enough, but we
+// also need to go through all future scheduled events for the progression of
+// this inoculation, and update or remove them as needed.
 
 //------------------------------------------------
 // death
@@ -228,7 +262,7 @@ void Host::death(int &host_ID, int t) {
   infection_index = 0;
   inoc_index = 0;
   
-  // set date of birth
+  // new host will be re-born today
   birth_day = t;
   
   // draw life duration from demography distribution
@@ -260,11 +294,11 @@ void Host::death(int &host_ID, int t) {
 // de-novo infection
 void Host::denovo_infection(int t, int &next_inoc_ID, std::ofstream &transmission_record) {
   
-  // generate dummy mosquito with no inoculations
+  // generate dummy mosquito with an empty vector of inoculations
   vector<int> empty_vec;
   Mosquito dummy_mosquito(empty_vec);
   
-  // carry out infection 
+  // carry out infection from dummy mosquito
   infection(t, next_inoc_ID, dummy_mosquito, transmission_record);
   
 }
@@ -278,27 +312,19 @@ void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &tr
     infection_index++;
     return;
   }
-  /*
-  //80710, 46067
-  if (next_inoc_ID == 46067) {
-    print("");
-    print_vector(mosq.inoc_ID);
-    print_inoc_status();
-    print_inoc_events();
-    print_stars(50);
-  }
-  */
+  
   // get next free inoculation slot
   int this_slot = get_free_inoc_slot();
   
   // add new inoculation
   inoc_ID_vec[this_slot] = next_inoc_ID;
-  inoc_status_asexual[this_slot] = Liverstage_asexual;
   inoc_active[this_slot] = true;
+  inoc_status_asexual[this_slot] = Liverstage_asexual;
   
   // schedule disease progression. This is where we look through the tree of all
   // possible future trajectories, for example whether the inoculation
-  // transitions to acute stage or directly to chronic stage etc.
+  // transitions to acute stage or directly to chronic stage etc, and schedule
+  // these events to happen
   int time_consider_treatment = 0;
   bool seek_treatment = false;
   int t1 = t + u;
@@ -405,16 +431,7 @@ void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &tr
     }
     transmission_record << ";";
   }
-  /*
-  //80710, 46067
-  if (next_inoc_ID == 46067) {
-    print("");
-    print_vector(mosq.inoc_ID);
-    print_inoc_status();
-    print_inoc_events();
-    Rcpp::stop("46067");
-  }
-  */
+  
   // update inoc ID
   next_inoc_ID++;
   
@@ -438,6 +455,7 @@ void Host::treatment(int t) {
       inoc_status_asexual[i] = Inactive_asexual;
       
       // drop asexual progression events from inoc_events[i]
+      
       inoc_events[i].erase(Event_Ah_to_Ch);
       inoc_events[i].erase(Event_Ah_to_Sh);
       inoc_events[i].erase(Event_Ch_to_Sh);
@@ -457,12 +475,14 @@ void Host::treatment(int t) {
         inoc_events[i].clear();
         inoc_events[i][Event_Eh_to_Ah] = t_emerge;
         inoc_events[i][Event_Ah_to_Sh] = t_emerge;
+        inoc_events[i][Event_end_infective] = t_emerge;
       }
       if (inoc_events[i].count(Event_Eh_to_Ch) != 0 && inoc_events[i][Event_Eh_to_Ch] <= t2) {
         int t_emerge = inoc_events[i][Event_Eh_to_Ch];
         inoc_events[i].clear();
         inoc_events[i][Event_Eh_to_Ch] = t_emerge;
         inoc_events[i][Event_Ch_to_Sh] = t_emerge;
+        inoc_events[i][Event_end_infective] = t_emerge;
       }
       
     }
@@ -818,8 +838,14 @@ void Host::print_inoc_events() {
 //------------------------------------------------
 // print status of inoc slots
 void Host::print_inoc_status() {
-  
+  Rcpp::Rcout << "ID    : ";
+  print_vector(inoc_ID_vec);
+  Rcpp::Rcout << "active: ";
+  print_vector(inoc_active);
+  Rcpp::Rcout << "asex  : ";
   print_vector(inoc_status_asexual);
+  Rcpp::Rcout << "sex   : ";
   print_vector(inoc_status_sexual);
+  Rcpp::Rcout << "time  : ";
   print_vector(inoc_time_infective);
 }
