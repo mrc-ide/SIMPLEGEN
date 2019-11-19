@@ -34,6 +34,7 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List 
   chrono_timer(t1);
   
   return Rcpp::List::create(Rcpp::Named("daily_values") = dispatcher.daily_values,
+                            Rcpp::Named("age_distributions") = dispatcher.age_distributions,
                             Rcpp::Named("sample_details") = dispatcher.sample_details);
 }
 #endif
@@ -351,8 +352,8 @@ Rcpp::List sim_relatedness_cpp(Rcpp::List args) {
     if (pruned_array[i].size() == 2) {
       tree[ID_key].draw_haplotypes_denovo(haplo_ID);
     } else {
-      //tree[ID_key].draw_haplotypes_recombine(haplo_ID, pruned_array[i], r, alpha);
-      tree[ID_key].draw_haplotypes_recombine(haplo_ID, pruned_array[i], r, alpha, tree);
+      tree[ID_key].draw_haplotypes_recombine(haplo_ID, pruned_array[i], r, alpha);
+      //tree[ID_key].draw_haplotypes_recombine(haplo_ID, pruned_array[i], r, alpha, tree);
     }
   }
   
@@ -371,7 +372,7 @@ Rcpp::List sim_relatedness_cpp(Rcpp::List args) {
     // get haplotype intervals
     Rcpp::List ret_haplotypes;
     for (int j = 0; j < tree[ID_key].n_haplotypes; ++j) {
-      //ret_haplotypes.push_back(tree[ID_key].intervals[j]);
+      ret_haplotypes.push_back(tree[ID_key].intervals[j]);
     }
     
     // push to return list

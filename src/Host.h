@@ -142,6 +142,7 @@ public:
   int get_duration_prophylaxis();
   double get_infectivity(int t);
   int get_free_inoc_slot();
+  int get_age(int t);
   
   // print methods
   void print_inoc_events();

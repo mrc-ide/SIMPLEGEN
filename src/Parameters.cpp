@@ -63,6 +63,7 @@ int Parameters::n_demes;
 
 // demog parameters
 vector<double> Parameters::life_table;
+int Parameters::n_life_table;
 vector<double> Parameters::age_death;
 vector<double> Parameters::age_stable;
 
@@ -80,8 +81,9 @@ bool Parameters::save_transmission_record;
 string Parameters::transmission_record_location;
 bool Parameters::output_daily_counts;
 bool Parameters::output_age_distributions;
-bool Parameters::silent;
 vector<int> Parameters::output_age_times;
+int Parameters::n_output_age_times;
+bool Parameters::silent;
 
 // misc parameters
 double Parameters::prob_mosq_death;
@@ -172,6 +174,7 @@ void Parameters::load_demog_params(Rcpp::List args) {
   
   // distributions
   life_table = rcpp_to_vector_double(args["life_table"]);
+  n_life_table = int(life_table.size());
   age_death = rcpp_to_vector_double(args["age_death"]);
   age_stable = rcpp_to_vector_double(args["age_stable"]);
   
@@ -231,6 +234,7 @@ void Parameters::load_run_params(Rcpp::List args) {
   output_daily_counts = rcpp_to_bool(args["output_daily_counts"]);
   output_age_distributions = rcpp_to_bool(args["output_age_distributions"]);
   output_age_times = rcpp_to_vector_int(args["output_age_times"]);
+  n_output_age_times = int(output_age_times.size());
   silent = rcpp_to_bool(args["silent"]);
   
 }

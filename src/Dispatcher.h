@@ -64,6 +64,7 @@ public:
   
   // objects for storing results
   std::vector<std::vector<std::vector<double>>> daily_values;
+  std::vector<std::vector<std::vector<std::vector<double>>>> age_distributions;
   std::vector<std::vector<int>> sample_details;
   
   // misc
@@ -79,7 +80,8 @@ public:
   void init();
   void run_simulation(Rcpp::List &args_functions, Rcpp::List &args_progress);
   void update_host_counts();
-  void get_sample_details(int t, int deme);
+  void get_sample_details(int t, int deme, int n);
+  void get_age_distribution(int t_index);
   
 };
 

@@ -106,6 +106,8 @@ void Dispatcher::init() {
   // objects for storing results
   // daily values: 0 = Sh, 1 = Eh, 2 = Ah, 3 = Ch, 4 = Ph, 5 = Sv, 6 = Ev, 7 = Iv, 8 = EIR
   daily_values = vector<vector<vector<double>>>(n_demes, vector<vector<double>>(max_time, vector<double>(9)));
+  // age distributions final level: 0 = Sh, 1 = Eh, 2 = Ah, 3 = Ch, 4 = Ph
+  age_distributions = vector<vector<vector<vector<double>>>>(n_output_age_times, vector<vector<vector<double>>>(n_demes, vector<vector<double>>(n_life_table, vector<double>(5))));
   
   // misc
   EIR = vector<double>(n_demes);
@@ -130,6 +132,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
   
   // loop through daily time steps
   int index_obtain_samples = 0;
+  int index_age_distributions = 0;
   for (int t = 0; t < max_time; ++t) {
     
     // update progress bar
@@ -165,18 +168,27 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
                             EIR[k]};
     }
     
+    // store age distributions
+    if (output_age_distributions && output_age_times[index_age_distributions] == t+1) {
+      
+      get_age_distribution(index_age_distributions);
+      
+      // update index
+      if (index_age_distributions < (n_output_age_times - 1)) {
+        index_age_distributions++;
+      }
+    }
+    
     // sample inoc IDs
     if (obtain_samples) {
-      while (ss_time[index_obtain_samples] == t) {
+      while (ss_time[index_obtain_samples] == t+1) {
         
         // get sampling parameters
         int this_deme = ss_deme[index_obtain_samples];
         int this_n = ss_n[index_obtain_samples];
         
         // obtain samples
-        for (int i = 0; i < this_n; ++i) {
-          get_sample_details(t, this_deme);
-        }
+        get_sample_details(t, this_deme, this_n);
         
         // increment index
         index_obtain_samples++;
@@ -240,7 +252,6 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
         }
         
       }  // end loop over query infectious bites
-      
       
       //-------- SCHEDULED MOSQUITO EVENTS --------
       
@@ -398,38 +409,73 @@ void Dispatcher::update_host_counts() {
 
 //------------------------------------------------
 // draw sample from deme
-void Dispatcher::get_sample_details(int t, int deme) {
+void Dispatcher::get_sample_details(int t, int deme, int n) {
   
-  // store target time and deme
-  vector<int> this_details;
-  this_details.push_back(t);
-  this_details.push_back(deme);
+  // draw vector by sampling without replacement
+  vector<int> samp = sample4(n, 0, H[deme] - 1);
   
-  // choose a random host and push back host ID
-  int rnd1 = sample2(0, H[deme] - 1);
-  int this_index = host_index[deme][rnd1];
-  int this_host_ID = host_pop[this_index].host_ID;
-  this_details.push_back(this_host_ID);
-  
-  // find if positive for malaria parasites and push back test results
-  bool test_positive = false;
-  Status_host this_host_status = host_pop[this_index].get_host_status();
-  if (this_host_status == Host_Ah || this_host_status == Host_Ch) {
-    test_positive = true;
-  }
-  this_details.push_back(test_positive);
-  
-  // if positive, push back inoc IDs
-  if (test_positive) {
-    for (int i = 0; i < max_inoculations; ++i) {
-      Status_asexual this_asexual = host_pop[this_index].inoc_status_asexual[i];
-      if (this_asexual == Acute_asexual || this_asexual == Chronic_asexual) {
-        this_details.push_back(host_pop[this_index].inoc_ID_vec[i]);
+  // loop through all samples
+  for (int i = 0; i < n; ++i) {
+    
+    // get host ID of this sample
+    int this_index = host_index[deme][samp[i]];
+    int this_host_ID = host_pop[this_index].host_ID;
+    
+    // find if positive for malaria parasites
+    Status_host this_host_status = host_pop[this_index].get_host_status();
+    bool test_positive = (this_host_status == Host_Ah || this_host_status == Host_Ch);
+    
+    // save basic details
+    vector<int> this_details = {t+1, deme+1, this_host_ID, test_positive};
+    
+    // if positive then push back inoc IDs
+    if (test_positive) {
+      for (int j = 0; j < max_inoculations; ++j) {
+        Status_asexual this_asexual = host_pop[this_index].inoc_status_asexual[j];
+        if (this_asexual == Acute_asexual || this_asexual == Chronic_asexual) {
+          this_details.push_back(host_pop[this_index].inoc_ID_vec[j]);
+        }
       }
+    }
+    
+    // push to sample_details
+    sample_details.push_back(this_details);
+    
+  }  // end i loop
+  
+}
+
+//------------------------------------------------
+// get age distribution matrix and store in x
+void Dispatcher::get_age_distribution(int t_index) {
+  
+  // get current time
+  int t = output_age_times[t_index];
+  
+  // loop through all hosts, update age distribution
+  for (int i = 0; i < int(host_pop.size()); ++i) {
+    int this_deme = host_pop[i].deme;
+    int this_age = host_pop[i].get_age(t);
+    
+    switch(host_pop[i].get_host_status()) {
+    case Host_Sh:
+      age_distributions[t_index][this_deme][this_age][0] += 1.0/double(H[this_deme]);
+      break;
+    case Host_Eh:
+      age_distributions[t_index][this_deme][this_age][1] += 1.0/double(H[this_deme]);
+      break;
+    case Host_Ah:
+      age_distributions[t_index][this_deme][this_age][2] += 1.0/double(H[this_deme]);
+      break;
+    case Host_Ch:
+      age_distributions[t_index][this_deme][this_age][3] += 1.0/double(H[this_deme]);
+      break;
+    case Host_Ph:
+      age_distributions[t_index][this_deme][this_age][4] += 1.0/double(H[this_deme]);
+      break;
+    default:
+      Rcpp::stop("invalid host status in get_age_distribution()");
     }
   }
   
-  // push to sample_details
-  sample_details.push_back(this_details);
 }
-

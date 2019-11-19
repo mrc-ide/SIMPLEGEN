@@ -82,8 +82,8 @@ void Host::draw_starting_age() {
   int age_days = age_years*365 + extra_days;
   
   // draw duration of life from demography distribution looking forward from
-  // current age. This is tricky, as we must account for the fact that if we
-  // are already part way into an age group we have a reduced probability of
+  // current age. This is tricky, as we must account for the fact that if we are
+  // already part way into an age group then we have a reduced probability of
   // dying within that age group.
   //
   // math derivation:
@@ -92,12 +92,12 @@ void Host::draw_starting_age() {
   // from which we can derive r = -log(1-p). If we are already a proportion x
   // through this year, then the probability of dying in the remaining time is
   // Pr(die) = 1 - exp(-r(1-x)). Sustituting in r and simplifying we get Pr(die)
-  // = 1 - (1-p)exp(1-x). Notice that if p = 1 from the life table then we are
+  // = 1 - (1-p)^(1-x). Notice that if p = 1 from the life table then we are
   // certain to die this year, irrespective of how far through the year we have
   // got already.
   int life_days = 0;
   double prop_year_remaining = 1.0 - extra_days/365.0; // (x in the above derivation)
-  double prob_die_this_year = 1.0 - (1.0 - life_table[age_years])*exp(1.0 - prop_year_remaining);
+  double prob_die_this_year = 1.0 - pow(1.0 - life_table[age_years], 1.0 - prop_year_remaining);
   if (rbernoulli1(prob_die_this_year)) {
     life_days = age_years*365 + sample2(extra_days, 364);
   } else {
@@ -509,9 +509,7 @@ void Host::treatment(int t) {
     // prophylactic period is cured immediately upon emergence
     if (inoc_status_asexual[i] == Liverstage_asexual) {
       
-      // DEBUG - DELETE THE FOLLOWING LINES ONCE COMPLETE
       if (inoc_events[i].count(Event_Eh_to_Ah) != 0 && inoc_events[i][Event_Eh_to_Ah] <= t2) {
-      //if (inoc_events[i].count(Event_Eh_to_Ah) != 0) {
         
         // store time at which due to emerge
         int t_emerge = inoc_events[i][Event_Eh_to_Ah];
@@ -524,7 +522,6 @@ void Host::treatment(int t) {
         new_inoc_event(t_emerge, Event_Ah_to_Sh, i);
         new_inoc_event(t_emerge, Event_end_infective, i);
         
-      //} else if (inoc_events[i].count(Event_Eh_to_Ch) != 0) {
       } else if (inoc_events[i].count(Event_Eh_to_Ch) != 0 && inoc_events[i][Event_Eh_to_Ch] <= t2) {
         
         // store time at which due to emerge
@@ -886,6 +883,12 @@ int Host::get_free_inoc_slot() {
   }
   
   return ret;
+}
+
+//------------------------------------------------
+// get host age (years) at time t
+int Host::get_age(int t) {
+  return (t - birth_day)/365;
 }
 
 //------------------------------------------------

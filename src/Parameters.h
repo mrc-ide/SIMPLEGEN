@@ -69,6 +69,7 @@ public:
   
   // demog parameters
   static std::vector<double> life_table;
+  static int n_life_table;
   static std::vector<double> age_death;
   static std::vector<double> age_stable;
   
@@ -82,9 +83,13 @@ public:
   
   // run parameters
   static int max_time;
-  static bool save_transmission_record, output_daily_counts, output_age_distributions, silent;
+  static bool save_transmission_record;
   static std::string transmission_record_location;
+  static bool output_daily_counts;
+  static bool output_age_distributions;
   static std::vector<int> output_age_times;
+  static int n_output_age_times;
+  static bool silent;
   
   // misc parameters
   static double prob_mosq_death;  // daily probability of mosquito death

@@ -11,5 +11,10 @@ plot_treatment_seeking(project)
 \code{simplegen_project()} function.}
 }
 \description{
-TODO.
+Within the SIMPLEGEN transmission model each host has its own
+  treatment seeking parameter, which defines the probability of actively
+  seeking treatment once disease reaches a point that this becomes necessary.
+  These parameter values are drawn independently for each host from a Beta
+  distribution with user-defined mean and standard deviation. This function
+  plots the Beta distribution for the current project values.
 }

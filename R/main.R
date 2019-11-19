@@ -314,8 +314,9 @@ check_epi_params <- function(x) {
   assert_single_bounded(x$treatment_seeking_mean, name = "treatment_seeking_mean")
   assert_single_pos(x$treatment_seeking_sd, zero_allowed = TRUE, name = "treatment_seeking_sd")
   if (x$treatment_seeking_mean > 0 & x$treatment_seeking_mean < 1) {
-    assert_le(x$treatment_seeking_sd, sqrt(x$treatment_seeking_mean*(1 - x$treatment_seeking_mean))
-              , message = "treatment_seeking_sd must be less than sqrt(treatment_seeking_mean*(1 - treatment_seeking_mean)), otherwise the Beta distribution of treatment seeking in the population is undefined")
+    sd_max <- sqrt(x$treatment_seeking_mean*(1 - x$treatment_seeking_mean))
+    assert_le(x$treatment_seeking_sd, sd_max,
+              , message = sprintf("treatment_seeking_sd must be less than sqrt(treatment_seeking_mean*(1 - treatment_seeking_mean)), in this case %s, otherwise the Beta distribution is undefined", sd_max))
   }
   
   assert_pos(x$duration_prophylactic, name = "duration_prophylactic")
@@ -540,11 +541,11 @@ sim_epi <- function(project,
   
   # run efficient C++ function
   output_raw <- indiv_sim_cpp(args, args_functions, args_progress)
-  
+  #return(output_raw)
   
   # ---------- process output ----------
   
-  # get daily values into single dataframe
+  # wrangle daily values into dataframe
   daily_values_list <- mapply(function(i) {
     ret <- rcpp_to_matrix(output_raw$daily_values[[i]])
     ret <- as.data.frame(cbind(1:nrow(ret), i, ret))
@@ -553,7 +554,17 @@ sim_epi <- function(project,
   }, 1:length(output_raw$daily_values), SIMPLIFY = FALSE)
   daily_values <- do.call(rbind, daily_values_list)
   
-  # get sample details into dataframe
+  # wrangle age distributions into dataframe
+  age_distributions <- do.call(rbind, mapply(function(j) {
+    ret <- do.call(rbind, mapply(function(i) {
+      ret <- do.call(rbind, output_raw$age_distributions[[j]][[i]])
+      colnames(ret) <- c("S", "E", "A", "C", "P")
+      data.frame(cbind(deme = i, age = 0:(nrow(ret)-1), ret))
+    }, 1:length(output_raw$age_distributions[[j]]), SIMPLIFY = FALSE))
+    cbind(sample_time = j, ret)
+  }, 1:length(output_raw$age_distributions), SIMPLIFY = FALSE))
+  
+  # wrangle sample details into dataframe
   sample_details_list <- mapply(function(x) {
     ret <- data.frame(time = x[1], deme = x[2], host_ID = x[3], positive = x[4])
     ret$inoc_IDs <- list(x[-(1:4)])
@@ -562,10 +573,9 @@ sim_epi <- function(project,
   sample_details <- do.call(rbind, sample_details_list)
   
   # append to project
-  project$epi_output <- list(daily_values = daily_values)
-  if (!is.null(sample_details)) {
-    project$sample_details <- sample_details
-  }
+  project$epi_output <- list(daily_values = daily_values,
+                             age_distributions = age_distributions)
+  project$sample_details <- sample_details
   
   invisible(project)
 }
@@ -774,7 +784,7 @@ sim_relatedness <- function(project,
   
   # run efficient C++ code
   output_raw <- sim_relatedness_cpp(args)
-  return(output_raw)
+  
   
   # ---------- process output ----------
   

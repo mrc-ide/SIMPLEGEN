@@ -50,21 +50,21 @@ void Tree_node::draw_haplotypes_denovo(int &haplo_ID) {
 
 //------------------------------------------------
 // initialise from ancestral inoculation IDs
-//void Tree_node::draw_haplotypes_recombine(int &haplo_ID, const std::vector<int> &inoc_IDs,
-//                                          double r, double alpha) {
 void Tree_node::draw_haplotypes_recombine(int &haplo_ID, const std::vector<int> &inoc_IDs,
-                                          double r, double alpha, map<int, Tree_node> &tree) {
+                                          double r, double alpha) {
+//void Tree_node::draw_haplotypes_recombine(int &haplo_ID, const std::vector<int> &inoc_IDs,
+//                                          double r, double alpha, map<int, Tree_node> &tree) {
   
   // get the complete vector of haplotype IDs and densities by concatenating
   // over the ancestral inoculations
   vector<int> parental_haplo_IDs;
   vector<double> parental_haplo_densities;
   for (int i = 2; i < int(inoc_IDs.size()); ++i) {  // start at i=2 because first two values represent the key ID and the time
-    //push_back_multiple(parental_haplo_IDs, (*tree_ptr)[inoc_IDs[i]].haplo_ID_vec);
-    //push_back_multiple(parental_haplo_densities, (*tree_ptr)[inoc_IDs[i]].haplo_density);
+    push_back_multiple(parental_haplo_IDs, (*tree_ptr)[inoc_IDs[i]].haplo_ID_vec);
+    push_back_multiple(parental_haplo_densities, (*tree_ptr)[inoc_IDs[i]].haplo_density);
     
-    push_back_multiple(parental_haplo_IDs, tree[inoc_IDs[i]].haplo_ID_vec);
-    push_back_multiple(parental_haplo_densities, tree[inoc_IDs[i]].haplo_density);
+    //push_back_multiple(parental_haplo_IDs, tree[inoc_IDs[i]].haplo_ID_vec);
+    //push_back_multiple(parental_haplo_densities, tree[inoc_IDs[i]].haplo_density);
   }
   double sum_parental_haplo_densities = sum(parental_haplo_densities);
   
@@ -127,7 +127,7 @@ void Tree_node::draw_haplotypes_recombine(int &haplo_ID, const std::vector<int> 
 // create intervals by recombination of two parental IDs, and push to intervals
 // array
 void Tree_node::draw_intervals(int parent0, int parent1, double r) {
-  return;
+  
   // loop through chromosomes
   vector<vector<vector<int>>> x(n_contigs);
   for (int i = 0; i < n_contigs; ++i) {
