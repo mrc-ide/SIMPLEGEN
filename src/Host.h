@@ -44,7 +44,8 @@ public:
   int home_deme;  // deme into which this host is born
   int deme;       // deme in which this host currently resides
   
-  // pointer to indices of infective hosts in each deme
+  // pointer to indices of hosts and infective hosts in each deme
+  std::vector<std::vector<int>>* host_index_ptr;
   std::vector<std::vector<int>>* host_infective_index_ptr;
   
   // pointers to sampler objects, for efficiently drawing from global
@@ -93,6 +94,7 @@ public:
   
   // other methods
   void init(int index, int &host_ID, int deme,
+            std::vector<std::vector<int>> &host_index,
             std::vector<std::vector<int>> &host_infective_index,
             Sampler &sampler_age_stable,
             Sampler &sampler_age_death,
@@ -112,6 +114,7 @@ public:
   void infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &transmission_record);
   void treatment(int t);
   void end_prophylaxis();
+  void migrate(int new_deme);
   
   void Eh_to_Ah(int this_slot);
   void Eh_to_Ch(int this_slot);

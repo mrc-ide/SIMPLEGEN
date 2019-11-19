@@ -15,7 +15,8 @@ define_epi_params(project, a = 0.3, p = 0.85, mu = -log(p), u = 12,
   treatment_seeking_mean = 0.5, treatment_seeking_sd = 0.1,
   duration_prophylactic = dgeom(1:25, 1/5), infectivity_acute = 0.07,
   infectivity_chronic = 0.07, max_inoculations = 5, H = 1000,
-  seed_infections = 100, M = 1000, life_table = life_table_Mali())
+  seed_infections = 100, M = 1000, mig_mat = diag(1),
+  life_table = life_table_Mali())
 }
 \arguments{
 \item{project}{a SIMPLEGEN project, as produced by the
@@ -123,6 +124,9 @@ meaning they have just entered the latent phase.}
 
 \item{M}{vector specifying mosquito population size (strictly the number of
 adult female mosquitoes) in each deme.}
+
+\item{mig_mat}{migration matrix specifying the daily probability of human
+migration.}
 
 \item{life_table}{vector specifying the probability of death of a human host
 in each one-year age group. The final value must be 1 to ensure a closed

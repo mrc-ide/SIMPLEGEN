@@ -12,6 +12,7 @@ using namespace std;
 //------------------------------------------------
 // initialise host
 void Host::init(int index, int &host_ID, int deme,
+                vector<vector<int>> &host_index,
                 vector<vector<int>> &host_infective_index,
                 Sampler &sampler_age_stable,
                 Sampler &sampler_age_death,
@@ -27,7 +28,8 @@ void Host::init(int index, int &host_ID, int deme,
   home_deme = deme;
   this->deme = deme;
   
-  // pointer to indices of infective hosts in each deme
+  // pointer to indices of hosts and infective hosts in each deme
+  host_index_ptr = &host_index;
   host_infective_index_ptr = &host_infective_index;
   
   // pointers to sampler objects, for efficiently drawing from global
@@ -251,15 +253,11 @@ void Host::check_inoc_event(int t) {
 // death
 void Host::death(int &host_ID, int t) {
   
-  // drop from infective list if necessary
-  if (get_n_infective() > 0) {
-    erase_remove((*host_infective_index_ptr)[deme], index);
-  }
-  
-  // TODO - move between host_index deme as needed
+  // move host back to home deme, dealing with infective list etc.
+  migrate(home_deme);
   
   // set current deme equal to home deme
-  deme = home_deme;
+  //deme = home_deme;
   
   // new unique ID
   this->host_ID = host_ID++;
@@ -562,6 +560,30 @@ void Host::treatment(int t) {
 // end prophylactic period
 void Host::end_prophylaxis() {
   prophylaxis_on = false;
+}
+
+//------------------------------------------------
+// migrate to new deme
+void Host::migrate(int new_deme) {
+  
+  // return if no migration
+  if (new_deme == deme) {
+    return;
+  }
+  
+  // move host index between demes
+  erase_remove((*host_index_ptr)[deme], index);
+  (*host_index_ptr)[new_deme].push_back(index);
+  
+  // if infective move host index between demes
+  if (get_n_infective() != 0) {
+    erase_remove((*host_infective_index_ptr)[deme], index);
+    (*host_infective_index_ptr)[new_deme].push_back(index);
+  }
+  
+  // update deme
+  deme = new_deme;
+  
 }
 
 // ################################################################################################

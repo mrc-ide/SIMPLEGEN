@@ -21,6 +21,7 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List 
   Parameters params;
   params.load_epi_params(args);
   params.load_deme_params(args);
+  params.load_migration_params(args);
   params.load_demog_params(args);
   params.load_sampling_params(args);
   params.load_run_params(args);
