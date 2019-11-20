@@ -67,6 +67,9 @@ public:
   static std::vector<int> M;
   static int n_demes;
   
+  // migration parameters
+  static std::vector<std::vector<double>> mig_mat;
+  
   // demog parameters
   static std::vector<double> life_table;
   static int n_life_table;
@@ -103,6 +106,7 @@ public:
   // methods
   void load_epi_params(Rcpp::List args);
   void load_deme_params(Rcpp::List args);
+  void load_migration_params(Rcpp::List args);
   void load_demog_params(Rcpp::List args);
   void load_sampling_params(Rcpp::List args);
   void load_run_params(Rcpp::List args);

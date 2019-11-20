@@ -150,6 +150,8 @@ life_table_Mali <- function() {
 #'   meaning they have just entered the latent phase.
 #' @param M vector specifying mosquito population size (strictly the number of
 #'   adult female mosquitoes) in each deme.
+#' @param mig_mat migration matrix specifying the daily probability of human
+#'   migration.
 #' @param life_table vector specifying the probability of death of a human host
 #'   in each one-year age group. The final value must be 1 to ensure a closed
 #'   population. Defaults to a life table taken from Mali - see
@@ -185,6 +187,7 @@ define_epi_params <- function(project,
                               H = 1000,
                               seed_infections = 100,
                               M = 1000,
+                              mig_mat = diag(1),
                               life_table = life_table_Mali()) {
   
   # NB. This function is written so that only parameters specified by the user
@@ -224,6 +227,7 @@ define_epi_params <- function(project,
                                    H = H,
                                    seed_infections = seed_infections,
                                    M = M,
+                                   mig_mat = mig_mat,
                                    life_table = life_table)
     
     invisible(project)
@@ -315,8 +319,10 @@ check_epi_params <- function(x) {
   assert_single_pos(x$treatment_seeking_sd, zero_allowed = TRUE, name = "treatment_seeking_sd")
   if (x$treatment_seeking_mean > 0 & x$treatment_seeking_mean < 1) {
     sd_max <- sqrt(x$treatment_seeking_mean*(1 - x$treatment_seeking_mean))
-    assert_le(x$treatment_seeking_sd, sd_max,
-              , message = sprintf("treatment_seeking_sd must be less than sqrt(treatment_seeking_mean*(1 - treatment_seeking_mean)), in this case %s, otherwise the Beta distribution is undefined", sd_max))
+    error_message <- sprintf(paste0("treatment_seeking_sd must be less than",
+                                    " sqrt(treatment_seeking_mean*(1 - treatment_seeking_mean)),",
+                                    " in this case %s, otherwise the Beta distribution is undefined"), sd_max)
+    assert_le(x$treatment_seeking_sd, sd_max, message = error_message)
   }
   
   assert_pos(x$duration_prophylactic, name = "duration_prophylactic")
@@ -329,6 +335,10 @@ check_epi_params <- function(x) {
   assert_pos_int(x$M, name = "M")
   assert_same_length_multiple(x$H, x$seed_infections, x$M)
   assert_leq(x$seed_infections, x$H, name_x = "seed_infections", name_y = "H")
+  
+  assert_square_matrix(x$mig_mat, name = "mig_mat")
+  assert_nrow(x$mig_mat, length(x$H), name = "mig_mat")
+  assert_bounded(x$mig_mat, name = "mig_mat")
   
   assert_bounded(x$life_table, name = "life_table")
   assert_eq(x$life_table[length(x$life_table)], 1, message = "the final value in the life table must be 1, representing a 100%% chance of dying, to ensure a closed population")
@@ -490,6 +500,9 @@ sim_epi <- function(project,
   args <- process_epi_params(project$epi_parameters)
   check_epi_params(args)
   
+  # get migration matrix into list
+  args$mig_mat <- matrix_to_rcpp(args$mig_mat)
+  
   # get complete demography from life table
   demog <- get_demography(project$epi_parameters$life_table)
   args <- c(args,
@@ -541,7 +554,7 @@ sim_epi <- function(project,
   
   # run efficient C++ function
   output_raw <- indiv_sim_cpp(args, args_functions, args_progress)
-  #return(output_raw)
+  
   
   # ---------- process output ----------
   
@@ -549,7 +562,7 @@ sim_epi <- function(project,
   daily_values_list <- mapply(function(i) {
     ret <- rcpp_to_matrix(output_raw$daily_values[[i]])
     ret <- as.data.frame(cbind(1:nrow(ret), i, ret))
-    names(ret) <- c("time", "deme", "S", "E", "A", "C", "P", "Sv", "Ev", "Iv", "EIR")
+    names(ret) <- c("time", "deme", "H", "S", "E", "A", "C", "P", "Sv", "Ev", "Iv", "EIR")
     return(ret)
   }, 1:length(output_raw$daily_values), SIMPLIFY = FALSE)
   daily_values <- do.call(rbind, daily_values_list)

@@ -82,6 +82,7 @@ void Dispatcher::init() {
     for (int i = 0; i < H[k]; ++i) {
       int this_host = host_index[k][i];
       host_pop[this_host].init(this_host, next_host_ID, k,
+                               host_index,
                                host_infective_index,
                                sampler_age_stable, sampler_age_death,
                                sampler_duration_acute, sampler_duration_chronic,
@@ -104,8 +105,8 @@ void Dispatcher::init() {
   Iv_pop = vector<vector<Mosquito>>(n_demes);
   
   // objects for storing results
-  // daily values: 0 = Sh, 1 = Eh, 2 = Ah, 3 = Ch, 4 = Ph, 5 = Sv, 6 = Ev, 7 = Iv, 8 = EIR
-  daily_values = vector<vector<vector<double>>>(n_demes, vector<vector<double>>(max_time, vector<double>(9)));
+  // daily values: 0 = H, 1 = Sh, 2 = Eh, 3 = Ah, 4 = Ch, 5 = Ph, 6 = Sv, 7 = Ev, 8 = Iv, 9 = EIR
+  daily_values = vector<vector<vector<double>>>(n_demes, vector<vector<double>>(max_time, vector<double>(10)));
   // age distributions final level: 0 = Sh, 1 = Eh, 2 = Ah, 3 = Ch, 4 = Ph
   age_distributions = vector<vector<vector<vector<double>>>>(n_output_age_times, vector<vector<vector<double>>>(n_demes, vector<vector<double>>(n_life_table, vector<double>(5))));
   
@@ -163,7 +164,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
     
     // store daily values
     for (int k = 0; k < n_demes; ++k) {
-      daily_values[k][t] = {double(Sh[k]), double(Eh[k]), double(Ah[k]), double(Ch[k]), double(Ph[k]),
+      daily_values[k][t] = {double(H[k]), double(Sh[k]), double(Eh[k]), double(Ah[k]), double(Ch[k]), double(Ph[k]),
                             double(Sv[k]), double(Ev[k]), double(Iv[k]),
                             EIR[k]};
     }
@@ -198,12 +199,23 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
     
     
     //-------- MIGRATION --------
-    // TODO - loop through hosts - check for migration
+    
+    // loop through all hosts, draw migration
+    for (int i = 0; i < sum(H); ++i) {
+      int this_deme = host_pop[i].deme;
+      int new_deme = sample1(mig_mat[this_deme], 1.0) - 1;
+      host_pop[i].migrate(new_deme);
+    }
     
     
-    // loop through demes
+    //-------- MAIN LOOP THROUGH DEMES --------
+    
     for (int k = 0; k < n_demes; ++k) {
       
+      // DEBUG - DELETE THE FOLLOWING LINES ONCE COMPLETE
+      if (H[k] == 0) {
+        Rcpp::stop("Hk = 0");
+      }
       
       //-------- NEW HUMAN EVENTS --------
       
@@ -404,6 +416,12 @@ void Dispatcher::update_host_counts() {
       Rcpp::stop("invalid host status in update_host_counts()");
     }
   }
+  
+  // get total H
+  for (int k = 0; k < n_demes; ++k) {
+    H[k] = Sh[k] + Eh[k] + Ah[k] + Ch[k] + Ph[k];
+  }
+  
   
 }
 

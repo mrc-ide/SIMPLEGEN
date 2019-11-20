@@ -61,6 +61,9 @@ vector<int> Parameters::seed_infections;
 vector<int> Parameters::M;
 int Parameters::n_demes;
 
+// migration parameters
+vector<vector<double>> Parameters::mig_mat;
+
 // demog parameters
 vector<double> Parameters::life_table;
 int Parameters::n_life_table;
@@ -165,6 +168,15 @@ void Parameters::load_deme_params(Rcpp::List args) {
   seed_infections = rcpp_to_vector_int(args["seed_infections"]);
   M = rcpp_to_vector_int(args["M"]);
   n_demes = int(H_init.size());
+  
+}
+
+//------------------------------------------------
+// load migration parameter values
+void Parameters::load_migration_params(Rcpp::List args) {
+  
+  // migration matrix
+  mig_mat = rcpp_to_matrix_double(args["mig_mat"]);
   
 }
 
