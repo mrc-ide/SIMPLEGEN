@@ -201,35 +201,7 @@ define_epi_params <- function(project,
   # if the project is completely new then create all parameters de novo, using
   # default values where not specified by user
   if (is.null(project$epi_parameters)) {
-    project$epi_parameters <- list(a = a,
-                                   p = p,
-                                   mu = mu,
-                                   u = u,
-                                   v = v,
-                                   g = g,
-                                   prob_infection = prob_infection,
-                                   prob_acute = prob_acute,
-                                   prob_AC = prob_AC,
-                                   duration_acute = duration_acute,
-                                   duration_chronic = duration_chronic,
-                                   detectability_microscopy_acute = detectability_microscopy_acute,
-                                   detectability_microscopy_chronic = detectability_microscopy_chronic,
-                                   detectability_PCR_acute = detectability_PCR_acute,
-                                   detectability_PCR_chronic = detectability_PCR_chronic,
-                                   time_treatment_acute = time_treatment_acute,
-                                   time_treatment_chronic = time_treatment_chronic,
-                                   treatment_seeking_mean = treatment_seeking_mean,
-                                   treatment_seeking_sd = treatment_seeking_sd,
-                                   duration_prophylactic = duration_prophylactic,
-                                   infectivity_acute = infectivity_acute,
-                                   infectivity_chronic = infectivity_chronic,
-                                   max_inoculations = max_inoculations,
-                                   H = H,
-                                   seed_infections = seed_infections,
-                                   M = M,
-                                   mig_mat = mig_mat,
-                                   life_table = life_table)
-    
+    project$epi_parameters <- as.list(environment())
     invisible(project)
   }
   
@@ -405,7 +377,7 @@ get_demography <- function(life_table) {
 #'   }
 #'
 #' @export
-#' 
+
 define_sampling_strategy <- function(project, x) {
   
   # check inputs
@@ -797,7 +769,7 @@ sim_relatedness <- function(project,
   
   # run efficient C++ code
   output_raw <- sim_relatedness_cpp(args)
-  
+  return(output_raw)
   
   # ---------- process output ----------
   

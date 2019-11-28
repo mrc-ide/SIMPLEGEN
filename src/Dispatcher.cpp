@@ -1,6 +1,6 @@
 
 #include "Dispatcher.h"
-#include "probability_v9.h"
+#include "probability_v10.h"
 
 #include <fstream>
 
@@ -203,7 +203,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
     // loop through all hosts, draw migration
     for (int i = 0; i < sum(H); ++i) {
       int this_deme = host_pop[i].deme;
-      int new_deme = sample1(mig_mat[this_deme], 1.0) - 1;
+      int new_deme = sample1(mig_mat[this_deme], 1.0);
       host_pop[i].migrate(new_deme);
     }
     

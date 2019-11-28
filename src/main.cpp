@@ -2,8 +2,8 @@
 #include "main.h"
 #include "Parameters.h"
 #include "Dispatcher.h"
-#include "Tree_node.h"
-#include "probability_v9.h"
+#include "Haplo_node.h"
+#include "probability_v10.h"
 
 #include <chrono>
 
@@ -308,56 +308,47 @@ Rcpp::List sim_relatedness_cpp(Rcpp::List args) {
   Sampler sampler_oocyst(oocyst_distribution, 1000);
   Sampler sampler_hepatocyte(hepatocyte_distribution, 1000);
   
-  // read pruned record into an array. For each row, first value gives innoc_ID,
-  // second value gives time of creation, and any subsequent values give
-  // parental inoc_IDs that are ancestral
-  vector<vector<int>> pruned_array;
-  vector<int> this_line;
+  // create a map, where each element represents a node in the pruned
+  // transmission tree
+  map<int, Haplo_node> haplo_tree;
+  
+  // populate map by parsing puned transmission record
+  vector<int> inoc_ID_vec;
   string line, block, element;
+  int haplo_ID = 0;
   int t = 0;
   while (getline(infile, line)) {
     istringstream iss(line);
     while (getline(iss, block, ';')) {
-      bool new_block = true;
+      
+      // parse block into inoc IDs
       istringstream iss2(block);
+      inoc_ID_vec.clear();
       while (getline(iss2, element, ' ')) {
-        
-        if (new_block) {
-          this_line.clear();
-          int ID_key = stoi(element);
-          this_line.push_back(ID_key);
-          this_line.push_back(t);
-          new_block = false;
-        } else {
-          int ID_val = stoi(element);
-          this_line.push_back(ID_val);
-        }
-        
+        int inoc_ID = stoi(element);
+        inoc_ID_vec.push_back(inoc_ID);
       }
-      pruned_array.push_back(this_line);
+      
+      // initialise node using the key ID
+      haplo_tree[inoc_ID_vec[0]] = Haplo_node(t, contig_lengths, sampler_oocyst, sampler_hepatocyte, haplo_tree);
+      
+      // create haplotypes within this node either de novo or from ancestral
+      // inoculations
+      if (inoc_ID_vec.size() == 1) {
+        haplo_tree[inoc_ID_vec[0]].draw_haplotypes_denovo(haplo_ID, alpha);
+      } else {
+        haplo_tree[inoc_ID_vec[0]].draw_haplotypes_recombine(haplo_ID, inoc_ID_vec, r, alpha);
+      }
+      
     }
     t++;
   }
   
-  // create a map, where each element represents a node in the pruned
-  // transmission tree
-  map<int, Tree_node> tree;
+  // DEBUG - DELETE THE FOLLOWING LINES ONCE COMPLETE
+  return Rcpp::List::create(Rcpp::Named("details") = -9);
   
-  // populate map
-  int haplo_ID = 0;
-  for (int i = 0; i < int(pruned_array.size()); ++i) {
-    int ID_key = pruned_array[i][0];
-    tree[ID_key] = Tree_node(pruned_array[i][1], contig_lengths, sampler_oocyst, sampler_hepatocyte, tree);
-    
-    // create node de novo or from ancestral inoculations
-    if (pruned_array[i].size() == 2) {
-      tree[ID_key].draw_haplotypes_denovo(haplo_ID);
-    } else {
-      tree[ID_key].draw_haplotypes_recombine(haplo_ID, pruned_array[i], r, alpha);
-      //tree[ID_key].draw_haplotypes_recombine(haplo_ID, pruned_array[i], r, alpha, tree);
-    }
-  }
   
+  /*
   // get into more convenient output format
   Rcpp::List ret;
   for (int i = 0; i < int(pruned_array.size()); ++i) {
@@ -391,5 +382,6 @@ Rcpp::List sim_relatedness_cpp(Rcpp::List args) {
   chrono_timer(t1);
   
   return ret;
+  */
 }
 

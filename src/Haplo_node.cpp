@@ -1,5 +1,5 @@
 
-#include "Tree_node.h"
+#include "Haplo_node.h"
 #include "misc_v9.h"
 #include "probability_v10.h"
 
@@ -8,15 +8,15 @@ using namespace std;
 
 //------------------------------------------------
 // constructor calling init()
-Tree_node::Tree_node(int t, const std::vector<int> &contig_lengths, Sampler &sampler_oocyst,
-                     Sampler &sampler_hepatocyte, map<int, Tree_node> &tree) {
-  init(t, contig_lengths, sampler_oocyst, sampler_hepatocyte, tree);
+Haplo_node::Haplo_node(int t, const std::vector<int> &contig_lengths, Sampler &sampler_oocyst,
+                       Sampler &sampler_hepatocyte, map<int, Haplo_node> &haplo_tree) {
+  init(t, contig_lengths, sampler_oocyst, sampler_hepatocyte, haplo_tree);
 }
 
 //------------------------------------------------
-// initialise with same haplo_ID covering every chromosome
-void Tree_node::init(int t, const vector<int> &contig_lengths, Sampler &sampler_oocyst,
-                     Sampler &sampler_hepatocyte, map<int, Tree_node> &tree) {
+// initialise with single haplo_ID covering every chromosome
+void Haplo_node::init(int t, const vector<int> &contig_lengths, Sampler &sampler_oocyst,
+                      Sampler &sampler_hepatocyte, map<int, Haplo_node> &haplo_tree) {
   
   // store basic properties
   this->t = t;
@@ -26,13 +26,13 @@ void Tree_node::init(int t, const vector<int> &contig_lengths, Sampler &sampler_
   // store pointers
   sampler_oocyst_ptr = &sampler_oocyst;
   sampler_hepatocyte_ptr = &sampler_hepatocyte;
-  tree_ptr = &tree;
+  haplo_tree_ptr = &haplo_tree;
   
 }
 
 //------------------------------------------------
 // initialise with same haplo_ID covering every chromosome
-void Tree_node::draw_haplotypes_denovo(int &haplo_ID, double alpha) {
+void Haplo_node::draw_haplotypes_denovo(int &haplo_ID, double alpha) {
   
   // initialise with a single haplotype
   n_haplotypes = 1;
@@ -50,16 +50,16 @@ void Tree_node::draw_haplotypes_denovo(int &haplo_ID, double alpha) {
 
 //------------------------------------------------
 // initialise from ancestral inoculation IDs
-void Tree_node::draw_haplotypes_recombine(int &haplo_ID, const std::vector<int> &inoc_IDs,
+void Haplo_node::draw_haplotypes_recombine(int &haplo_ID, const std::vector<int> &inoc_IDs,
                                           double r, double alpha) {
   
   // get the complete vector of haplotype IDs and densities by concatenating
   // over the ancestral inoculations
   vector<int> parental_haplo_IDs;
   vector<double> parental_haplo_densities;
-  for (int i = 1; i < int(inoc_IDs.size()); ++i) {  // start at i=1 because first value is the key ID
-    push_back_multiple(parental_haplo_IDs, (*tree_ptr)[inoc_IDs[i]].haplo_ID_vec);
-    push_back_multiple(parental_haplo_densities, (*tree_ptr)[inoc_IDs[i]].haplo_density);
+  for (int i = 1; i < int(inoc_IDs.size()); ++i) {  // start at i = 1 because first value is the key ID
+    push_back_multiple(parental_haplo_IDs, (*haplo_tree_ptr)[inoc_IDs[i]].haplo_ID_vec);
+    push_back_multiple(parental_haplo_densities, (*haplo_tree_ptr)[inoc_IDs[i]].haplo_density);
   }
   double sum_parental_haplo_densities = sum(parental_haplo_densities);
   
@@ -121,7 +121,7 @@ void Tree_node::draw_haplotypes_recombine(int &haplo_ID, const std::vector<int> 
 //------------------------------------------------
 // create intervals by recombination of two parental IDs, and push to intervals
 // array
-void Tree_node::draw_intervals(int parent0, int parent1, double r) {
+void Haplo_node::draw_intervals(int parent0, int parent1, double r) {
   
   // loop through chromosomes
   vector<vector<vector<int>>> x(n_contigs);
@@ -166,10 +166,10 @@ void Tree_node::draw_intervals(int parent0, int parent1, double r) {
 
 //------------------------------------------------
 // print coords. Setting chrom = 0 prints all chromosomes
-void Tree_node::print_intervals(int haplo, int chrom) {
+void Haplo_node::print_intervals(int haplo, int chrom) {
   
   if (haplo > n_haplotypes) {
-    Rcpp::stop("error in Tree_node::print_intervals, haplo greater than n_haplotypes");
+    Rcpp::stop("error in Haplo_node::print_intervals, haplo greater than n_haplotypes");
   }
   if (chrom == 0) {
     for (int i = 0; i < int(intervals[0].size()); ++i) {
