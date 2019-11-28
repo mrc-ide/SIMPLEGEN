@@ -33,8 +33,10 @@
 <meta property="og:title" content="Simulate from simple individual-based model — sim_epi" />
 
 <meta property="og:description" content="Simulate from the inbuilt epidemiological model. Parameters are
-  taken from the epi_parameters slot of the project, and basic outputs are
-  written to the epi_output slot." />
+  taken from the epi_parameters slot of the project, and basic outputs
+  are written to the epi_output slot. If a sampling strategy has been
+  defined then samples will also be obtained and saved in the
+  sample_details slot (see ?define_sampling_strategy())." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -121,13 +123,16 @@
     <div class="ref-description">
     
     <p>Simulate from the inbuilt epidemiological model. Parameters are
-  taken from the <code>epi_parameters</code> slot of the project, and basic outputs are
-  written to the <code>epi_output</code> slot.</p>
+  taken from the <code>epi_parameters</code> slot of the project, and basic outputs
+  are written to the <code>epi_output</code> slot. If a sampling strategy has been
+  defined then samples will also be obtained and saved in the
+  <code>sample_details</code> slot (see <code>?define_sampling_strategy()</code>).</p>
     
     </div>
 
     <pre class="usage"><span class='fu'>sim_epi</span>(<span class='no'>project</span>, <span class='kw'>max_time</span> <span class='kw'>=</span> <span class='fl'>365</span>, <span class='kw'>save_transmission_record</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>transmission_record_location</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>output_daily_counts</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>transmission_record_location</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='kw'>overwrite_transmission_record</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>output_daily_counts</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>output_age_distributions</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>output_age_times</span> <span class='kw'>=</span> <span class='no'>max_time</span>,
   <span class='kw'>silent</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
     
@@ -152,6 +157,11 @@ file.</p></td>
       <th>transmission_record_location</th>
       <td><p>the file path that the transmission
 record will be written to.</p></td>
+    </tr>
+    <tr>
+      <th>overwrite_transmission_record</th>
+      <td><p>if <code>TRUE</code> the transmission record
+will overwrite any existing file by the same name. <code>FALSE</code> by default.</p></td>
     </tr>
     <tr>
       <th>output_daily_counts</th>

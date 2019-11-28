@@ -89,9 +89,13 @@
 <div id="simplegen" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#simplegen" class="anchor"></a>SIMPLEGEN</h1></div>
-<p>Simulating Plasmodium Epidemiological and Genetic Data</p>
-<p>Forwards-in-time simulation of Plasmodium falciparum genetic data can be computationally intensive, as many genotypes are tracked but ultimately lost when the host clears infection. SIMPLEGEN avoids this problem by splitting simulation into three steps - first, simulating transmission under a simple individual-based model, second, pruning the transmission record down to focus on hosts that contribute to the final sample, and third, simulating genetic data from the pruned transmission record. The main advantage of this method is speed, which can be several orders of magnitude faster than ordinary forwards-in-time simulation. A secondary advantage is that any third-party epidemiological simulator can be used for the first step as long as it outputs in the correct format. The major limitation of SIMPLEGEN is that it assumes the epidemiological and genetic processes are seperable, hence it cannot be used to model selection (i.e. drug resistance).</p>
-<p><em>This package is currently in development. Code contributors <strong>must</strong> read the guidelines <a href="https://github.com/mrc-ide/SIMPLEGEN/tree/style_guide">here</a> before contributing.</em></p>
+<p>SIMPLEGEN is an R package for <em>sim</em>ulating <em>Pl</em>asmodium <em>e</em>pidemiological and <em>gen</em>etic data. The rationalle behind it is that naive forwards simulation of <em>P.falciparum</em> genetic data tends to be very computationally expensive, as many genotypes are tracked but ultimately lost when the host clears infection. SIMPLEGEN avoids this problem by splitting the process of simulation into multiple stages.</p>
+<p><br><br><img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/pipeline.png" height="93px" width="300px"><br></p>
+<p>At each stage only the minimum amount of information is stored and passed forwards, which greatly reduces the computational complexity of the problem.</p>
+<p>Key features of SIMPLEGEN are:</p>
+<ul>
+<li>Item1</li>
+</ul>
 </div>
 
   </div>
