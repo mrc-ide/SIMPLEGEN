@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-The first step in the SIMPLEGEN pipeline is to simulate infection events from an epidemiological transmission model. Any transmission model can be used, just as long as it produces output in a standardised format, but an inbuilt transmission model is included with the program to make life easier. This inbuilt model is designed to be as simple as possible but no simpler, and does not attempt to be a complete phenomenological description of the malaria life cycle.
+The first step in the SIMPLEGEN pipeline is to simulate from an epidemiological transmission model. Any transmission model can be used, just as long as it can produce output in a standardised format, but an inbuilt transmission model is also included with the program to make life easier. This inbuilt model is designed to be as simple as possible but no simpler - it does not attempt to be a complete phenomenological description of the malaria life cycle. It is also designed to be highly flexible, allowing multiple types of model to be defined with the same framework.
 
 This vignette gives a high-level description of the inbuilt transmission model.
 
@@ -29,26 +29,26 @@ Each inoculation can be thought of as an independent episode of malaria that goe
 
 The state of a host is defined directly from the state of its inoculations. If there are **any** acute inoculations then the host is in the acute state. Otherwise, if there are **any** chronic inoculations then the host is in the chronic state. Otherwise, if there are **any** liver stage inoculations then the host is in the liver state. Otherwise the host is in the susceptible state. Thus, the state of the host roughly corresponds to the *most serious* of the inoculations it holds. This can be seen in **Figure 1**, which shows the host state for a simple case of two overlapping inoculations.
 
-<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/inoc_diagram1.png" height="185px" width="800px"/>
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/inoc_diagram1.png"/>
 <font size="2">
-<figcaption> **Figure 1** The host carries two inoculations, which each go through liver stage and acute and chronic stages before clearing naturally. The host state is shown below, and is dictated by the inoculation states.</figcaption>
+<figcaption> **Figure 1** The host carries two inoculations, each of which goes through liver stage and acute and chronic stages before clearing naturally. The host state is dictated by the inoculation states.</figcaption>
 </font>
 
-The only host state that is not dictated directly from its inoculations is the treated (aka prophylactic) state. Treatment is described fully in a later section, but in simple terms treatment causes all blood-stage infections to clear immediately. Liver-stage infections are not cleared, i.e. treatment does not represent a radical cure. After treatment, the host enters a prophylactic state in which new liver-stage infections can occur, but any inoculations leaving the liver within the prophylactic period are immediately cured. Eventually the host transitions back into the susceptible state. **Figure 2** shows another example of the host state being calculated from the states of the inoculations, this time for a more complex case involving treatment.
+The only host state that is not dictated directly from its inoculations is the treated (aka prophylactic) state. Treatment is described fully in a later section, but in simple terms treatment causes all blood-stage infections to clear immediately. Liver-stage infections are not cleared, i.e. treatment does not represent a radical cure. After treatment the host enters a prophylactic state in which new liver-stage infections can occur, but any inoculations leaving the liver within the prophylactic period are immediately cured. Eventually the prophylaxis wears off and the host transitions back into the susceptible state. **Figure 2** shows another example of the host state being computed from the states of the inoculations, this time for a more complex case involving treatment.
 
-<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/inoc_diagram2.png" height="185px" width="800px" align="middle"/>
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/inoc_diagram2.png"/>
 <font size="2">
-<figcaption> **Figure 2** The host is treated and enters a prophylactic state. During this period a new liver-stage inoculation takes hold, but this leaves the liver within the prophylactic period and is therefore immediately cured. A second liver-stage inoculation leaves the liver outside the prophylactic period, and so proceeds as normal.</figcaption>
+<figcaption> **Figure 2** After a period of time the host is treated and enters a prophylactic state. During this period a new liver-stage inoculation takes hold, but this leaves the liver within the prophylactic period and is therefore immediately cured. A second liver-stage inoculation occurs within the prophylactic period, but this time leaves the liver outside the prophylactic period and so proceeds as normal.</figcaption>
 </font>
 
-Given the description above, we can now visualise the model in a classical compartmental structure. **Figure 3** shows the possible states and transitions of inoculations and hosts.
+Given the description above, we can now visualise the model in a classical compartmental structure. **Figure 3** shows the possible states and transitions of both individual inoculations and hosts.
 
-<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/compartment_states.png" height="300px" width="500px"/>
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/compartment_states.png" width="550" height="300"/>
 <font size="2">
 <figcaption> **Figure 3** Inoculation states and host states. Dashed arrows indicate transitions that are only possible via super-infection.</figcaption>
 </font>
 
-Notice that there are no rates or parameters on any of the arrows in **Figure 3**. This is because of how state durations are modelled, described below.
+Notice that there are no rates or parameters on any of the arrows in **Figure 3**. This is because state durations and transition probabilities are modelled using flexible distributions, described below.
 
 
 ### Flexible distributions
