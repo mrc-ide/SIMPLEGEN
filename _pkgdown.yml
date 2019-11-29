@@ -11,12 +11,13 @@ navbar:
       menu:
         - text: "Installation"
           href: articles/installation.html
-        - text: "Model Description"
+        - text: "Basic Tutorial"
+          href: articles/basic_tutorial.html
+        - text: -------
+        - text: "Transmission Model Details"
           href: articles/model_description.html
     - text: "Functions"
       href: reference/index.html
-    - text: "Known issues"
-      href: articles/known_issues.html
   right:
    - icon: fa-github
      href: https://github.com/mrc-ide/SIMPLEGEN

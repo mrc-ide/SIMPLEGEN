@@ -55,15 +55,16 @@
       <a href="articles/installation.html">Installation</a>
     </li>
     <li>
-      <a href="articles/model_description.html">Model Description</a>
+      <a href="articles/basic_tutorial.html">Basic Tutorial</a>
+    </li>
+    <li class="divider">
+    <li>
+      <a href="articles/model_description.html">Transmission Model Details</a>
     </li>
   </ul>
 </li>
 <li>
   <a href="reference/index.html">Functions</a>
-</li>
-<li>
-  <a href="articles/known_issues.html">Known issues</a>
 </li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
@@ -89,13 +90,11 @@
 <div id="simplegen" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#simplegen" class="anchor"></a>SIMPLEGEN</h1></div>
-<p>SIMPLEGEN is an R package for <em>sim</em>ulating <em>Pl</em>asmodium <em>e</em>pidemiological and <em>gen</em>etic data. The rationalle behind it is that naive forwards simulation of <em>P.falciparum</em> genetic data tends to be very computationally expensive, as many genotypes are tracked but ultimately lost when the host clears infection. SIMPLEGEN avoids this problem by splitting the process of simulation into multiple stages.</p>
-<p><br><br><img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/pipeline.png" height="93px" width="300px"><br></p>
-<p>At each stage only the minimum amount of information is stored and passed forwards, which greatly reduces the computational complexity of the problem.</p>
-<p>Key features of SIMPLEGEN are:</p>
-<ul>
-<li>Item1</li>
-</ul>
+<p>SIMPLEGEN is an R package for <strong>sim</strong>ulating <strong>Pl</strong>asmodium <strong>e</strong>pidemiological and <strong>gen</strong>etic data. The rationalle behind SIMPLEGEN is that computationally intensive forwards-simulation of <em>P.falciparum</em> genetic data can be avoided by splitting the process into multiple stages. These stages make up the SIMPLEGEN pipeline, shown below:</p>
+<p><img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/pipeline.png" height="185px" width="800px"></p>
+<p>Notice that genotypes are not actually generated until near the end of the pipeline, at which point we have already discarded many unimportant events. For example, we never need to model the genetics of infections that eventually clear, or infections in hosts that are not connected to our final sample. By discarding unimportant events like this we get significant gains in speed, which in turn means we can model large spatial scales. For example, it would not be unusual to simulate a population of thousands of hosts distributed across hundreds of connected demes, from which we can sample whole <em>P.falciparum</em> genomes in a matter of seconds.</p>
+<p>A second advantage of breaking simulation into stages is that users are free to enter the pipeline at any stage. For example, an entirely different epidemiological model could be used in the first stage, just as long as it can produce a transmission record in a standardised format. Simiilarly, if users wanted to keep the in-built epidemiological model but explore a different model of parasite genetics then they could enter at a later stage.</p>
+<p>To get started, take a look at the <a href="https://mrc-ide.github.io/SIMPLEGEN/articles/installation.html">installation instructions</a>, followed by a <a href="https://mrc-ide.github.io/SIMPLEGEN/articles/basic_tutorial.html">basic tutorial</a> on running the program.</p>
 </div>
 
   </div>

@@ -4,7 +4,7 @@
 
 # SIMPLEGEN
 
-This repos holds the code for the program SIMPLEGEN. Full details on the program, including installation instructions and tutorials can be found at the [SIMPLEGEN website](https://mrc-ide.github.io/SIMPLEGEN/).
+This repository holds the code for the program SIMPLEGEN. Full details on the program, including installation instructions and tutorials can be found at the [SIMPLEGEN website](https://mrc-ide.github.io/SIMPLEGEN/).
 
 *This package is currently in development. Code contributors **must** read the
 guidelines [here](https://github.com/mrc-ide/SIMPLEGEN/tree/style_guide) before contributing.*

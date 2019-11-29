@@ -4,24 +4,15 @@
 
 # SIMPLEGEN
 
-SIMPLEGEN is an R package for *sim*ulating *Pl*asmodium *e*pidemiological and
-*gen*etic data. The rationalle behind it is that naive forwards simulation of
-*P.falciparum* genetic data tends to be very computationally expensive, as many
-genotypes are tracked but ultimately lost when the host clears infection.
-SIMPLEGEN avoids this problem by splitting the process of simulation into
-multiple stages.
+SIMPLEGEN is an R package for **sim**ulating **Pl**asmodium **e**pidemiological and **gen**etic data. The rationalle behind SIMPLEGEN is that computationally intensive forwards-simulation of *P.falciparum* genetic data can be avoided by splitting the process into multiple stages. These stages make up the SIMPLEGEN pipeline, shown below:
 
-<br/>
-<br/>
-<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/pipeline.png" height="93px" width="300px" />
-<br/>
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/pipeline.png" height="185px" width="800px" />
 
-At each stage only the minimum amount of information is stored
-and passed forwards, which greatly reduces the computational complexity of the
-problem.
+Notice that genotypes are not actually generated until near the end of the pipeline, at which point we have already discarded many unimportant events. For example, we never need to model the genetics of infections that eventually clear, or infections in hosts that are not connected to our final sample. By discarding unimportant events like this we get significant gains in speed, which in turn means we can model large spatial scales. For example, it would not be unusual to simulate a population of thousands of hosts distributed across hundreds of connected demes, from which we can sample whole *P.falciparum* genomes in a matter of seconds.
 
-Key features of SIMPLEGEN are:
+A second advantage of breaking simulation into stages is that users are free to enter the pipeline at any stage. For example, an entirely different epidemiological model could be used in the first stage, just as long as it can produce a transmission record in a standardised format. Simiilarly, if users wanted to keep the in-built epidemiological model but explore a different model of parasite genetics then they could enter at a later stage.
 
-* Item1
+To get started, take a look at the [installation instructions](https://mrc-ide.github.io/SIMPLEGEN/articles/installation.html), followed by a [basic tutorial](https://mrc-ide.github.io/SIMPLEGEN/articles/basic_tutorial.html) on running the program.
+
 
 

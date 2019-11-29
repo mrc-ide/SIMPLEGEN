@@ -5,11 +5,11 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Model Description • SIMPLEGEN</title>
+<title>Transmission Model Details • SIMPLEGEN</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- sticky kit --><script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Model Description">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Transmission Model Details">
 <meta property="og:description" content="">
 <meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
@@ -47,15 +47,16 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li>
-      <a href="../articles/model_description.html">Model Description</a>
+      <a href="../articles/basic_tutorial.html">Basic Tutorial</a>
+    </li>
+    <li class="divider">
+    <li>
+      <a href="../articles/model_description.html">Transmission Model Details</a>
     </li>
   </ul>
 </li>
 <li>
   <a href="../reference/index.html">Functions</a>
-</li>
-<li>
-  <a href="../articles/known_issues.html">Known issues</a>
 </li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
@@ -77,10 +78,10 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1>Model Description</h1>
+      <h1>Transmission Model Details</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2019-11-28</h4>
+            <h4 class="date">2019-11-29</h4>
       
       
       <div class="hidden name"><code>model_description.Rmd</code></div>
@@ -92,25 +93,15 @@
 <div id="overview" class="section level2">
 <h2 class="hasAnchor">
 <a href="#overview" class="anchor"></a>Overview</h2>
-<p>SIMPLEGEN works by making a clean break between the generation of <em>P. falciparum</em> epidemiological and genetic data. The method consists of the following steps:</p>
-<ol style="list-style-type: decimal">
-<li>Epidemiological data is generated from a transmission model, which is then stored in a “transmission record” detailing who infected whom. This transmission record is written to file, and can be quite large.</li>
-<li>The user specifies the IDs of individuals from which to sample, and the sampling time(s). The transmission record is then read in and pruned down to just the historical transmission events that ultimately lead up to these sampled individuals, resulting in a much smaller version of the transmission record.</li>
-<li>Genetic data is generated from the pruned transmission record. This step invovles a set of genetic parameters, such as the number of loci and the recombination rate.</li>
-</ol>
-<p>SIMPLEGEN can work with <em>any</em> epidemiological model, just as long as it is capable of generating a transmission record in the correct format. That being said, a fairly complete transmission model is included in the program. Here we describe the SIMPLEGEN transmission model, the format of the transmission record, the pruning process, and the generation of genetic data.</p>
-</div>
-<div id="transmission-model" class="section level2">
-<h2 class="hasAnchor">
-<a href="#transmission-model" class="anchor"></a>Transmission model</h2>
-<p>The SIMPLEGEN transmission model is closely aligned to the Griffin <em>et al.</em> (2016) model, but has some key differences both in assumptions and implementation. The model is designed to be a minimally sufficient description of the transmission cycle, capturing the majority of important features that are required for simulations to match observed data, but not trying to be a complete phenomenological description of the epidemiology of malaria. It is also designed to be highly flexible, allowing the user to specify complete distributions where possible rather than using fixed values.</p>
+<p>The first step in the SIMPLEGEN pipeline is to simulate infection events from an epidemiological transmission model. Any transmission model can be used, just as long as it produces output in a particular format, but a built-in transmission model is included with the program to make life easier. This built-in model is designed to be as simple as possible but no simpler, and does not attempt to be a complete phenomenological description of the malaria life cycle.</p>
+<p>This vignette gives a high-level description of the built-in transmission model.</p>
 <div id="inoculations-and-host-states" class="section level3">
 <h3 class="hasAnchor">
 <a href="#inoculations-and-host-states" class="anchor"></a>Inoculations and host states</h3>
-<p>The most important concept in the model is the separation of 1) the infection state of a human host, 2) the individual states of infections that a human host receives, referred to as “inoculations”, and 3) the genotypes within an individual. The majority of purely epidemiological transmission models focus on the host state, as they only care about inoculations to the extent that they prolong the host infection. For SIMPLEGEN, however, we need to keep track of individual inoculations in order to be able to generate genetic data from the pruned transmission record.</p>
-<p>We define an inoculation as a population of parasites that are passed from mosquito to human host upon successful infection. Each host within SIMPLEGEN can be be thought of having multiple inoculation “slots”, and each new inoculation falls into a new slot. There are a finite number of slots available per host, defined by <code>max_inoculations</code>, but for most applications we can set this number to be large enough that hosts never saturate all their slots.</p>
+<p>The most important concept in the model is the idea of an “inoculation”, defined here as a population of parasites that are passed from mosquito to human host upon successful infection. Each host within SIMPLEGEN can be be thought of having multiple inoculation “slots”, and each new inoculation falls into a new slot. There are a finite number of slots available per host, defined by <code>max_inoculations</code>, but for most applications we can set this number to be large enough that hosts never saturate all their slots.</p>
 <p>Each inoculation can be thought of as an independent episode of malaria that goes through the following stages: 1) liver stage, 2) acute blood stage, 3) chronic blood stage, 4) recovery. Inoculations can pass through all four stages in order, or they can pass directly from 1) to 3), and also from 2) to 4) depending on the model parameters. The acute stage essentially represents the symptomatic stage of infection, although the word “acute” has been used rather than “symptomatic” to avoid forcing a clinical interpretation on the model. The chronic stage is designed to capture long-lasting infections, including possible asymptomatic and/or sub-patent stages (more on detection later).</p>
-<p>The state of a host is defined directly from the state of its inoculations. If there are <strong>any</strong> acute inoculations then the host is in the acute stage. Otherwise, if there are <strong>any</strong> chronic inoculations then the host is in the chronic stage. Otherwise, if there are <strong>any</strong> liver stage inoculations then the host is in the liver stage. Otherwise the host is in the susceptible stage. Thus, the state of the host roughly corresponds to the <em>most serious</em> of the inoculations it holds. The only host stage that is not dictated directly from its inoculations is the treated (aka prophylactic) stage, described below.</p>
+<p>The state of a host is defined directly from the state of its inoculations. If there are <strong>any</strong> acute inoculations then the host is in the acute state. Otherwise, if there are <strong>any</strong> chronic inoculations then the host is in the chronic state. Otherwise, if there are <strong>any</strong> liver stage inoculations then the host is in the liver state. Otherwise the host is in the susceptible state. Thus, the state of the host roughly corresponds to the <em>most serious</em> of the inoculations it holds. The only host state that is not dictated directly from its inoculations is the treated (aka prophylactic) state, described below.</p>
+<p><img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/pipeline.png" height="185px" width="800px"></p>
 </div>
 <div id="flexible-distributions" class="section level3">
 <h3 class="hasAnchor">
@@ -160,16 +151,6 @@
 <p>For each deme, the overall probability of migration can be defined as a function of time. This is scaled by a factor that is defined separately for each one-year age group - for example, adults may migrate more than children. Given that migration occurs, the relative probability of migrating to each destination deme is defined using a deme-by-deme matrix, which is also free to vary over time. Finally, the trip duration can be specified between every pair of demes.</p>
 </div>
 </div>
-<div id="the-transmission-record" class="section level2">
-<h2 class="hasAnchor">
-<a href="#the-transmission-record" class="anchor"></a>The transmission record</h2>
-<p>TODO</p>
-</div>
-<div id="the-genetic-model" class="section level2">
-<h2 class="hasAnchor">
-<a href="#the-genetic-model" class="anchor"></a>The genetic model</h2>
-<p>TODO</p>
-</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
@@ -178,9 +159,6 @@
 <a href="#tocnav" class="anchor"></a>Contents</h2>
       <ul class="nav nav-pills nav-stacked">
 <li><a href="#overview">Overview</a></li>
-      <li><a href="#transmission-model">Transmission model</a></li>
-      <li><a href="#the-transmission-record">The transmission record</a></li>
-      <li><a href="#the-genetic-model">The genetic model</a></li>
       </ul>
 </div>
       </div>
