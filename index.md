@@ -2,8 +2,7 @@
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/mrc-ide/SIMPLEGEN?branch=develop&svg=true)](https://ci.appveyor.com/project/mrc-ide/SIMPLEGEN)
 [![Coverage status](https://codecov.io/gh/mrc-ide/SIMPLEGEN/branch/develop/graph/badge.svg)](https://codecov.io/github/mrc-ide/SIMPLEGEN?branch=develop)
 
-# SIMPLEGEN
-<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/simplegenlogo.png" height="185px" width="800px" />
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/simplegenlogo.png" height="123px" width="533px" />
 
 SIMPLEGEN is an R package for **sim**ulating **Pl**asmodium **e**pidemiological and **gen**etic data. The rationalle behind SIMPLEGEN is that computationally intensive forwards-simulation of *P. falciparum* genetic data can be avoided by splitting the process into multiple stages. These stages make up the SIMPLEGEN pipeline:
 
