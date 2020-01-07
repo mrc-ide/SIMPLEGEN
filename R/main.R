@@ -171,12 +171,12 @@ define_epi_params <- function(project,
                               prob_acute = 1.0,
                               prob_AC = 1.0,
                               duration_acute = dgeom(1:25, 1/5),
-                              duration_chronic = dgeom(1:100, 1/20),
+                              duration_chronic = dgeom(1:250, 1/50),
                               detectability_microscopy_acute = 1,
                               detectability_microscopy_chronic = 0.1,
                               detectability_PCR_acute = 1,
                               detectability_PCR_chronic = 1,
-                              time_treatment_acute = dgeom(1:25, 1/5),
+                              time_treatment_acute = dgeom(1:100, 1/20),
                               time_treatment_chronic = dgeom(1:100, 1/20),
                               treatment_seeking_mean = 0.5,
                               treatment_seeking_sd = 0.1,
@@ -451,6 +451,9 @@ define_sampling_strategy <- function(project, x) {
 #' @param output_age_distributions whether to output complete age distributions
 #' @param output_age_times a vector of times at which complete age distributions
 #'   are output.
+#' @param pb_markdown whether to run progress bars in markdown mode, meaning
+#'   they are only updated when they reach 100% to avoid large amounts of output
+#'   being printed to markdown files.
 #' @param silent whether to suppress written messages to the console.
 #'
 #' @importFrom utils txtProgressBar
@@ -464,6 +467,7 @@ sim_epi <- function(project,
                     output_daily_counts = TRUE,
                     output_age_distributions = TRUE,
                     output_age_times = max_time,
+                    pb_markdown = FALSE,
                     silent = FALSE) {
   
   
@@ -479,6 +483,7 @@ sim_epi <- function(project,
   assert_vector(output_age_times)
   assert_pos_int(output_age_times)
   assert_leq(output_age_times, max_time)
+  assert_single_logical(pb_markdown)
   assert_single_logical(silent)
   
   # optionally return warning if will overwrite transmission record file
@@ -531,6 +536,7 @@ sim_epi <- function(project,
                  output_daily_counts = output_daily_counts,
                  output_age_distributions = output_age_distributions,
                  output_age_times = output_age_times,
+                 pb_markdown = pb_markdown,
                  silent = silent))
   
   # functions
@@ -546,11 +552,10 @@ sim_epi <- function(project,
   # internal flag, not visible to user. If TRUE then write parameter lists to
   # file and return without running simulation. Parameters can then be read
   # directly from file into Xcode.
-  xcode_on <- FALSE
-  if (xcode_on) {
-    write_xcode_params(args)
-    return()
-  }
+  #xcode_on <- FALSE
+  #if (xcode_on) {
+  #  write_xcode_params(args)
+  #  return()
   
   # run efficient C++ function
   output_raw <- indiv_sim_cpp(args, args_functions, args_progress)
@@ -593,62 +598,3 @@ sim_epi <- function(project,
   invisible(project)
 }
 
-
-#------------------------------------------------
-# print parameters to file, to be read in directly from Xcode
-#' @noRd
-write_xcode_params <- function(args) {
-  print(args)
-  message("writing arguments to file")
-  
-  # functions for writing vectors and matrices to file
-  vector_to_file <- function(x, file_path) {
-    writeLines(paste(x, collapse = ","), con = file_path)
-  }
-  matrix_to_file <- function(x, file_path) {
-    writeLines(mapply(function(y) paste(y, collapse = ","), x), con = file_path)
-  }
-  
-  # write scalar epi parameters to file
-  arg_file_path <- "R_ignore/SIMPLEGEN_Xcode/args/"
-  scalar_epi_params <- c("a", "p", "mu", "u", "v", "g", "treatment_seeking_mean",
-                         "treatment_seeking_sd", "max_inoculations")
-  vector_to_file(unlist(args[scalar_epi_params]), paste0(arg_file_path, "scalar_epi_params.txt"))
-  
-  # write epi vectors to file
-  vector_to_file(args$prob_infection, paste0(arg_file_path, "prob_infection.txt"))
-  vector_to_file(args$prob_acute, paste0(arg_file_path, "prob_acute.txt"))
-  vector_to_file(args$prob_AC, paste0(arg_file_path, "prob_AC.txt"))
-  vector_to_file(args$duration_prophylactic, paste0(arg_file_path, "duration_prophylactic.txt"))
-  
-  # write epi matrices (or lists of vectors) to file
-  matrix_to_file(args$duration_acute, paste0(arg_file_path, "duration_acute.txt"))
-  matrix_to_file(args$duration_chronic, paste0(arg_file_path, "duration_chronic.txt"))
-  matrix_to_file(args$detectability_microscopy_acute, paste0(arg_file_path, "detectability_microscopy_acute.txt"))
-  matrix_to_file(args$detectability_microscopy_chronic, paste0(arg_file_path, "detectability_microscopy_chronic.txt"))
-  matrix_to_file(args$detectability_PCR_acute, paste0(arg_file_path, "detectability_PCR_acute.txt"))
-  matrix_to_file(args$detectability_PCR_chronic, paste0(arg_file_path, "detectability_PCR_chronic.txt"))
-  matrix_to_file(args$time_treatment_acute, paste0(arg_file_path, "time_treatment_acute.txt"))
-  matrix_to_file(args$time_treatment_chronic, paste0(arg_file_path, "time_treatment_chronic.txt"))
-  vector_to_file(args$infectivity_acute, paste0(arg_file_path, "infectivity_acute.txt"))
-  vector_to_file(args$infectivity_chronic, paste0(arg_file_path, "infectivity_chronic.txt"))
-  
-  # write deme vectors to file
-  vector_to_file(args$H, paste0(arg_file_path, "H.txt"))
-  vector_to_file(args$seed_infections, paste0(arg_file_path, "seed_infections.txt"))
-  vector_to_file(args$M, paste0(arg_file_path, "M.txt"))
-  
-  # write demog vectors to file
-  vector_to_file(args$life_table, paste0(arg_file_path, "life_table.txt"))
-  vector_to_file(args$age_death, paste0(arg_file_path, "age_death.txt"))
-  vector_to_file(args$age_stable, paste0(arg_file_path, "age_stable.txt"))
-  
-  # write scalar run parameters to file
-  scalar_run_params <- c("max_time", "save_transmission_record", "transmission_record_location",
-                         "output_daily_counts", "output_age_distributions", "silent")
-  vector_to_file(args[scalar_run_params], paste0(arg_file_path, "scalar_run_params.txt"))
-  
-  # write vector run parameters to file
-  vector_to_file(args$output_age_times, paste0(arg_file_path, "output_age_times.txt"))
-  
-}

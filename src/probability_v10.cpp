@@ -1,5 +1,5 @@
 
-#include "probability_v9.h"
+#include "probability_v10.h"
 #include "misc_v9.h"
 
 using namespace std;
@@ -154,16 +154,23 @@ void rmnorm1(vector<double> &x, const vector<double> &mu,
 // DEFINED IN HEADER
 
 //------------------------------------------------
-// sample single value from given probability vector (that sums to p_sum)
+// sample single value from given probability vector (that sums to p_sum).
+// Starting in probability_v10 the first value returned from this vector is 0
+// rather than 1 (i.e. moving to C++-style zero-based indexing)
 int sample1(const vector<double> &p, double p_sum) {
   double rand = p_sum*runif_0_1();
   double z = 0;
   for (int i=0; i<int(p.size()); i++) {
     z += p[i];
     if (rand < z) {
-      return i+1;
+      return i;
     }
   }
+#ifdef RCPP_ACTIVE
+  Rcpp::stop("error in sample1(), ran off end of probability vector");
+#else
+  stop("error in sample1(), ran off end of probability vector");
+#endif
   return 0;
 }
 int sample1(const vector<int> &p, int p_sum) {
@@ -172,9 +179,14 @@ int sample1(const vector<int> &p, int p_sum) {
   for (int i=0; i<int(p.size()); i++) {
     z += p[i];
     if (rand <= z) {
-      return i+1;
+      return i;
     }
   }
+#ifdef RCPP_ACTIVE
+  Rcpp::stop("error in sample1(), ran off end of probability vector");
+#else
+  stop("error in sample1(), ran off end of probability vector");
+#endif
   return 0;
 }
 

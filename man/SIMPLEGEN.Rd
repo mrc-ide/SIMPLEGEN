@@ -3,7 +3,6 @@
 \docType{package}
 \name{SIMPLEGEN}
 \alias{SIMPLEGEN}
-\alias{SIMPLEGEN-package}
 \title{Simulating Plasmodium Epidemiological and Genetic Data}
 \description{
 Forwards-in time simulation of Plasmodium falciparum genetic

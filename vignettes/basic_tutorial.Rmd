@@ -14,6 +14,114 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r echo=FALSE}
+# set random seed
+set.seed(1)
+
+# load the SIMPLEGEN package
 library(SIMPLEGEN)
+```
+
+This tutorial goes through the basic process of creating a SIMPLEGEN project and running the inbuilt epidemiological simulator. 
+
+### Running a basic simulation
+
+SIMPLEGEN works with projects, which are essentially just lists that hold all inputs and outputs in a single convenient place. We start by creating a new project and specifying the parameters of the epidemiological model - see `?define_epi_params` for a complete list of model parameters and default values.
+
+```{r}
+myproj <- simplegen_project()
+myproj <- define_epi_params(myproj,
+                            H = 1e3,
+                            M = 1e4)
+```
+
+Alternatively, if you are familiar with the pipe operator (`%>%`) from the `dplyr` package then you can use this to chain together multiple commands:
+
+```{r eval=FALSE}
+library(dplyr)
+myproj <- simplegen_project() %>%
+  define_epi_params()
+```
+
+Taking a quick look at our project we will see a summary of the current setup:
+
+```{r}
+myproj
+```
+
+A good way of sanity-checking our model before running simulations is to use some of the inbuilt plotting functions to explore our assumed distributions:
+
+```{r}
+plot_epi_distribution(myproj, name = "duration_acute")
+```
+
+Finally we are ready to run the epidemiological simulation. Note that the argument `pb_markdown = TRUE` is used here just to avoid cluttering this tutorial with too much output - you should run the model without this argument.
+
+```{r}
+myproj <- sim_epi(myproj, pb_markdown = TRUE)
+```
+
+Looking at the project again we now see that we have some results:
+
+```{r}
+myproj
+```
+
+We can dig into these results manually using the `$` symbol, as with any ordinary list, e.g. `myproj$epi_output`.
+
+
+### Plotting results
+
+The most basic plotting function is of the daily number of hosts in each state. We can specify the states that we want to plot as an input vector:
+
+```{r}
+plot_daily_states(myproj, states = c("A", "C", "P"))
+```
+
+This is also true of mosquito states, which are suffixed with "v". 
+
+```{r}
+plot_daily_states(myproj, states = c("Ev", "Iv"))
+```
+
+The `sim_epi()` function takes a complete slice of the population at various times, allowing us to plot age-distributions at these points in time. The sampling times are specified by the argument `output_age_times`, which defaults to the final timepoint only. Hence, we can plot:
+
+```{r}
+plot_age_states(myproj, state = "C")
+```
+
+
+### Multiple demes and migration
+
+We can define multiple demes by simply using a vector of values for the human and mosquito population sizes, and the number of seeding infections. We must then specify a migration matrix with a corresponding number of rows and columns:
+
+```{r}
+# define parameters over multiple demes
+n_demes <- 3
+H <- rep(1e3, n_demes)
+seed_infections <- c(1e2, 0, 0)
+M <- c(1e3, 2e3, 3e3)
+m <- 0.01
+mig_mat <- matrix(m/n_demes, n_demes, n_demes) + diag(1 - m, n_demes)
+
+# load new paramters into the model
+myproj <- define_epi_params(myproj,
+                            H = H,
+                            seed_infections = seed_infections,
+                            M = M,
+                            mig_mat = mig_mat)
+```
+
+We then run the simulation as normal:
+
+```{r}
+myproj <- sim_epi(myproj, pb_markdown = TRUE)
+```
+
+Now when plotting results we can use the `deme` argument to specify which deme to plot:
+
+```{r}
+plot_daily_states(myproj, states = c("A", "C", "P"), deme = 1)
+plot_daily_states(myproj, states = c("A", "C", "P"), deme = 2)
+plot_daily_states(myproj, states = c("A", "C", "P"), deme = 3)
 ```

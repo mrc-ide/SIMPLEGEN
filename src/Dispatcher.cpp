@@ -1,6 +1,6 @@
 
 #include "Dispatcher.h"
-#include "probability_v9.h"
+#include "probability_v10.h"
 
 #include <fstream>
 
@@ -107,7 +107,7 @@ void Dispatcher::init() {
   // objects for storing results
   // daily values: 0 = H, 1 = Sh, 2 = Eh, 3 = Ah, 4 = Ch, 5 = Ph, 6 = Sv, 7 = Ev, 8 = Iv, 9 = EIR
   daily_values = vector<vector<vector<double>>>(n_demes, vector<vector<double>>(max_time, vector<double>(10)));
-  // age distributions final level: 0 = Sh, 1 = Eh, 2 = Ah, 3 = Ch, 4 = Ph
+  // age distributions. Final level: 0 = Sh, 1 = Eh, 2 = Ah, 3 = Ch, 4 = Ph
   age_distributions = vector<vector<vector<vector<double>>>>(n_output_age_times, vector<vector<vector<double>>>(n_demes, vector<vector<double>>(n_life_table, vector<double>(5))));
   
   // misc
@@ -138,7 +138,13 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
     
     // update progress bar
     if (!silent) {
-      update_progress(args_progress, "pb_sim", t+1, max_time, true);
+      int remainder = t % int(ceil(double(max_time)/100));
+      if ((remainder == 0 && !pb_markdown) || ((t+1) == max_time)) {
+        update_progress(args_progress, "pb_sim", t+1, max_time, true);
+        if ((t+1) == max_time) {
+          print("");
+        }
+      }
     }
     
     // update ring buffer index
@@ -203,7 +209,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
     // loop through all hosts, draw migration
     for (int i = 0; i < sum(H); ++i) {
       int this_deme = host_pop[i].deme;
-      int new_deme = sample1(mig_mat[this_deme], 1.0) - 1;
+      int new_deme = sample1(mig_mat[this_deme], 1.0);
       host_pop[i].migrate(new_deme);
     }
     

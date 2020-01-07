@@ -127,19 +127,37 @@
     
     </div>
 
-    <pre class="usage"><span class='fu'>define_epi_params</span>(<span class='no'>project</span>, <span class='kw'>a</span> <span class='kw'>=</span> <span class='fl'>0.3</span>, <span class='kw'>p</span> <span class='kw'>=</span> <span class='fl'>0.85</span>, <span class='kw'>mu</span> <span class='kw'>=</span> -<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Log'>log</a></span>(<span class='no'>p</span>), <span class='kw'>u</span> <span class='kw'>=</span> <span class='fl'>12</span>,
-  <span class='kw'>v</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>g</span> <span class='kw'>=</span> <span class='fl'>12</span>, <span class='kw'>prob_infection</span> <span class='kw'>=</span> <span class='fl'>0.6</span>, <span class='kw'>prob_acute</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>prob_AC</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>duration_acute</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>25</span>, <span class='fl'>1</span>/<span class='fl'>5</span>),
-  <span class='kw'>duration_chronic</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>100</span>, <span class='fl'>1</span>/<span class='fl'>20</span>),
+    <pre class="usage"><span class='fu'>define_epi_params</span>(
+  <span class='no'>project</span>,
+  <span class='kw'>a</span> <span class='kw'>=</span> <span class='fl'>0.3</span>,
+  <span class='kw'>p</span> <span class='kw'>=</span> <span class='fl'>0.85</span>,
+  <span class='kw'>mu</span> <span class='kw'>=</span> -<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Log'>log</a></span>(<span class='no'>p</span>),
+  <span class='kw'>u</span> <span class='kw'>=</span> <span class='fl'>12</span>,
+  <span class='kw'>v</span> <span class='kw'>=</span> <span class='fl'>10</span>,
+  <span class='kw'>g</span> <span class='kw'>=</span> <span class='fl'>12</span>,
+  <span class='kw'>prob_infection</span> <span class='kw'>=</span> <span class='fl'>0.6</span>,
+  <span class='kw'>prob_acute</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>prob_AC</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>duration_acute</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>25</span>, <span class='fl'>1</span>/<span class='fl'>5</span>),
+  <span class='kw'>duration_chronic</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>250</span>, <span class='fl'>1</span>/<span class='fl'>50</span>),
   <span class='kw'>detectability_microscopy_acute</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>detectability_microscopy_chronic</span> <span class='kw'>=</span> <span class='fl'>0.1</span>, <span class='kw'>detectability_PCR_acute</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>detectability_PCR_chronic</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>time_treatment_acute</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>25</span>,
-  <span class='fl'>1</span>/<span class='fl'>5</span>), <span class='kw'>time_treatment_chronic</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>100</span>, <span class='fl'>1</span>/<span class='fl'>20</span>),
-  <span class='kw'>treatment_seeking_mean</span> <span class='kw'>=</span> <span class='fl'>0.5</span>, <span class='kw'>treatment_seeking_sd</span> <span class='kw'>=</span> <span class='fl'>0.1</span>,
-  <span class='kw'>duration_prophylactic</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>25</span>, <span class='fl'>1</span>/<span class='fl'>5</span>), <span class='kw'>infectivity_acute</span> <span class='kw'>=</span> <span class='fl'>0.07</span>,
-  <span class='kw'>infectivity_chronic</span> <span class='kw'>=</span> <span class='fl'>0.07</span>, <span class='kw'>max_inoculations</span> <span class='kw'>=</span> <span class='fl'>5</span>, <span class='kw'>H</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
-  <span class='kw'>seed_infections</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>M</span> <span class='kw'>=</span> <span class='fl'>1000</span>, <span class='kw'>mig_mat</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/diag'>diag</a></span>(<span class='fl'>1</span>),
-  <span class='kw'>life_table</span> <span class='kw'>=</span> <span class='fu'><a href='life_table_Mali.html'>life_table_Mali</a></span>())</pre>
+  <span class='kw'>detectability_microscopy_chronic</span> <span class='kw'>=</span> <span class='fl'>0.1</span>,
+  <span class='kw'>detectability_PCR_acute</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>detectability_PCR_chronic</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>time_treatment_acute</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>100</span>, <span class='fl'>1</span>/<span class='fl'>20</span>),
+  <span class='kw'>time_treatment_chronic</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>100</span>, <span class='fl'>1</span>/<span class='fl'>20</span>),
+  <span class='kw'>treatment_seeking_mean</span> <span class='kw'>=</span> <span class='fl'>0.5</span>,
+  <span class='kw'>treatment_seeking_sd</span> <span class='kw'>=</span> <span class='fl'>0.1</span>,
+  <span class='kw'>duration_prophylactic</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>25</span>, <span class='fl'>1</span>/<span class='fl'>5</span>),
+  <span class='kw'>infectivity_acute</span> <span class='kw'>=</span> <span class='fl'>0.07</span>,
+  <span class='kw'>infectivity_chronic</span> <span class='kw'>=</span> <span class='fl'>0.07</span>,
+  <span class='kw'>max_inoculations</span> <span class='kw'>=</span> <span class='fl'>5</span>,
+  <span class='kw'>H</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
+  <span class='kw'>seed_infections</span> <span class='kw'>=</span> <span class='fl'>100</span>,
+  <span class='kw'>M</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
+  <span class='kw'>mig_mat</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/diag'>diag</a></span>(<span class='fl'>1</span>),
+  <span class='kw'>life_table</span> <span class='kw'>=</span> <span class='fu'><a href='life_table_Mali.html'>life_table_Mali</a></span>()
+)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
