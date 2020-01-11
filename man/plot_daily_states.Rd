@@ -12,8 +12,8 @@ plot_daily_states(project, deme = 1, states = c("S", "E", "A", "C", "P"))
 
 \item{deme}{which deme to plot.}
 
-\item{states}{which states to plot. Can be any subset of \code{c("S", "E",
-"A", "C", "P", "Sv", "Ev", "Iv")}.}
+\item{states}{which states to plot. Can be any subset of the column headings
+in daily counts.}
 }
 \description{
 TODO.

@@ -178,10 +178,11 @@ plot_treatment_seeking <- function(project) {
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
 #' @param deme which deme to plot.
-#' @param states which states to plot. Can be any subset of \code{c("S", "E",
-#'   "A", "C", "P", "Sv", "Ev", "Iv")}.
+#' @param states which states to plot. Can be any subset of the column headings
+#'   in daily counts.
 #'
 #' @importFrom grDevices grey
+#' @import tidyr
 #' @export
 
 plot_daily_states <- function(project, deme = 1, states = c("S", "E", "A", "C", "P")) {
@@ -190,7 +191,7 @@ plot_daily_states <- function(project, deme = 1, states = c("S", "E", "A", "C", 
   assert_custom_class(project, "simplegen_project")
   assert_dataframe(project$epi_output$daily_values)
   assert_in(deme, project$epi_output$daily_values$deme)
-  assert_in(states, c("S", "E", "A", "C", "P", "Sv", "Ev", "Iv"))
+  assert_in(states, names(project$epi_output$daily_values))
   
   # subset to desired rows and columns
   df_wide <- project$epi_output$daily_values[, c("time", "deme", states)]
@@ -202,10 +203,10 @@ plot_daily_states <- function(project, deme = 1, states = c("S", "E", "A", "C", 
   df_long <- tidyr::gather(df_wide, state, count, states, factor_key = TRUE)
   
   # choose plotting colours
-  raw_cols <- simplegen_cols()
-  plot_cols <- c(S = grey(0.5), E = raw_cols[2], A = raw_cols[1], C = raw_cols[3], P = raw_cols[5],
-                 Sv = grey(0.8), Ev = raw_cols[6], Iv = raw_cols[7],
-                 EIR = grey(0.0))
+  #raw_cols <- simplegen_cols()
+  #plot_cols <- c(S = grey(0.5), E = raw_cols[2], A = raw_cols[1], C = raw_cols[3], P = raw_cols[5],
+  #               Sv = grey(0.8), Ev = raw_cols[6], Iv = raw_cols[7],
+  #               EIR = grey(0.0))
   
   # choose x-axis scale
   max_time <- max(df_wide$time)
@@ -223,11 +224,10 @@ plot_daily_states <- function(project, deme = 1, states = c("S", "E", "A", "C", 
     x_lab <- "time (years)"
   }
   
-  
   # produce plot
   ggplot2::ggplot(df_long) + ggplot2::theme_bw() +
     ggplot2::geom_line(ggplot2::aes_(x = ~time, y = ~count, color = ~state)) +
-    ggplot2::scale_color_manual(values = plot_cols) +
+    #ggplot2::scale_color_manual(values = plot_cols) +
     ggplot2::scale_x_continuous(x_lab, breaks = x_breaks, labels = x_labels)
   
 }

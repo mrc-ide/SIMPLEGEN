@@ -80,7 +80,8 @@ public:
   std::vector<bool> inoc_active;
   std::vector<Status_asexual> inoc_status_asexual;
   std::vector<Status_sexual> inoc_status_sexual;
-  std::vector<int> inoc_time_infective;
+  std::vector<int> inoc_time_asexual;
+  std::vector<int> inoc_time_sexual;
   
   // events
   std::vector<std::map<Event, int>> inoc_events;
@@ -116,11 +117,11 @@ public:
   void end_prophylaxis();
   void migrate(int new_deme);
   
-  void Eh_to_Ah(int this_slot);
-  void Eh_to_Ch(int this_slot);
-  void Ah_to_Ch(int this_slot);
-  void Ah_to_Sh(int this_slot);
-  void Ch_to_Sh(int this_slot);
+  void Eh_to_Ah(int this_slot, int t);
+  void Eh_to_Ch(int this_slot, int t);
+  void Ah_to_Ch(int this_slot, int t);
+  void Ah_to_Sh(int this_slot, int t);
+  void Ch_to_Sh(int this_slot, int t);
   void begin_infective_acute(int this_slot, int t);
   void begin_infective_chronic(int this_slot, int t);
   void end_infective(int this_slot);
@@ -143,6 +144,10 @@ public:
   int get_time_treatment_acute();
   int get_time_treatment_chronic();
   int get_duration_prophylaxis();
+  double get_detectability_microscopy_acute(int t);
+  double get_detectability_microscopy_chronic(int t);
+  double get_detectability_PCR_acute(int t);
+  double get_detectability_PCR_chronic(int t);
   double get_infectivity(int t);
   int get_free_inoc_slot();
   int get_age(int t);

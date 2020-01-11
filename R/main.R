@@ -567,7 +567,11 @@ sim_epi <- function(project,
   daily_values_list <- mapply(function(i) {
     ret <- rcpp_to_matrix(output_raw$daily_values[[i]])
     ret <- as.data.frame(cbind(1:nrow(ret), i, ret))
-    names(ret) <- c("time", "deme", "H", "S", "E", "A", "C", "P", "Sv", "Ev", "Iv", "EIR")
+    names(ret) <- c("time", "deme", "H", "S", "E", "A", "C", "P",
+                    "Sv", "Ev", "Iv",
+                    "EIR",
+                    "A_detectable_microscopy", "C_detectable_microscopy",
+                    "A_detectable_PCR", "C_detectable_PCR")
     return(ret)
   }, 1:length(output_raw$daily_values), SIMPLIFY = FALSE)
   daily_values <- do.call(rbind, daily_values_list)

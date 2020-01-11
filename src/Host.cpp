@@ -60,7 +60,8 @@ void Host::init(int index, int &host_ID, int deme,
   inoc_active = vector<bool>(max_inoculations, false);
   inoc_status_asexual = vector<Status_asexual>(max_inoculations, Inactive_asexual);
   inoc_status_sexual = vector<Status_sexual>(max_inoculations, Inactive_sexual);
-  inoc_time_infective = vector<int>(max_inoculations);
+  inoc_time_asexual = vector<int>(max_inoculations);
+  inoc_time_sexual = vector<int>(max_inoculations);
   
   // initialise events
   inoc_events = vector<map<Event, int>>(max_inoculations);
@@ -150,7 +151,7 @@ void Host::draw_treatment_seeking() {
 // simultaneously recalculate t_next_inoc_event to be the time of the next
 // event. Similarly, when a new event is scheduled we append it to inoc_events,
 // and simultaneously ask whether the new event occurs before the current
-// t_next_inoc_event, in which case it must be updated.
+// t_next_inoc_event, in which case it replaces it.
 
 //------------------------------------------------
 // add new inoc event to list
@@ -183,36 +184,36 @@ void Host::check_inoc_event(int t) {
     }
   }
   
-  // find other event(s) that are scheduled for time t
+  // find other events that are scheduled for time t
   t_next_inoc_event = max_time + 1;
   for (int i = 0; i < max_inoculations; ++i) {
     
-    // find event(s) that are scheduled for time t
+    // check for event at this slot that is scheduled for time t
     for (auto it = inoc_events[i].begin(); it != inoc_events[i].end();) {
       if (it->second == t) {
         
         // switch depending on event
         switch(it->first) {
         case Event_Eh_to_Ah:
-          Eh_to_Ah(i);
+          Eh_to_Ah(i, t);
           break;
         case Event_Eh_to_Ch:
-          Eh_to_Ch(i);
+          Eh_to_Ch(i, t);
           break;
         case Event_Ah_to_Ch:
-          Ah_to_Ch(i);
+          Ah_to_Ch(i, t);
           break;
         case Event_Ah_to_Sh:
-          Ah_to_Sh(i);
+          Ah_to_Sh(i, t);
           break;
         case Event_Ch_to_Sh:
-          Ch_to_Sh(i);
+          Ch_to_Sh(i, t);
           break;
         case Event_begin_infective_acute:
-          begin_infective_acute(i,t);
+          begin_infective_acute(i, t);
           break;
         case Event_begin_infective_chronic:
-          begin_infective_chronic(i,t);
+          begin_infective_chronic(i, t);
           break;
         case Event_end_infective:
           end_infective(i);
@@ -291,7 +292,8 @@ void Host::death(int &host_ID, int t) {
   fill(inoc_active.begin(), inoc_active.end(), false);
   fill(inoc_status_asexual.begin(), inoc_status_asexual.end(), Inactive_asexual);
   fill(inoc_status_sexual.begin(), inoc_status_sexual.end(), Inactive_sexual);
-  fill(inoc_time_infective.begin(), inoc_time_infective.end(), 0);
+  fill(inoc_time_asexual.begin(), inoc_time_asexual.end(), 0);
+  fill(inoc_time_sexual.begin(), inoc_time_sexual.end(), 0);
   
   // clear all scheduled inoc events
   for (int i = 0; i < max_inoculations; ++i) {
@@ -591,46 +593,61 @@ void Host::migrate(int new_deme) {
 
 //------------------------------------------------
 // move inoculation from Eh state to Ah
-void Host::Eh_to_Ah(int this_slot) {
+void Host::Eh_to_Ah(int this_slot, int t) {
   
   // update status
   inoc_status_asexual[this_slot] = Acute_asexual;
+  
+  // store time
+  inoc_time_asexual[this_slot] = t;
   
 }
 
 //------------------------------------------------
 // move inoculation from Eh state to Ch
-void Host::Eh_to_Ch(int this_slot) {
+void Host::Eh_to_Ch(int this_slot, int t) {
   
   // update status
   inoc_status_asexual[this_slot] = Chronic_asexual;
+  
+  // store time
+  inoc_time_asexual[this_slot] = t;
   
 }
 
 //------------------------------------------------
 // move inoculation from Ah state to Ch
-void Host::Ah_to_Ch(int this_slot) {
+void Host::Ah_to_Ch(int this_slot, int t) {
   
   // update status
   inoc_status_asexual[this_slot] = Chronic_asexual;
+  
+  // store time
+  inoc_time_asexual[this_slot] = t;
   
 }
 
 //------------------------------------------------
 // move inoculation from Ah state to Sh
-void Host::Ah_to_Sh(int this_slot) {
+void Host::Ah_to_Sh(int this_slot, int t) {
   
   // update status
   inoc_status_asexual[this_slot] = Inactive_asexual;
+  
+  // store time
+  inoc_time_asexual[this_slot] = t;
   
 }
 
 //------------------------------------------------
 // move inoculation from Ch state to Sh
-void Host::Ch_to_Sh(int this_slot) {
+void Host::Ch_to_Sh(int this_slot, int t) {
   
   // update status
   inoc_status_asexual[this_slot] = Inactive_asexual;
+  
+  // store time
+  inoc_time_asexual[this_slot] = t;
   
 }
 
@@ -642,7 +659,7 @@ void Host::begin_infective_acute(int this_slot, int t) {
   inoc_status_sexual[this_slot] = Acute_sexual;
   
   // store time
-  inoc_time_infective[this_slot] = t;
+  inoc_time_sexual[this_slot] = t;
   
   // if newly infective then add to infectives list
   if (get_n_infective() == 1) {
@@ -662,7 +679,7 @@ void Host::begin_infective_chronic(int this_slot, int t) {
   inoc_status_sexual[this_slot] = Chronic_sexual;
   
   // store time
-  inoc_time_infective[this_slot] = t;
+  inoc_time_sexual[this_slot] = t;
   
   // if newly infective then add to infectives list
   if (current_status == Inactive_sexual && get_n_infective() == 1) {
@@ -679,8 +696,9 @@ void Host::end_infective(int this_slot) {
   inoc_status_sexual[this_slot] = Inactive_sexual;
   inoc_active[this_slot] = false;
   
-  // reset time
-  inoc_time_infective[this_slot] = 0;
+  // reset times
+  inoc_time_asexual[this_slot] = 0;
+  inoc_time_sexual[this_slot] = 0;
   
   // if no longer infective then drop from infectives list
   if (get_n_infective() == 0) {
@@ -849,6 +867,106 @@ int Host::get_duration_prophylaxis() {
 }
 
 //------------------------------------------------
+// get current detectability by microscopy over acute inoculations
+double Host::get_detectability_microscopy_acute(int t) {
+  
+  // acute detectability is the max detectability over all acute inoculations
+  double ret = 0;
+  for (int i = 0; i < max_inoculations; ++i) {
+    if (inoc_status_asexual[i] == Acute_asexual) {
+      
+      // get time since became infective
+      int time_diff = t - inoc_time_asexual[i];
+      
+      // get infectivity from appropriate distribution
+      int tmp1 = (inoc_index < n_detectability_microscopy_acute) ? inoc_index : n_detectability_microscopy_acute - 1;
+      int tmp2 = (time_diff < int(detectability_microscopy_acute[tmp1].size())) ? time_diff : int(detectability_microscopy_acute[tmp1].size()) - 1;
+      double inoc_detectability = detectability_microscopy_acute[tmp1][tmp2];
+      
+      // ret is max of ret and inoc_detectability
+      ret = (ret > inoc_detectability) ? ret : inoc_detectability;
+    }
+  }
+  
+  return ret;
+}
+
+//------------------------------------------------
+// get current detectability by microscopy over chronic inoculations
+double Host::get_detectability_microscopy_chronic(int t) {
+  
+  // acute detectability is the max detectability over all chronic inoculations
+  double ret = 0;
+  for (int i = 0; i < max_inoculations; ++i) {
+    if (inoc_status_asexual[i] == Chronic_asexual) {
+      
+      // get time since became infective
+      int time_diff = t - inoc_time_asexual[i];
+      
+      // get infectivity from appropriate distribution
+      int tmp1 = (inoc_index < n_detectability_microscopy_chronic) ? inoc_index : n_detectability_microscopy_chronic - 1;
+      int tmp2 = (time_diff < int(detectability_microscopy_chronic[tmp1].size())) ? time_diff : int(detectability_microscopy_chronic[tmp1].size()) - 1;
+      double inoc_detectability = detectability_microscopy_chronic[tmp1][tmp2];
+      
+      // ret is max of ret and inoc_detectability
+      ret = (ret > inoc_detectability) ? ret : inoc_detectability;
+    }
+  }
+  
+  return ret;
+}
+
+//------------------------------------------------
+// get current detectability by PCR over acute inoculations
+double Host::get_detectability_PCR_acute(int t) {
+  
+  // acute detectability is the max detectability over all acute inoculations
+  double ret = 0;
+  for (int i = 0; i < max_inoculations; ++i) {
+    if (inoc_status_asexual[i] == Acute_asexual) {
+      
+      // get time since became infective
+      int time_diff = t - inoc_time_asexual[i];
+      
+      // get infectivity from appropriate distribution
+      int tmp1 = (inoc_index < n_detectability_PCR_acute) ? inoc_index : n_detectability_PCR_acute - 1;
+      int tmp2 = (time_diff < int(detectability_PCR_acute[tmp1].size())) ? time_diff : int(detectability_PCR_acute[tmp1].size()) - 1;
+      double inoc_detectability = detectability_PCR_acute[tmp1][tmp2];
+      
+      // ret is max of ret and inoc_detectability
+      ret = (ret > inoc_detectability) ? ret : inoc_detectability;
+    }
+  }
+  
+  return ret;
+}
+
+//------------------------------------------------
+// get current detectability by PCR over chronic inoculations
+double Host::get_detectability_PCR_chronic(int t) {
+  
+  // acute detectability is the max detectability over all chronic inoculations
+  double ret = 0;
+  for (int i = 0; i < max_inoculations; ++i) {
+    if (inoc_status_asexual[i] == Chronic_asexual) {
+      
+      // get time since became infective
+      int time_diff = t - inoc_time_asexual[i];
+      
+      // get infectivity from appropriate distribution
+      int tmp1 = (inoc_index < n_detectability_PCR_chronic) ? inoc_index : n_detectability_PCR_chronic - 1;
+      int tmp2 = (time_diff < int(detectability_PCR_chronic[tmp1].size())) ? time_diff : int(detectability_PCR_chronic[tmp1].size()) - 1;
+      double inoc_detectability = detectability_PCR_chronic[tmp1][tmp2];
+      
+      // ret is max of ret and inoc_detectability
+      ret = (ret > inoc_detectability) ? ret : inoc_detectability;
+    }
+  }
+  
+  return ret;
+}
+
+//------------------------------------------------
 // get current infectivity
 double Host::get_infectivity(int t) {
   
@@ -858,7 +976,7 @@ double Host::get_infectivity(int t) {
     if (inoc_status_sexual[i] == Acute_sexual || inoc_status_sexual[i] == Chronic_sexual) {
       
       // get time since became infective
-      int time_diff = t - inoc_time_infective[i];
+      int time_diff = t - inoc_time_sexual[i];
       
       // split by acute vs. chronic infectivity
       double inoc_infectivity;
@@ -938,5 +1056,5 @@ void Host::print_inoc_status() {
   Rcpp::Rcout << "sex    : ";
   print_vector(inoc_status_sexual);
   Rcpp::Rcout << "time   : ";
-  print_vector(inoc_time_infective);
+  print_vector(inoc_time_sexual);
 }

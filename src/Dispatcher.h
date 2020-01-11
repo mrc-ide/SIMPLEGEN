@@ -41,6 +41,12 @@ public:
   std::vector<int> Ch;
   std::vector<int> Ph;
   
+  // further counts of host types
+  std::vector<double> Ah_detectable_microscopy;
+  std::vector<double> Ch_detectable_microscopy;
+  std::vector<double> Ah_detectable_PCR;
+  std::vector<double> Ch_detectable_PCR;
+  
   // population of human hosts
   std::vector<Host> host_pop;
   int next_host_ID;
@@ -79,7 +85,7 @@ public:
   // methods
   void init();
   void run_simulation(Rcpp::List &args_functions, Rcpp::List &args_progress);
-  void update_host_counts();
+  void update_host_counts(int t);
   void get_sample_details(int t, int deme, int n);
   void get_age_distribution(int t_index);
   
