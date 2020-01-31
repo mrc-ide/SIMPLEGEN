@@ -148,10 +148,10 @@ void Parameters::load_epi_params(Rcpp::List args) {
   
   // get max infectivity over all distributions
   max_infectivity = 0.0;
-  for (int i = 0; i < int(infectivity_acute.size()); ++i) {
+  for (unsigned int i = 0; i < infectivity_acute.size(); ++i) {
     max_infectivity = (max(infectivity_acute[i]) > max_infectivity) ? max(infectivity_acute[i]) : max_infectivity;
   }
-  for (int i = 0; i < int(infectivity_chronic.size()); ++i) {
+  for (unsigned int i = 0; i < infectivity_chronic.size(); ++i) {
     max_infectivity = (max(infectivity_chronic[i]) > max_infectivity) ? max(infectivity_chronic[i]) : max_infectivity;
   }
   
@@ -208,7 +208,7 @@ void Parameters::load_sampling_params(Rcpp::List args) {
     
     vector<string> ss_case_detection_string = rcpp_to_vector_string(args["ss_case_detection"]);
     ss_case_detection = vector<Case_detection>(n_row);
-    for (int i = 0; i < int(ss_case_detection_string.size()); ++i) {
+    for (unsigned int i = 0; i < ss_case_detection_string.size(); ++i) {
       if (ss_case_detection_string[i] == "active") {
         ss_case_detection[i] = active;
       } else if (ss_case_detection_string[i] == "passive") {
@@ -220,7 +220,7 @@ void Parameters::load_sampling_params(Rcpp::List args) {
     
     vector<string> ss_diagnosis_string = rcpp_to_vector_string(args["ss_diagnosis"]);
     ss_diagnosis = vector<Diagnosis>(n_row);
-    for (int i = 0; i < int(ss_diagnosis_string.size()); ++i) {
+    for (unsigned int i = 0; i < ss_diagnosis_string.size(); ++i) {
       if (ss_diagnosis_string[i] == "microscopy") {
         ss_diagnosis[i] = microscopy;
       } else if (ss_diagnosis_string[i] == "PCR") {

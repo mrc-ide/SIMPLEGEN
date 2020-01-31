@@ -3,7 +3,7 @@
 
 #include "misc_v9.h"
 #include "Parameters.h"
-#include "Sampler_v2.h"
+#include "Sampler_v3.h"
 #include "Host.h"
 #include "Mosquito.h"
 

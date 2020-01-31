@@ -314,7 +314,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
         //-------- SCHEDULED HUMAN EVENTS --------
         
         // loop through all hosts
-        for (int i = 0; i < int(host_pop.size()); ++i) {
+        for (unsigned int i = 0; i < host_pop.size(); ++i) {
           
           // check for host death
           if (host_pop[i].death_day == t) {
@@ -409,7 +409,7 @@ void Dispatcher::update_host_counts(int t) {
   fill(Ch_detectable_PCR.begin(), Ch_detectable_PCR.end(), 0.0);
   
   // loop through all hosts, update counts in given deme
-  for (int i = 0; i < int(host_pop.size()); ++i) {
+  for (unsigned int i = 0; i < host_pop.size(); ++i) {
     int this_deme = host_pop[i].deme;
     switch(host_pop[i].get_host_status()) {
     case Host_Sh:
@@ -490,7 +490,7 @@ void Dispatcher::get_age_distribution(int t_index) {
   int t = output_age_times[t_index];
   
   // loop through all hosts, update age distribution
-  for (int i = 0; i < int(host_pop.size()); ++i) {
+  for (unsigned int i = 0; i < host_pop.size(); ++i) {
     int this_deme = host_pop[i].deme;
     int this_age = host_pop[i].get_age(t);
     

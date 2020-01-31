@@ -3,7 +3,7 @@
 
 #include "Mosquito.h"
 #include "Parameters.h"
-#include "Sampler_v2.h"
+#include "Sampler_v3.h"
 
 #include <vector>
 #include <set>

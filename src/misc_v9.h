@@ -116,7 +116,7 @@ bool is_in_vector(TYPE x, const std::vector<TYPE> &v) {
 template<class TYPE>
 std::vector<TYPE> unique(const std::vector<TYPE> &v) {
   std::vector<TYPE> ret;
-  for (int i = 0; i < int(v.size()); ++i) {
+  for (unsigned int i = 0; i < v.size(); ++i) {
     if (find(ret.begin(), ret.end(), v[i]) == ret.end()) {
       ret.push_back(v[i]);
     }
@@ -191,7 +191,7 @@ void print_vector(const TYPE &x) {
 // helper function for printing contents of a matrix
 template<class TYPE>
 void print_matrix(const std::vector<std::vector<TYPE>> &x) {
-  for (int i = 0; i < x.size(); ++i) {
+  for (unsigned int i = 0; i < x.size(); ++i) {
     print_vector(x[i]);
   }
 #ifdef RCPP_ACTIVE

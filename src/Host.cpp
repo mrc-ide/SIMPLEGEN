@@ -106,7 +106,7 @@ void Host::draw_starting_age() {
   } else {
     // if we do not die in year age_years then loop through all remaining years,
     // performing Bernoulli draw from probability of dying in that year
-    for (int i = (age_years+1); i < int(life_table.size()); ++i) {
+    for (unsigned int i = (age_years+1); i < life_table.size(); ++i) {
       if (rbernoulli1(life_table[i])) {
         life_days = i*365 + sample2(0, 364);
         break;
@@ -767,7 +767,7 @@ int Host::get_n_liverstage() {
 // get total number of acute bloodstage inoculations
 int Host::get_n_bloodstage_acute() {
   int ret = 0;
-  for (int i = 0; i < int(inoc_status_asexual.size()); ++i) {
+  for (unsigned int i = 0; i < inoc_status_asexual.size(); ++i) {
     if (inoc_status_asexual[i] == Acute_asexual) {
       ret ++;
     }
@@ -779,7 +779,7 @@ int Host::get_n_bloodstage_acute() {
 // get total number of chronic bloodstage inoculations
 int Host::get_n_bloodstage_chronic() {
   int ret = 0;
-  for (int i = 0; i < int(inoc_status_asexual.size()); ++i) {
+  for (unsigned int i = 0; i < inoc_status_asexual.size(); ++i) {
     if (inoc_status_asexual[i] == Chronic_asexual) {
       ret ++;
     }
