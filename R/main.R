@@ -571,7 +571,7 @@ sim_epi <- function(project,
                     "Sv", "Ev", "Iv",
                     "EIR",
                     "A_detectable_microscopy", "C_detectable_microscopy",
-                    "A_detectable_PCR", "C_detectable_PCR")
+                    "A_detectable_PCR", "C_detectable_PCR","n_inoc")
     return(ret)
   }, 1:length(output_raw$daily_values), SIMPLIFY = FALSE)
   daily_values <- do.call(rbind, daily_values_list)

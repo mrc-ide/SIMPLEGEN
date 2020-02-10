@@ -65,6 +65,9 @@ void Dispatcher::init() {
   Ah_detectable_PCR = vector<double>(n_demes);
   Ch_detectable_PCR = vector<double>(n_demes);
   
+  // number of active inoculations
+  n_inoc = vector<double>(n_demes);
+  
   // initialise single population of human hosts over all demes. This is
   // preferable to using separate vectors of hosts for each deme, as this would
   // mean moving hosts around due to migration. With a single population we can
@@ -187,6 +190,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
         
         // get number of new infectious bites on humans
         EIR[k] = a*Iv[k]/double(H[k]);
+       
         double prob_infectious_bite = 1 - exp(-EIR[k]);  // probability of new infectious bite on host
         
         // one method of drawing infections in humans would be to draw the total
@@ -338,6 +342,8 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
     
     //-------- STORE RESULTS --------
     
+  
+    
     // update counts of each host status in each deme
     update_host_counts(t);
     
@@ -347,9 +353,9 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
                             double(Sv[k]), double(Ev[k]), double(Iv[k]),
                             EIR[k],
                             Ah_detectable_microscopy[k], Ch_detectable_microscopy[k],
-                            Ah_detectable_PCR[k], Ch_detectable_PCR[k]};
+                            Ah_detectable_PCR[k], Ch_detectable_PCR[k],n_inoc[k]};
     }
-    
+
     // store age distributions
     if (output_age_distributions && output_age_times[index_age_distributions] == t+1) {
       
@@ -407,10 +413,12 @@ void Dispatcher::update_host_counts(int t) {
   fill(Ch_detectable_microscopy.begin(), Ch_detectable_microscopy.end(), 0.0);
   fill(Ah_detectable_PCR.begin(), Ah_detectable_PCR.end(), 0.0);
   fill(Ch_detectable_PCR.begin(), Ch_detectable_PCR.end(), 0.0);
-  
+  fill(n_inoc.begin(),n_inoc.end(), 0.0);
   // loop through all hosts, update counts in given deme
   for (unsigned int i = 0; i < host_pop.size(); ++i) {
     int this_deme = host_pop[i].deme;
+    n_inoc[this_deme] += host_pop[i].get_n_active_inoc();
+    
     switch(host_pop[i].get_host_status()) {
     case Host_Sh:
       Sh[this_deme]++;
