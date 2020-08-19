@@ -35,7 +35,7 @@ double log_sum(double logA, double logB) {
 // sum boolean values and return integer
 int sum_bool(const vector<bool> &x_vec) {
   int ret = 0;
-  for (int i = 0; i < int(x_vec.size()); ++i) {
+  for (unsigned int i = 0; i < x_vec.size(); ++i) {
     ret += x_vec[i];
   }
   return ret;
@@ -457,7 +457,7 @@ vector<vector<double>> file_to_matrix_double(string file_path) {
 // calculate Cholesky decomposition of positive definite matrix sigma
 void cholesky(vector<vector<double>> &chol, const vector<vector<double>> &sigma) {
   
-  for (int i = 0; i < int(sigma.size()); ++i) {
+  for (unsigned int i = 0; i < sigma.size(); ++i) {
     for (int j = 0; j < (i+1); ++j) {
       chol[i][j] = sigma[i][j];
       if (i == j) {

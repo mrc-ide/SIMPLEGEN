@@ -23,7 +23,8 @@ simplegen_project <- function() {
 
 #------------------------------------------------
 # overload print() function for simplegen_project
-#' @noRd
+#' @method print simplegen_project
+#' @export
 print.simplegen_project <- function(x, ...) {
   
   # print summary
@@ -35,10 +36,13 @@ print.simplegen_project <- function(x, ...) {
 
 #------------------------------------------------
 # overload summary() function for simplegen_project
-#' @noRd
-summary.simplegen_project <- function(x, ...) {
+#' @method summary simplegen_project
+#' @export
+summary.simplegen_project <- function(object, ...) {
   
   message("TODO - some default print method")
   
+  # return invisibly
+  invisible(object)
 }
 

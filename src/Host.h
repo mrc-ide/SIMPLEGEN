@@ -3,7 +3,7 @@
 
 #include "Mosquito.h"
 #include "Parameters.h"
-#include "Sampler_v2.h"
+#include "Sampler_v3.h"
 
 #include <vector>
 #include <set>
@@ -44,7 +44,8 @@ public:
   int home_deme;  // deme into which this host is born
   int deme;       // deme in which this host currently resides
   
-  // pointer to indices of infective hosts in each deme
+  // pointer to indices of hosts and infective hosts in each deme
+  std::vector<std::vector<int>>* host_index_ptr;
   std::vector<std::vector<int>>* host_infective_index_ptr;
   
   // pointers to sampler objects, for efficiently drawing from global
@@ -79,7 +80,8 @@ public:
   std::vector<bool> inoc_active;
   std::vector<Status_asexual> inoc_status_asexual;
   std::vector<Status_sexual> inoc_status_sexual;
-  std::vector<int> inoc_time_infective;
+  std::vector<int> inoc_time_asexual;
+  std::vector<int> inoc_time_sexual;
   
   // events
   std::vector<std::map<Event, int>> inoc_events;
@@ -93,6 +95,7 @@ public:
   
   // other methods
   void init(int index, int &host_ID, int deme,
+            std::vector<std::vector<int>> &host_index,
             std::vector<std::vector<int>> &host_infective_index,
             Sampler &sampler_age_stable,
             Sampler &sampler_age_death,
@@ -112,12 +115,13 @@ public:
   void infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &transmission_record);
   void treatment(int t);
   void end_prophylaxis();
+  void migrate(int new_deme);
   
-  void Eh_to_Ah(int this_slot);
-  void Eh_to_Ch(int this_slot);
-  void Ah_to_Ch(int this_slot);
-  void Ah_to_Sh(int this_slot);
-  void Ch_to_Sh(int this_slot);
+  void Eh_to_Ah(int this_slot, int t);
+  void Eh_to_Ch(int this_slot, int t);
+  void Ah_to_Ch(int this_slot, int t);
+  void Ah_to_Sh(int this_slot, int t);
+  void Ch_to_Sh(int this_slot, int t);
   void begin_infective_acute(int this_slot, int t);
   void begin_infective_chronic(int this_slot, int t);
   void end_infective(int this_slot);
@@ -140,6 +144,10 @@ public:
   int get_time_treatment_acute();
   int get_time_treatment_chronic();
   int get_duration_prophylaxis();
+  double get_detectability_microscopy_acute(int t);
+  double get_detectability_microscopy_chronic(int t);
+  double get_detectability_PCR_acute(int t);
+  double get_detectability_PCR_chronic(int t);
   double get_infectivity(int t);
   int get_free_inoc_slot();
   int get_age(int t);

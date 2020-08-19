@@ -1,5 +1,5 @@
 
-#include "probability_v9.h"
+#include "probability_v10.h"
 #include "misc_v9.h"
 
 using namespace std;
@@ -51,6 +51,12 @@ bool rbernoulli1(double p) {
 // draw from binomial(N,p) distribution
 #ifdef RCPP_ACTIVE
 int rbinom1(int N, double p) {
+  if (N < 0) {
+    Rcpp::stop("error in rbinom1: N less than 0");
+  }
+  if (p < 0.0 || p > 1.0) {
+    Rcpp::stop("error in rbinom1: p outside range [0,1]");
+  }
   return R::rbinom(N, p);
 }
 #else
@@ -154,27 +160,39 @@ void rmnorm1(vector<double> &x, const vector<double> &mu,
 // DEFINED IN HEADER
 
 //------------------------------------------------
-// sample single value from given probability vector (that sums to p_sum)
+// sample single value from given probability vector (that sums to p_sum).
+// Starting in probability_v10 the first value returned from this vector is 0
+// rather than 1 (i.e. moving to C++-style zero-based indexing)
 int sample1(const vector<double> &p, double p_sum) {
   double rand = p_sum*runif_0_1();
   double z = 0;
-  for (int i=0; i<int(p.size()); i++) {
+  for (unsigned int i = 0; i < p.size(); i++) {
     z += p[i];
     if (rand < z) {
-      return i+1;
+      return i;
     }
   }
+#ifdef RCPP_ACTIVE
+  Rcpp::stop("error in sample1(), ran off end of probability vector");
+#else
+  stop("error in sample1(), ran off end of probability vector");
+#endif
   return 0;
 }
 int sample1(const vector<int> &p, int p_sum) {
   int rand = sample2(1,p_sum);
   int z = 0;
-  for (int i=0; i<int(p.size()); i++) {
+  for (unsigned int i = 0; i < p.size(); i++) {
     z += p[i];
     if (rand <= z) {
-      return i+1;
+      return i;
     }
   }
+#ifdef RCPP_ACTIVE
+  Rcpp::stop("error in sample1(), ran off end of probability vector");
+#else
+  stop("error in sample1(), ran off end of probability vector");
+#endif
   return 0;
 }
 
@@ -193,7 +211,7 @@ int sample2(int a, int b) {
 void sample3(vector<int> &ret, const vector<double> &p, double p_sum, bool return_shuffled) {
   int n = int(ret.size());
   int j = 0;
-  for (int i = 0; i < int(p.size()); ++i) {
+  for (unsigned int i = 0; i < p.size(); ++i) {
     int n_i = rbinom1(n, p[i]/p_sum);
     if (n_i > 0) {
       fill(ret.begin()+j, ret.begin()+j+n_i, i);

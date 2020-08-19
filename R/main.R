@@ -150,6 +150,8 @@ life_table_Mali <- function() {
 #'   meaning they have just entered the latent phase.
 #' @param M vector specifying mosquito population size (strictly the number of
 #'   adult female mosquitoes) in each deme.
+#' @param mig_mat migration matrix specifying the daily probability of human
+#'   migration.
 #' @param life_table vector specifying the probability of death of a human host
 #'   in each one-year age group. The final value must be 1 to ensure a closed
 #'   population. Defaults to a life table taken from Mali - see
@@ -169,12 +171,12 @@ define_epi_params <- function(project,
                               prob_acute = 1.0,
                               prob_AC = 1.0,
                               duration_acute = dgeom(1:25, 1/5),
-                              duration_chronic = dgeom(1:100, 1/20),
+                              duration_chronic = dgeom(1:250, 1/50),
                               detectability_microscopy_acute = 1,
                               detectability_microscopy_chronic = 0.1,
                               detectability_PCR_acute = 1,
                               detectability_PCR_chronic = 1,
-                              time_treatment_acute = dgeom(1:25, 1/5),
+                              time_treatment_acute = dgeom(1:100, 1/20),
                               time_treatment_chronic = dgeom(1:100, 1/20),
                               treatment_seeking_mean = 0.5,
                               treatment_seeking_sd = 0.1,
@@ -185,6 +187,7 @@ define_epi_params <- function(project,
                               H = 1000,
                               seed_infections = 100,
                               M = 1000,
+                              mig_mat = diag(1),
                               life_table = life_table_Mali()) {
   
   # NB. This function is written so that only parameters specified by the user
@@ -224,6 +227,7 @@ define_epi_params <- function(project,
                                    H = H,
                                    seed_infections = seed_infections,
                                    M = M,
+                                   mig_mat = mig_mat,
                                    life_table = life_table)
     
     invisible(project)
@@ -315,8 +319,10 @@ check_epi_params <- function(x) {
   assert_single_pos(x$treatment_seeking_sd, zero_allowed = TRUE, name = "treatment_seeking_sd")
   if (x$treatment_seeking_mean > 0 & x$treatment_seeking_mean < 1) {
     sd_max <- sqrt(x$treatment_seeking_mean*(1 - x$treatment_seeking_mean))
-    assert_le(x$treatment_seeking_sd, sd_max,
-              , message = sprintf("treatment_seeking_sd must be less than sqrt(treatment_seeking_mean*(1 - treatment_seeking_mean)), in this case %s, otherwise the Beta distribution is undefined", sd_max))
+    error_message <- sprintf(paste0("treatment_seeking_sd must be less than",
+                                    " sqrt(treatment_seeking_mean*(1 - treatment_seeking_mean)),",
+                                    " in this case %s, otherwise the Beta distribution is undefined"), sd_max)
+    assert_le(x$treatment_seeking_sd, sd_max, message = error_message)
   }
   
   assert_pos(x$duration_prophylactic, name = "duration_prophylactic")
@@ -329,6 +335,10 @@ check_epi_params <- function(x) {
   assert_pos_int(x$M, name = "M")
   assert_same_length_multiple(x$H, x$seed_infections, x$M)
   assert_leq(x$seed_infections, x$H, name_x = "seed_infections", name_y = "H")
+  
+  assert_square_matrix(x$mig_mat, name = "mig_mat")
+  assert_nrow(x$mig_mat, length(x$H), name = "mig_mat")
+  assert_bounded(x$mig_mat, name = "mig_mat")
   
   assert_bounded(x$life_table, name = "life_table")
   assert_eq(x$life_table[length(x$life_table)], 1, message = "the final value in the life table must be 1, representing a 100%% chance of dying, to ensure a closed population")
@@ -395,7 +405,7 @@ get_demography <- function(life_table) {
 #'   }
 #'
 #' @export
-#' 
+
 define_sampling_strategy <- function(project, x) {
   
   # check inputs
@@ -441,6 +451,9 @@ define_sampling_strategy <- function(project, x) {
 #' @param output_age_distributions whether to output complete age distributions
 #' @param output_age_times a vector of times at which complete age distributions
 #'   are output.
+#' @param pb_markdown whether to run progress bars in markdown mode, meaning
+#'   they are only updated when they reach 100% to avoid large amounts of output
+#'   being printed to markdown files.
 #' @param silent whether to suppress written messages to the console.
 #'
 #' @importFrom utils txtProgressBar
@@ -454,6 +467,7 @@ sim_epi <- function(project,
                     output_daily_counts = TRUE,
                     output_age_distributions = TRUE,
                     output_age_times = max_time,
+                    pb_markdown = FALSE,
                     silent = FALSE) {
   
   
@@ -469,6 +483,7 @@ sim_epi <- function(project,
   assert_vector(output_age_times)
   assert_pos_int(output_age_times)
   assert_leq(output_age_times, max_time)
+  assert_single_logical(pb_markdown)
   assert_single_logical(silent)
   
   # optionally return warning if will overwrite transmission record file
@@ -489,6 +504,9 @@ sim_epi <- function(project,
   # get project params into standardised format and perform checks
   args <- process_epi_params(project$epi_parameters)
   check_epi_params(args)
+  
+  # get migration matrix into list
+  args$mig_mat <- matrix_to_rcpp(args$mig_mat)
   
   # get complete demography from life table
   demog <- get_demography(project$epi_parameters$life_table)
@@ -518,6 +536,7 @@ sim_epi <- function(project,
                  output_daily_counts = output_daily_counts,
                  output_age_distributions = output_age_distributions,
                  output_age_times = output_age_times,
+                 pb_markdown = pb_markdown,
                  silent = silent))
   
   # functions
@@ -533,15 +552,14 @@ sim_epi <- function(project,
   # internal flag, not visible to user. If TRUE then write parameter lists to
   # file and return without running simulation. Parameters can then be read
   # directly from file into Xcode.
-  xcode_on <- FALSE
-  if (xcode_on) {
-    write_xcode_params(args)
-    return()
-  }
+  #xcode_on <- FALSE
+  #if (xcode_on) {
+  #  write_xcode_params(args)
+  #  return()
   
   # run efficient C++ function
   output_raw <- indiv_sim_cpp(args, args_functions, args_progress)
-  #return(output_raw)
+  
   
   # ---------- process output ----------
   
@@ -549,7 +567,11 @@ sim_epi <- function(project,
   daily_values_list <- mapply(function(i) {
     ret <- rcpp_to_matrix(output_raw$daily_values[[i]])
     ret <- as.data.frame(cbind(1:nrow(ret), i, ret))
-    names(ret) <- c("time", "deme", "S", "E", "A", "C", "P", "Sv", "Ev", "Iv", "EIR")
+    names(ret) <- c("time", "deme", "H", "S", "E", "A", "C", "P",
+                    "Sv", "Ev", "Iv",
+                    "EIR",
+                    "A_detectable_microscopy", "C_detectable_microscopy",
+                    "A_detectable_PCR", "C_detectable_PCR","n_inoc")
     return(ret)
   }, 1:length(output_raw$daily_values), SIMPLIFY = FALSE)
   daily_values <- do.call(rbind, daily_values_list)
@@ -580,230 +602,3 @@ sim_epi <- function(project,
   invisible(project)
 }
 
-
-#------------------------------------------------
-# print parameters to file, to be read in directly from Xcode
-#' @noRd
-write_xcode_params <- function(args) {
-  print(args)
-  message("writing arguments to file")
-  
-  # functions for writing vectors and matrices to file
-  vector_to_file <- function(x, file_path) {
-    writeLines(paste(x, collapse = ","), con = file_path)
-  }
-  matrix_to_file <- function(x, file_path) {
-    writeLines(mapply(function(y) paste(y, collapse = ","), x), con = file_path)
-  }
-  
-  # write scalar epi parameters to file
-  arg_file_path <- "R_ignore/SIMPLEGEN_Xcode/args/"
-  scalar_epi_params <- c("a", "p", "mu", "u", "v", "g", "treatment_seeking_mean",
-                         "treatment_seeking_sd", "max_inoculations")
-  vector_to_file(unlist(args[scalar_epi_params]), paste0(arg_file_path, "scalar_epi_params.txt"))
-  
-  # write epi vectors to file
-  vector_to_file(args$prob_infection, paste0(arg_file_path, "prob_infection.txt"))
-  vector_to_file(args$prob_acute, paste0(arg_file_path, "prob_acute.txt"))
-  vector_to_file(args$prob_AC, paste0(arg_file_path, "prob_AC.txt"))
-  vector_to_file(args$duration_prophylactic, paste0(arg_file_path, "duration_prophylactic.txt"))
-  
-  # write epi matrices (or lists of vectors) to file
-  matrix_to_file(args$duration_acute, paste0(arg_file_path, "duration_acute.txt"))
-  matrix_to_file(args$duration_chronic, paste0(arg_file_path, "duration_chronic.txt"))
-  matrix_to_file(args$detectability_microscopy_acute, paste0(arg_file_path, "detectability_microscopy_acute.txt"))
-  matrix_to_file(args$detectability_microscopy_chronic, paste0(arg_file_path, "detectability_microscopy_chronic.txt"))
-  matrix_to_file(args$detectability_PCR_acute, paste0(arg_file_path, "detectability_PCR_acute.txt"))
-  matrix_to_file(args$detectability_PCR_chronic, paste0(arg_file_path, "detectability_PCR_chronic.txt"))
-  matrix_to_file(args$time_treatment_acute, paste0(arg_file_path, "time_treatment_acute.txt"))
-  matrix_to_file(args$time_treatment_chronic, paste0(arg_file_path, "time_treatment_chronic.txt"))
-  vector_to_file(args$infectivity_acute, paste0(arg_file_path, "infectivity_acute.txt"))
-  vector_to_file(args$infectivity_chronic, paste0(arg_file_path, "infectivity_chronic.txt"))
-  
-  # write deme vectors to file
-  vector_to_file(args$H, paste0(arg_file_path, "H.txt"))
-  vector_to_file(args$seed_infections, paste0(arg_file_path, "seed_infections.txt"))
-  vector_to_file(args$M, paste0(arg_file_path, "M.txt"))
-  
-  # write demog vectors to file
-  vector_to_file(args$life_table, paste0(arg_file_path, "life_table.txt"))
-  vector_to_file(args$age_death, paste0(arg_file_path, "age_death.txt"))
-  vector_to_file(args$age_stable, paste0(arg_file_path, "age_stable.txt"))
-  
-  # write scalar run parameters to file
-  scalar_run_params <- c("max_time", "save_transmission_record", "transmission_record_location",
-                         "output_daily_counts", "output_age_distributions", "silent")
-  vector_to_file(args[scalar_run_params], paste0(arg_file_path, "scalar_run_params.txt"))
-  
-  # write vector run parameters to file
-  vector_to_file(args$output_age_times, paste0(arg_file_path, "output_age_times.txt"))
-  
-}
-
-#------------------------------------------------
-#' @title Prune the transmission record
-#'
-#' @description TODO
-#'
-#' @param project a SIMPLEGEN project, as produced by the
-#'   \code{simplegen_project()} function.
-#' @param transmission_record_location the file path to a transmission record
-#'   already written to file.
-#' @param pruned_record_location the file path that the pruned transmission
-#'   record will be written to.
-#' @param overwrite_pruned_record if \code{TRUE} the pruned transmission record
-#'   will overwrite any existing file by the same name. \code{FALSE} by default.
-#' @param silent whether to suppress written messages to the console.
-#' 
-#' @export
-
-prune_transmission_record <- function(project,
-                                      transmission_record_location = "",
-                                      pruned_record_location = "",
-                                      overwrite_pruned_record = FALSE,
-                                      silent = FALSE) {
-  
-  # check inputs
-  assert_custom_class(project, "simplegen_project")
-  assert_string(transmission_record_location)
-  assert_string(pruned_record_location)
-  assert_single_logical(overwrite_pruned_record)
-  assert_single_logical(silent)
-  
-  # check transmission record exists
-  if (!file.exists(transmission_record_location)) {
-    stop(sprintf("could not find file at %s", transmission_record_location))
-  }
-  
-  # optionally return warning if will overwrite pruned transmission record file
-  if (!overwrite_pruned_record) {
-    if (file.exists(pruned_record_location)) {
-      stop(sprintf("file already exists at %s. Change target location, or use argument `overwrite_pruned_record = TRUE` to manually override this warning", pruned_record_location))
-    }
-  }
-  
-  # subset sample details to a vector of inoc_IDs
-  inoc_IDs <- unlist(project$sample_details$inoc_IDs)
-  if (length(inoc_IDs) == 0) {
-    stop("no malaria positive hosts in sample")
-  }
-  
-  # define argument list
-  args <- list(transmission_record_location = transmission_record_location,
-               pruned_record_location = pruned_record_location,
-               inoc_IDs = inoc_IDs,
-               silent = silent)
-  
-  # run efficient C++ code
-  prune_transmission_record_cpp(args)
-  
-  # return project unchanged
-  invisible(project)
-}
-
-#------------------------------------------------
-#' @title Draw tree of genome-wide relatedness from pruned transmission record
-#'
-#' @description Reads in the pruned transmission record from file, and creates a
-#'   new node for each inoculation ID. Nodes at time zero are initialised with a
-#'   single haplotype, created de novo with a unique haplotype ID. In subsequent
-#'   generations, the nodes that are ancestral to the focal node are known from
-#'   the pruned transmission record. The haplotypes from ancestral nodes are
-#'   sampled at random, and brought together in pairs to produce oocysts. The
-#'   recombinant products of these oocysts are then sampled down to produce a
-#'   new generation of haplotype IDs for this node, along with the relative
-#'   densities of each haplotype.
-#'
-#' @param project a SIMPLEGEN project, as produced by the
-#'   \code{simplegen_project()} function.
-#' @param pruned_record_location the file path that the pruned transmission
-#'   record will be read from.
-#' @param r the rate of recombination in base pairs per generation.
-#' @param alpha parameter dictating the skew of haplotype densities. Small
-#'   values of \code{alpha} create a large skew, and hence make it likely that
-#'   an oocyst will be produced from the same parents. Large values of
-#'   \code{alpha} tend toward more even densities.
-#' @param oocyst_distribution vector specifying the probability distribution of
-#'   each number of oocysts within the mosquito midgut.
-#' @param hepatocyte_distribution vector specifying the probability distribution
-#'   of the number of infected hepatocytes in a human host. More broadly, this
-#'   defines the number of independent draws from the oocyst products that make
-#'   it into the host bloodstream upon a bite from an infectious mosquito.
-#' @param contig_lengths lengths (in bp) of each contig.
-#' @param silent whether to suppress written messages to the console.
-#'
-#' @importFrom stats dpois
-#' @export
-
-sim_relatedness <- function(project,
-                            pruned_record_location = "",
-                            r = 1e-6,
-                            alpha = 1.0,
-                            oocyst_distribution = dpois(1:10, lambda = 2),
-                            hepatocyte_distribution = dpois(1:10, lambda = 5),
-                            contig_lengths = c(643292, 947102, 1060087, 1204112, 1343552,
-                                               1418244, 1501717, 1419563, 1541723, 1687655,
-                                               2038337, 2271478, 2895605, 3291871),
-                            silent = FALSE) {
-  
-  
-  # ---------- check inputs ----------
-  
-  assert_custom_class(project, "simplegen_project")
-  assert_string(pruned_record_location)
-  assert_single_pos(r, zero_allowed = TRUE)
-  assert_single_pos(alpha, zero_allowed = FALSE)
-  assert_vector(oocyst_distribution)
-  assert_pos(oocyst_distribution)
-  assert_vector(hepatocyte_distribution)
-  assert_pos(hepatocyte_distribution)
-  assert_vector(contig_lengths)
-  assert_pos_int(contig_lengths, zero_allowed = FALSE)
-  assert_single_logical(silent)
-  
-  # check pruned record exists
-  if (!file.exists(pruned_record_location)) {
-    stop(sprintf("could not find file at %s", pruned_record_location))
-  }
-  
-  
-  # ---------- define argument lists ----------
-  
-  # append arguments
-  args <- c(args,
-            list(pruned_record_location = pruned_record_location,
-                 r = r,
-                 alpha = alpha,
-                 oocyst_distribution = oocyst_distribution,
-                 hepatocyte_distribution = hepatocyte_distribution,
-                 contig_lengths = contig_lengths,
-                 silent = silent))
-  
-  
-  # ---------- run simulation ----------
-  
-  # run efficient C++ code
-  output_raw <- sim_relatedness_cpp(args)
-  
-  
-  # ---------- process output ----------
-  
-  # nested mapply to wrangle raw output into list of dataframes
-  ret <- mapply(function(k) {
-           ret <- mapply(function(j) {
-             ret <- mapply(function(i) {
-               ret <- do.call(rbind, output_raw[[k]]$haplotypes[[j]][[i]])
-               cbind(i, ret)
-             }, 1:length(output_raw[[k]]$haplotypes[[j]]), SIMPLIFY = FALSE)
-             ret <- do.call(rbind, ret)
-             ret <- as.data.frame(cbind(output_raw[[k]]$details$haplo_IDs[j], ret))
-             names(ret) <- c("haplo_ID", "contig", "interval_start", "interval_end", "parent")
-             return(ret)
-           }, 1:length(output_raw[[k]]$haplotypes), SIMPLIFY = FALSE)
-           do.call(rbind, ret)
-         }, 1:length(output_raw), SIMPLIFY = FALSE)
-  
-  names(ret) <- mapply(function(x) x$details$inoc_ID, output_raw)
-  
-  return(ret)
-}
