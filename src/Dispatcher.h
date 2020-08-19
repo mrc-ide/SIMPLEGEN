@@ -76,6 +76,8 @@ public:
   // misc
   std::vector<double> EIR;
   
+  // number of active inoculations
+  std::vector<double> n_inoc;
   
   // PUBLIC FUNCTIONS
   
