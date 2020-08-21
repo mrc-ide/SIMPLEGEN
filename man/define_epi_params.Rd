@@ -4,19 +4,37 @@
 \alias{define_epi_params}
 \title{Define parameters of epidemiological simulation model}
 \usage{
-define_epi_params(project, a = 0.3, p = 0.85, mu = -log(p), u = 12,
-  v = 10, g = 12, prob_infection = 0.6, prob_acute = 1,
-  prob_AC = 1, duration_acute = dgeom(1:25, 1/5),
-  duration_chronic = dgeom(1:100, 1/20),
+define_epi_params(
+  project,
+  a = 0.3,
+  p = 0.85,
+  mu = -log(p),
+  u = 12,
+  v = 10,
+  g = 12,
+  prob_infection = 0.6,
+  prob_acute = 1,
+  prob_AC = 1,
+  duration_acute = dgeom(1:25, 1/5),
+  duration_chronic = dgeom(1:250, 1/50),
   detectability_microscopy_acute = 1,
-  detectability_microscopy_chronic = 0.1, detectability_PCR_acute = 1,
-  detectability_PCR_chronic = 1, time_treatment_acute = dgeom(1:25,
-  1/5), time_treatment_chronic = dgeom(1:100, 1/20),
-  treatment_seeking_mean = 0.5, treatment_seeking_sd = 0.1,
-  duration_prophylactic = dgeom(1:25, 1/5), infectivity_acute = 0.07,
-  infectivity_chronic = 0.07, max_inoculations = 5, H = 1000,
-  seed_infections = 100, M = 1000, mig_mat = diag(1),
-  life_table = life_table_Mali())
+  detectability_microscopy_chronic = 0.1,
+  detectability_PCR_acute = 1,
+  detectability_PCR_chronic = 1,
+  time_treatment_acute = dgeom(1:100, 1/20),
+  time_treatment_chronic = dgeom(1:100, 1/20),
+  treatment_seeking_mean = 0.5,
+  treatment_seeking_sd = 0.1,
+  duration_prophylactic = dgeom(1:25, 1/5),
+  infectivity_acute = 0.07,
+  infectivity_chronic = 0.07,
+  max_inoculations = 5,
+  H = 1000,
+  seed_infections = 100,
+  M = 1000,
+  mig_mat = diag(1),
+  life_table = life_table_Mali()
+)
 }
 \arguments{
 \item{project}{a SIMPLEGEN project, as produced by the

@@ -4,11 +4,18 @@
 \alias{sim_epi}
 \title{Simulate from simple individual-based model}
 \usage{
-sim_epi(project, max_time = 365, save_transmission_record = FALSE,
+sim_epi(
+  project,
+  max_time = 365,
+  save_transmission_record = FALSE,
   transmission_record_location = "",
-  overwrite_transmission_record = FALSE, output_daily_counts = TRUE,
-  output_age_distributions = TRUE, output_age_times = max_time,
-  silent = FALSE)
+  overwrite_transmission_record = FALSE,
+  output_daily_counts = TRUE,
+  output_age_distributions = TRUE,
+  output_age_times = max_time,
+  pb_markdown = FALSE,
+  silent = FALSE
+)
 }
 \arguments{
 \item{project}{a SIMPLEGEN project, as produced by the
@@ -32,6 +39,10 @@ such as the number of infected hosts and the EIR.}
 
 \item{output_age_times}{a vector of times at which complete age distributions
 are output.}
+
+\item{pb_markdown}{whether to run progress bars in markdown mode, meaning
+they are only updated when they reach 100% to avoid large amounts of output
+being printed to markdown files.}
 
 \item{silent}{whether to suppress written messages to the console.}
 }

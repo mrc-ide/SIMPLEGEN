@@ -39,7 +39,7 @@ Then install the SIMPLEGEN package directly from GitHub by running
 devtools::install_github("mrc-ide/SIMPLEGEN")
 ```
 
-If you have any problems installing, please check the [Known issues](https://mrc-ide.github.io/SIMPLEGEN/articles/known_issues.html) page to see if there is a known solution. If not then please [raise an issue](https://github.com/mrc-ide/SIMPLEGEN/issues) on github.
+If you have any problems installing, please [raise an issue](https://github.com/mrc-ide/SIMPLEGEN/issues) on github.
 
 Assuming everything installed correctly, we need to load the package:
 
@@ -47,7 +47,7 @@ Assuming everything installed correctly, we need to load the package:
 library(SIMPLEGEN)
 ```
 
-You can test that the package is loaded and working by running the following command, which should produce this output:
+You can test that the package is loaded and working by running the following command, which should produce the following output:
 
 ```{r}
 check_SIMPLEGEN_loaded()

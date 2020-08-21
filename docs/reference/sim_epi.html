@@ -33,8 +33,10 @@
 <meta property="og:title" content="Simulate from simple individual-based model — sim_epi" />
 
 <meta property="og:description" content="Simulate from the inbuilt epidemiological model. Parameters are
-  taken from the epi_parameters slot of the project, and basic outputs are
-  written to the epi_output slot." />
+  taken from the epi_parameters slot of the project, and basic outputs
+  are written to the epi_output slot. If a sampling strategy has been
+  defined then samples will also be obtained and saved in the
+  sample_details slot (see ?define_sampling_strategy())." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -82,15 +84,16 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li>
-      <a href="../articles/model_description.html">Model Description</a>
+      <a href="../articles/basic_tutorial.html">Basic Tutorial</a>
+    </li>
+    <li class="divider"></li>
+    <li>
+      <a href="../articles/model_description.html">Transmission Model Details</a>
     </li>
   </ul>
 </li>
 <li>
   <a href="../reference/index.html">Functions</a>
-</li>
-<li>
-  <a href="../articles/known_issues.html">Known issues</a>
 </li>
       </ul>
       
@@ -121,15 +124,25 @@
     <div class="ref-description">
     
     <p>Simulate from the inbuilt epidemiological model. Parameters are
-  taken from the <code>epi_parameters</code> slot of the project, and basic outputs are
-  written to the <code>epi_output</code> slot.</p>
+  taken from the <code>epi_parameters</code> slot of the project, and basic outputs
+  are written to the <code>epi_output</code> slot. If a sampling strategy has been
+  defined then samples will also be obtained and saved in the
+  <code>sample_details</code> slot (see <code>?define_sampling_strategy()</code>).</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>sim_epi</span>(<span class='no'>project</span>, <span class='kw'>max_time</span> <span class='kw'>=</span> <span class='fl'>365</span>, <span class='kw'>save_transmission_record</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>transmission_record_location</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>output_daily_counts</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>output_age_distributions</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>output_age_times</span> <span class='kw'>=</span> <span class='no'>max_time</span>,
-  <span class='kw'>silent</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+    <pre class="usage"><span class='fu'>sim_epi</span>(
+  <span class='no'>project</span>,
+  <span class='kw'>max_time</span> <span class='kw'>=</span> <span class='fl'>365</span>,
+  <span class='kw'>save_transmission_record</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>transmission_record_location</span> <span class='kw'>=</span> <span class='st'>""</span>,
+  <span class='kw'>overwrite_transmission_record</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>output_daily_counts</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>output_age_distributions</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>output_age_times</span> <span class='kw'>=</span> <span class='no'>max_time</span>,
+  <span class='kw'>pb_markdown</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>silent</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
+)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -154,6 +167,11 @@ file.</p></td>
 record will be written to.</p></td>
     </tr>
     <tr>
+      <th>overwrite_transmission_record</th>
+      <td><p>if <code>TRUE</code> the transmission record
+will overwrite any existing file by the same name. <code>FALSE</code> by default.</p></td>
+    </tr>
+    <tr>
       <th>output_daily_counts</th>
       <td><p>whether to output daily counts of key quantities,
 such as the number of infected hosts and the EIR.</p></td>
@@ -166,6 +184,12 @@ such as the number of infected hosts and the EIR.</p></td>
       <th>output_age_times</th>
       <td><p>a vector of times at which complete age distributions
 are output.</p></td>
+    </tr>
+    <tr>
+      <th>pb_markdown</th>
+      <td><p>whether to run progress bars in markdown mode, meaning
+they are only updated when they reach 100<!-- % to avoid large amounts of output -->
+being printed to markdown files.</p></td>
     </tr>
     <tr>
       <th>silent</th>

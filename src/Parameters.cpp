@@ -86,6 +86,7 @@ bool Parameters::output_daily_counts;
 bool Parameters::output_age_distributions;
 vector<int> Parameters::output_age_times;
 int Parameters::n_output_age_times;
+bool Parameters::pb_markdown;
 bool Parameters::silent;
 
 // misc parameters
@@ -147,10 +148,10 @@ void Parameters::load_epi_params(Rcpp::List args) {
   
   // get max infectivity over all distributions
   max_infectivity = 0.0;
-  for (int i = 0; i < int(infectivity_acute.size()); ++i) {
+  for (unsigned int i = 0; i < infectivity_acute.size(); ++i) {
     max_infectivity = (max(infectivity_acute[i]) > max_infectivity) ? max(infectivity_acute[i]) : max_infectivity;
   }
-  for (int i = 0; i < int(infectivity_chronic.size()); ++i) {
+  for (unsigned int i = 0; i < infectivity_chronic.size(); ++i) {
     max_infectivity = (max(infectivity_chronic[i]) > max_infectivity) ? max(infectivity_chronic[i]) : max_infectivity;
   }
   
@@ -207,7 +208,7 @@ void Parameters::load_sampling_params(Rcpp::List args) {
     
     vector<string> ss_case_detection_string = rcpp_to_vector_string(args["ss_case_detection"]);
     ss_case_detection = vector<Case_detection>(n_row);
-    for (int i = 0; i < int(ss_case_detection_string.size()); ++i) {
+    for (unsigned int i = 0; i < ss_case_detection_string.size(); ++i) {
       if (ss_case_detection_string[i] == "active") {
         ss_case_detection[i] = active;
       } else if (ss_case_detection_string[i] == "passive") {
@@ -219,7 +220,7 @@ void Parameters::load_sampling_params(Rcpp::List args) {
     
     vector<string> ss_diagnosis_string = rcpp_to_vector_string(args["ss_diagnosis"]);
     ss_diagnosis = vector<Diagnosis>(n_row);
-    for (int i = 0; i < int(ss_diagnosis_string.size()); ++i) {
+    for (unsigned int i = 0; i < ss_diagnosis_string.size(); ++i) {
       if (ss_diagnosis_string[i] == "microscopy") {
         ss_diagnosis[i] = microscopy;
       } else if (ss_diagnosis_string[i] == "PCR") {
@@ -248,6 +249,7 @@ void Parameters::load_run_params(Rcpp::List args) {
   output_age_times = rcpp_to_vector_int(args["output_age_times"]);
   n_output_age_times = int(output_age_times.size());
   silent = rcpp_to_bool(args["silent"]);
+  pb_markdown = rcpp_to_bool(args["pb_markdown"]);
   
 }
 
@@ -318,6 +320,7 @@ void Parameters::summary() {
   print("transmission_record_location:", transmission_record_location);
   print("output_daily_counts:", output_daily_counts);
   print("output_age_distributions:", output_age_distributions);
+  print("pb_markdown:", pb_markdown);
   print("silent:", silent);
   
   // print run vectors

@@ -82,15 +82,16 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li>
-      <a href="../articles/model_description.html">Model Description</a>
+      <a href="../articles/basic_tutorial.html">Basic Tutorial</a>
+    </li>
+    <li class="divider"></li>
+    <li>
+      <a href="../articles/model_description.html">Transmission Model Details</a>
     </li>
   </ul>
 </li>
 <li>
   <a href="../reference/index.html">Functions</a>
-</li>
-<li>
-  <a href="../articles/known_issues.html">Known issues</a>
 </li>
       </ul>
       
@@ -126,18 +127,37 @@
     
     </div>
 
-    <pre class="usage"><span class='fu'>define_epi_params</span>(<span class='no'>project</span>, <span class='kw'>a</span> <span class='kw'>=</span> <span class='fl'>0.3</span>, <span class='kw'>p</span> <span class='kw'>=</span> <span class='fl'>0.85</span>, <span class='kw'>mu</span> <span class='kw'>=</span> -<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Log'>log</a></span>(<span class='no'>p</span>), <span class='kw'>u</span> <span class='kw'>=</span> <span class='fl'>12</span>,
-  <span class='kw'>v</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>g</span> <span class='kw'>=</span> <span class='fl'>12</span>, <span class='kw'>prob_infection</span> <span class='kw'>=</span> <span class='fl'>0.6</span>, <span class='kw'>prob_acute</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>prob_AC</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>duration_acute</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>25</span>, <span class='fl'>1</span>/<span class='fl'>5</span>),
-  <span class='kw'>duration_chronic</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>100</span>, <span class='fl'>1</span>/<span class='fl'>20</span>),
+    <pre class="usage"><span class='fu'>define_epi_params</span>(
+  <span class='no'>project</span>,
+  <span class='kw'>a</span> <span class='kw'>=</span> <span class='fl'>0.3</span>,
+  <span class='kw'>p</span> <span class='kw'>=</span> <span class='fl'>0.85</span>,
+  <span class='kw'>mu</span> <span class='kw'>=</span> -<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Log'>log</a></span>(<span class='no'>p</span>),
+  <span class='kw'>u</span> <span class='kw'>=</span> <span class='fl'>12</span>,
+  <span class='kw'>v</span> <span class='kw'>=</span> <span class='fl'>10</span>,
+  <span class='kw'>g</span> <span class='kw'>=</span> <span class='fl'>12</span>,
+  <span class='kw'>prob_infection</span> <span class='kw'>=</span> <span class='fl'>0.6</span>,
+  <span class='kw'>prob_acute</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>prob_AC</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>duration_acute</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>25</span>, <span class='fl'>1</span>/<span class='fl'>5</span>),
+  <span class='kw'>duration_chronic</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>250</span>, <span class='fl'>1</span>/<span class='fl'>50</span>),
   <span class='kw'>detectability_microscopy_acute</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>detectability_microscopy_chronic</span> <span class='kw'>=</span> <span class='fl'>0.1</span>, <span class='kw'>detectability_PCR_acute</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>detectability_PCR_chronic</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>time_treatment_acute</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>25</span>,
-  <span class='fl'>1</span>/<span class='fl'>5</span>), <span class='kw'>time_treatment_chronic</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>100</span>, <span class='fl'>1</span>/<span class='fl'>20</span>),
-  <span class='kw'>treatment_seeking_alpha</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>treatment_seeking_beta</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>duration_prophylactic</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>25</span>, <span class='fl'>1</span>/<span class='fl'>5</span>), <span class='kw'>infectivity_acute</span> <span class='kw'>=</span> <span class='fl'>0.07</span>,
-  <span class='kw'>infectivity_chronic</span> <span class='kw'>=</span> <span class='fl'>0.07</span>, <span class='kw'>max_inoculations</span> <span class='kw'>=</span> <span class='fl'>5</span>, <span class='kw'>H</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
-  <span class='kw'>seed_infections</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>M</span> <span class='kw'>=</span> <span class='fl'>1000</span>, <span class='kw'>life_table</span> <span class='kw'>=</span> <span class='fu'><a href='life_table_Mali.html'>life_table_Mali</a></span>())</pre>
+  <span class='kw'>detectability_microscopy_chronic</span> <span class='kw'>=</span> <span class='fl'>0.1</span>,
+  <span class='kw'>detectability_PCR_acute</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>detectability_PCR_chronic</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>time_treatment_acute</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>100</span>, <span class='fl'>1</span>/<span class='fl'>20</span>),
+  <span class='kw'>time_treatment_chronic</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>100</span>, <span class='fl'>1</span>/<span class='fl'>20</span>),
+  <span class='kw'>treatment_seeking_mean</span> <span class='kw'>=</span> <span class='fl'>0.5</span>,
+  <span class='kw'>treatment_seeking_sd</span> <span class='kw'>=</span> <span class='fl'>0.1</span>,
+  <span class='kw'>duration_prophylactic</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Geometric'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>25</span>, <span class='fl'>1</span>/<span class='fl'>5</span>),
+  <span class='kw'>infectivity_acute</span> <span class='kw'>=</span> <span class='fl'>0.07</span>,
+  <span class='kw'>infectivity_chronic</span> <span class='kw'>=</span> <span class='fl'>0.07</span>,
+  <span class='kw'>max_inoculations</span> <span class='kw'>=</span> <span class='fl'>5</span>,
+  <span class='kw'>H</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
+  <span class='kw'>seed_infections</span> <span class='kw'>=</span> <span class='fl'>100</span>,
+  <span class='kw'>M</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
+  <span class='kw'>mig_mat</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/diag'>diag</a></span>(<span class='fl'>1</span>),
+  <span class='kw'>life_table</span> <span class='kw'>=</span> <span class='fu'><a href='life_table_Mali.html'>life_table_Mali</a></span>()
+)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -240,19 +260,20 @@ Values are automatically normalised to a proper probability mass
 distribution internally (i.e. a distribution that sums to 1).</p></td>
     </tr>
     <tr>
-      <th>treatment_seeking_alpha, treatment_seeking_beta</th>
+      <th>treatment_seeking_mean, treatment_seeking_sd</th>
       <td><p>treatment seeking is
 modelled in two stages; first, the time at which hosts <em>consider</em>
 seeking treatment is drawn from the probability distribution in
-<code>time_treatment_acute</code> or <code>time_treatment_chronic</code>, and at this
-point whether they go ahead with treatment-seeking depends on their
-personal host-specific treatment-seeking probability. These latter
+<code>time_treatment_acute</code> or <code>time_treatment_chronic</code>, and second,
+whether they go ahead with treatment-seeking at this point in time depends
+on their personal host-specific treatment-seeking probability. These latter
 probabilities are drawn independently for each host at birth from a Beta
-distribution with shape parameters `treatment_seeking_alpha` and
-`treatment_seeking_beta`. The mean of this distribution defines the average
-treatment probability in the population, and is equal to
-`treatment_seeking_alpha/(treatment_seeking_alpha +
-treatment_seeking_beta)`.</p></td>
+distribution with mean `treatment_seeking_mean` and standard deviation
+`treatment_seeking_sd`. Hence, these parameters describe the average
+propensity to seek treatment in the population, and the degree of
+inequality in treatment seeking. Note that `treatment_seeking_sd`` must be
+less than `sqrt(treatment_seeking_mean*(1 - treatment_seeking_mean))``,
+otherwise the Beta distribution is undefined.</p></td>
     </tr>
     <tr>
       <th>duration_prophylactic</th>
@@ -288,6 +309,11 @@ meaning they have just entered the latent phase.</p></td>
       <th>M</th>
       <td><p>vector specifying mosquito population size (strictly the number of
 adult female mosquitoes) in each deme.</p></td>
+    </tr>
+    <tr>
+      <th>mig_mat</th>
+      <td><p>migration matrix specifying the daily probability of human
+migration.</p></td>
     </tr>
     <tr>
       <th>life_table</th>

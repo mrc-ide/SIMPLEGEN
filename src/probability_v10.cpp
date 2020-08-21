@@ -51,6 +51,12 @@ bool rbernoulli1(double p) {
 // draw from binomial(N,p) distribution
 #ifdef RCPP_ACTIVE
 int rbinom1(int N, double p) {
+  if (N < 0) {
+    Rcpp::stop("error in rbinom1: N less than 0");
+  }
+  if (p < 0.0 || p > 1.0) {
+    Rcpp::stop("error in rbinom1: p outside range [0,1]");
+  }
   return R::rbinom(N, p);
 }
 #else
@@ -160,7 +166,7 @@ void rmnorm1(vector<double> &x, const vector<double> &mu,
 int sample1(const vector<double> &p, double p_sum) {
   double rand = p_sum*runif_0_1();
   double z = 0;
-  for (int i=0; i<int(p.size()); i++) {
+  for (unsigned int i = 0; i < p.size(); i++) {
     z += p[i];
     if (rand < z) {
       return i;
@@ -176,7 +182,7 @@ int sample1(const vector<double> &p, double p_sum) {
 int sample1(const vector<int> &p, int p_sum) {
   int rand = sample2(1,p_sum);
   int z = 0;
-  for (int i=0; i<int(p.size()); i++) {
+  for (unsigned int i = 0; i < p.size(); i++) {
     z += p[i];
     if (rand <= z) {
       return i;
@@ -205,7 +211,7 @@ int sample2(int a, int b) {
 void sample3(vector<int> &ret, const vector<double> &p, double p_sum, bool return_shuffled) {
   int n = int(ret.size());
   int j = 0;
-  for (int i = 0; i < int(p.size()); ++i) {
+  for (unsigned int i = 0; i < p.size(); ++i) {
     int n_i = rbinom1(n, p[i]/p_sum);
     if (n_i > 0) {
       fill(ret.begin()+j, ret.begin()+j+n_i, i);

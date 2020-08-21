@@ -27,4 +27,5 @@ public:
   // methods
   void reset();
   int draw();
+  void print_summary();
 };

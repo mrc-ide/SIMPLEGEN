@@ -11,7 +11,7 @@ plot_treatment_seeking(project)
 \code{simplegen_project()} function.}
 }
 \description{
-Within the SIMPLEGEN transmission model each host has its own
+Within the inbuilt SIMPLEGEN transmission model each host has its own
   treatment seeking parameter, which defines the probability of actively
   seeking treatment once disease reaches a point that this becomes necessary.
   These parameter values are drawn independently for each host from a Beta

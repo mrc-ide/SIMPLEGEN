@@ -92,6 +92,7 @@ public:
   static bool output_age_distributions;
   static std::vector<int> output_age_times;
   static int n_output_age_times;
+  static bool pb_markdown;
   static bool silent;
   
   // misc parameters
