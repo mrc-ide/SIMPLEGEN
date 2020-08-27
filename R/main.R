@@ -45,9 +45,9 @@ simplegen_file <- function(name) {
 #------------------------------------------------
 #' @title A life table taken from Mali
 #'
-#' @description The default life table used within the SIMPLEGEN epidemiological
-#'   model. Values represent probabilities of death in one-year age bands, and
-#'   are taken from (TODO - insert reference for this table).
+#' @description The default life table used within the inbuilt SIMPLEGEN
+#'   transmission model. Values represent probabilities of death in one-year age
+#'   bands.
 #'
 #' @export
 
@@ -58,11 +58,11 @@ life_table_Mali <- function() {
 }
 
 #------------------------------------------------
-#' @title Define parameters of epidemiological simulation model
+#' @title Define parameters of transmission simulation model
 #'
 #' @description Define the parameters that will be used when simulating data
-#'   from the inbuilt SIMPLEGEN epidemiological model. Any parameters that are
-#'   left \code{NULL} will be set to default values.
+#'  from the inbuilt SIMPLEGEN transmission model. Any parameters that are
+#'  defined as \code{NULL} will be set to default values.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
@@ -72,7 +72,7 @@ life_table_Mali <- function() {
 #' @param mu mosquito instantaneous death rate. \code{mu = -log(p)} unless
 #'   otherwise specified.
 #' @param u intrinsic incubation period. The number of days from infection to
-#'   blood-stage in a human host.
+#'   blood-stage infection in a human host.
 #' @param v extrinsic incubation period. The number of days from infection to
 #'   becoming infectious in a mosquito.
 #' @param g lag time between human blood-stage infection and production of
@@ -206,14 +206,16 @@ define_epi_params <- function(project,
   }
   
   # find which parameters are user-defined
-  userlist <- as.list(match.call()) %>%
-    (function(x) x[!(names(x) %in% c("", "project"))])
+  userlist <- as.list(match.call())
+  userlist <- userlist[!(names(userlist) %in% c("", "project"))]
   
   # replace project parameters with user-defined
   project$epi_parameters[names(userlist)] <- mapply(eval, userlist, SIMPLIFY = FALSE)
   
-  # standardise parameters (e.g. normalise distributions) and perform checks
+  # standardise parameters (e.g. normalise distributions)
   params_processed <- process_epi_params(project$epi_parameters)
+  
+  # perform checks on parameters
   check_epi_params(params_processed)
   
   # return
@@ -225,7 +227,7 @@ define_epi_params <- function(project,
 #' @noRd
 process_epi_params <- function(x) {
   
-  # standardise parameters
+  # for objects that can be defined as list or vector, force to list
   if (!is.list(x$duration_acute)) {
     x$duration_acute <- list(x$duration_acute)
   }
@@ -322,17 +324,24 @@ check_epi_params <- function(x) {
 #' @noRd
 get_demography <- function(life_table) {
   
+  # check that life_table values are in the range [0,1]
+  assert_bounded(life_table)
+  
   # compute distribution of age of death
   n <- length(life_table)
-  age_death <- rep(0,n)
+  age_death <- rep(0, n)
   remaining <- 1
   for (i in 1:n) {
     age_death[i] <- remaining*life_table[i]
     remaining <- remaining*(1 - life_table[i])
   }
   
+  # check that age_death is a proper probability distribution with no
+  # probability mass escaping
+  assert_eq(sum(age_death), 1, message = "life table does not result in a 100% probability of eventual death")
+  
   # convert life table to transition matrix
-  m <- matrix(0,n,n)
+  m <- matrix(0, n, n)
   m[col(m) == (row(m)+1)] <- 1 - life_table[1:(n-1)]
   m[,1] <- 1 - rowSums(m)
   
@@ -357,9 +366,15 @@ get_demography <- function(life_table) {
 }
 
 #------------------------------------------------
-#' @title Define how samples are taken from epidemiological model
+#' @title Define how samples are taken from transmission model
 #'
-#' @description TODO.
+#' @description Loads a dataframe into the SIMPLEGEN project that specifies how
+#'   one or more samples are taken from the population. This is an important
+#'   step in the SIMPLEGEN pipeline, as ultimately genotypes are only
+#'   constructed for these sampled individuals. The user can specify details of
+#'   the sampling scheme, including the type of sampling and the
+#'   locations/timepoints. Probabilities of detection are taken into account
+#'   when producing the final sample.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
@@ -403,11 +418,11 @@ define_sampling_strategy <- function(project, x) {
 #------------------------------------------------
 #' @title Simulate from simple individual-based model
 #'
-#' @description Simulate from the inbuilt epidemiological model. Parameters are
-#'   taken from the \code{epi_parameters} slot of the project, and basic outputs
-#'   are written to the \code{epi_output} slot. If a sampling strategy has been
-#'   defined then samples will also be obtained and saved in the
-#'   \code{sample_details} slot (see \code{?define_sampling_strategy()}).
+#' @description Simulate from the inbuilt SIMPLEGEN transmission model.
+#'   Parameters are taken from the \code{epi_parameters} slot of the project,
+#'   and basic outputs are written to the \code{epi_output} slot. If a sampling
+#'   strategy has been defined then samples will also be obtained and saved in
+#'   the \code{sample_details} slot (see \code{?define_sampling_strategy()}).
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
@@ -421,6 +436,7 @@ define_sampling_strategy <- function(project, x) {
 #' @param output_daily_counts whether to output daily counts of key quantities,
 #'   such as the number of infected hosts and the EIR.
 #' @param output_age_distributions whether to output complete age distributions
+#'   at certain times.
 #' @param output_age_times a vector of times at which complete age distributions
 #'   are output.
 #' @param pb_markdown whether to run progress bars in markdown mode, meaning
@@ -500,7 +516,7 @@ sim_epi <- function(project,
                    ss_n = ss$n))
   }
   
-  # append arguments
+  # append arguments to this function to the list of args that are passed forward
   args <- c(args,
             list(max_time = max_time,
                  save_transmission_record = save_transmission_record,
@@ -521,9 +537,9 @@ sim_epi <- function(project,
   
   # ---------- run simulation ----------
   
-  # internal flag, not visible to user. If TRUE then write parameter lists to
-  # file and return without running simulation. Parameters can then be read
-  # directly from file into Xcode.
+  # internal flag, not visible to user. If TRUE then this function writes
+  # parameter lists to file and returns without running simulation. Parameters
+  # can then be read directly from file into Xcode.
   #xcode_on <- FALSE
   #if (xcode_on) {
   #  write_xcode_params(args)
@@ -536,27 +552,26 @@ sim_epi <- function(project,
   # ---------- process output ----------
   
   # wrangle daily values into dataframe
-  daily_values_list <- mapply(function(i) {
+  daily_values <- do.call(rbind, mapply(function(i) {
     ret <- rcpp_to_matrix(output_raw$daily_values[[i]])
-    ret <- as.data.frame(cbind(1:nrow(ret), i, ret))
+    ret <- as.data.frame(cbind(seq_len(nrow(ret)), i, ret))
     names(ret) <- c("time", "deme", "H", "S", "E", "A", "C", "P",
                     "Sv", "Ev", "Iv",
                     "EIR",
                     "A_detectable_microscopy", "C_detectable_microscopy",
                     "A_detectable_PCR", "C_detectable_PCR","n_inoc")
     return(ret)
-  }, 1:length(output_raw$daily_values), SIMPLIFY = FALSE)
-  daily_values <- do.call(rbind, daily_values_list)
+  }, seq_along(output_raw$daily_values), SIMPLIFY = FALSE))
   
   # wrangle age distributions into dataframe
   age_distributions <- do.call(rbind, mapply(function(j) {
     ret <- do.call(rbind, mapply(function(i) {
       ret <- do.call(rbind, output_raw$age_distributions[[j]][[i]])
       colnames(ret) <- c("S", "E", "A", "C", "P")
-      data.frame(cbind(deme = i, age = 0:(nrow(ret)-1), ret))
-    }, 1:length(output_raw$age_distributions[[j]]), SIMPLIFY = FALSE))
+      data.frame(cbind(deme = i, age = seq_len(nrow(ret)) - 1, ret))
+    }, seq_along(output_raw$age_distributions[[j]]), SIMPLIFY = FALSE))
     cbind(sample_time = j, ret)
-  }, 1:length(output_raw$age_distributions), SIMPLIFY = FALSE))
+  }, seq_along(output_raw$age_distributions), SIMPLIFY = FALSE))
   
   # wrangle sample details into dataframe
   sample_details_list <- mapply(function(x) {
@@ -569,7 +584,9 @@ sim_epi <- function(project,
   # append to project
   project$epi_output <- list(daily_values = daily_values,
                              age_distributions = age_distributions)
-  project$sample_details <- sample_details
+  if (!is.null(sample_details)) {
+    project$sample_details <- sample_details
+  }
   
   invisible(project)
 }

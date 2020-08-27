@@ -14,7 +14,7 @@ plot_epi_distribution(project, name = "duration_acute")
 the \code{project$epi_parameters}}
 }
 \description{
-Many distributions within the SIMPLEGEN transmission model can
-  be defined flexibly, as either a vector or a list of vectors. This function
-  facilitates quick visualisation of these distributions.
+Many distributions within the inbuilt SIMPLEGEN transmission
+  model can be defined flexibly, as either a vector or a list of vectors.
+  This function facilitates quick visualisation of these distributions.
 }

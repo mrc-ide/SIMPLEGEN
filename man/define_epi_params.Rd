@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.R
 \name{define_epi_params}
 \alias{define_epi_params}
-\title{Define parameters of epidemiological simulation model}
+\title{Define parameters of transmission simulation model}
 \usage{
 define_epi_params(
   project,
@@ -49,7 +49,7 @@ humans each day.}
 otherwise specified.}
 
 \item{u}{intrinsic incubation period. The number of days from infection to
-blood-stage in a human host.}
+blood-stage infection in a human host.}
 
 \item{v}{extrinsic incubation period. The number of days from infection to
 becoming infectious in a mosquito.}
@@ -153,6 +153,6 @@ population. Defaults to a life table taken from Mali - see
 }
 \description{
 Define the parameters that will be used when simulating data
-  from the inbuilt SIMPLEGEN epidemiological model. Any parameters that are
-  left \code{NULL} will be set to default values.
+ from the inbuilt SIMPLEGEN transmission model. Any parameters that are
+ defined as \code{NULL} will be set to default values.
 }

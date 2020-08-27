@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.R
 \name{define_sampling_strategy}
 \alias{define_sampling_strategy}
-\title{Define how samples are taken from epidemiological model}
+\title{Define how samples are taken from transmission model}
 \usage{
 define_sampling_strategy(project, x)
 }
@@ -24,5 +24,11 @@ define_sampling_strategy(project, x)
 }}
 }
 \description{
-TODO.
+Loads a dataframe into the SIMPLEGEN project that specifies how
+  one or more samples are taken from the population. This is an important
+  step in the SIMPLEGEN pipeline, as ultimately genotypes are only
+  constructed for these sampled individuals. The user can specify details of
+  the sampling scheme, including the type of sampling and the
+  locations/timepoints. Probabilities of detection are taken into account
+  when producing the final sample.
 }
