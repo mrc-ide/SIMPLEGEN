@@ -221,8 +221,6 @@ plot_daily_states <- function(project, deme = 1, states = c("S", "E", "A", "C", 
     x_labels <-seq_along(x_breaks) - 1
     x_lab <- "time (years)"
   }
-  print(x_breaks)
-  print(x_labels)
   
   # produce plot
   ggplot2::ggplot(df_long) + ggplot2::theme_bw() +
