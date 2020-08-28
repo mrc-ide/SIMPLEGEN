@@ -552,26 +552,32 @@ sim_epi <- function(project,
   # ---------- process output ----------
   
   # wrangle daily values into dataframe
-  daily_values <- do.call(rbind, mapply(function(i) {
-    ret <- rcpp_to_matrix(output_raw$daily_values[[i]])
-    ret <- as.data.frame(cbind(seq_len(nrow(ret)), i, ret))
-    names(ret) <- c("time", "deme", "H", "S", "E", "A", "C", "P",
-                    "Sv", "Ev", "Iv",
-                    "EIR",
-                    "A_detectable_microscopy", "C_detectable_microscopy",
-                    "A_detectable_PCR", "C_detectable_PCR","n_inoc")
-    return(ret)
-  }, seq_along(output_raw$daily_values), SIMPLIFY = FALSE))
+  daily_values <- NULL
+  if (output_daily_counts) {
+    daily_values <- do.call(rbind, mapply(function(i) {
+      ret <- rcpp_to_matrix(output_raw$daily_values[[i]])
+      ret <- as.data.frame(cbind(seq_len(nrow(ret)), i, ret))
+      names(ret) <- c("time", "deme", "H", "S", "E", "A", "C", "P",
+                      "Sv", "Ev", "Iv",
+                      "EIR",
+                      "A_detectable_microscopy", "C_detectable_microscopy",
+                      "A_detectable_PCR", "C_detectable_PCR","n_inoc")
+      return(ret)
+    }, seq_along(output_raw$daily_values), SIMPLIFY = FALSE))
+  }
   
   # wrangle age distributions into dataframe
-  age_distributions <- do.call(rbind, mapply(function(j) {
-    ret <- do.call(rbind, mapply(function(i) {
-      ret <- do.call(rbind, output_raw$age_distributions[[j]][[i]])
-      colnames(ret) <- c("S", "E", "A", "C", "P")
-      data.frame(cbind(deme = i, age = seq_len(nrow(ret)) - 1, ret))
-    }, seq_along(output_raw$age_distributions[[j]]), SIMPLIFY = FALSE))
-    cbind(sample_time = j, ret)
-  }, seq_along(output_raw$age_distributions), SIMPLIFY = FALSE))
+  age_distributions <- NULL
+  if (output_age_distributions) {
+    age_distributions <- do.call(rbind, mapply(function(j) {
+      ret <- do.call(rbind, mapply(function(i) {
+        ret <- do.call(rbind, output_raw$age_distributions[[j]][[i]])
+        colnames(ret) <- c("S", "E", "A", "C", "P")
+        data.frame(cbind(deme = i, age = seq_len(nrow(ret)) - 1, ret))
+      }, seq_along(output_raw$age_distributions[[j]]), SIMPLIFY = FALSE))
+      cbind(sample_time = j, ret)
+    }, seq_along(output_raw$age_distributions), SIMPLIFY = FALSE))
+  }
   
   # wrangle sample details into dataframe
   sample_details_list <- mapply(function(x) {

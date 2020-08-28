@@ -21,4 +21,7 @@ test_that("default epi model runs and produces correct output", {
   expect_equal(names(p), expected_names)
   expect_equal(names(p$epi_output), c("daily_values", "age_distributions"))
   
+  # check that return objects are null if they were not requested to be output
+  expect_null(p$epi_output$daily_values)
+  expect_null(p$epi_output$age_distributions)
 })

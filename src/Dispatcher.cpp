@@ -342,8 +342,6 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
     
     //-------- STORE RESULTS --------
     
-  
-    
     // update counts of each host status in each deme
     update_host_counts(t);
     
@@ -355,7 +353,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
                             Ah_detectable_microscopy[k], Ch_detectable_microscopy[k],
                             Ah_detectable_PCR[k], Ch_detectable_PCR[k],n_inoc[k]};
     }
-
+    
     // store age distributions
     if (output_age_distributions && output_age_times[index_age_distributions] == t+1) {
       
@@ -414,6 +412,7 @@ void Dispatcher::update_host_counts(int t) {
   fill(Ah_detectable_PCR.begin(), Ah_detectable_PCR.end(), 0.0);
   fill(Ch_detectable_PCR.begin(), Ch_detectable_PCR.end(), 0.0);
   fill(n_inoc.begin(),n_inoc.end(), 0.0);
+  
   // loop through all hosts, update counts in given deme
   for (unsigned int i = 0; i < host_pop.size(); ++i) {
     int this_deme = host_pop[i].deme;
