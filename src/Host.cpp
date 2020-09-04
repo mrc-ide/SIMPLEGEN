@@ -125,7 +125,7 @@ void Host::draw_starting_age() {
 // or Dirac delta distribution
 void Host::draw_treatment_seeking() {
   
-  if (treatment_seeking_mean == 0 || treatment_seeking_mean == 1 || treatment_seeking_sd == 0) {
+  if ((treatment_seeking_mean == 0) || (treatment_seeking_mean == 1) || (treatment_seeking_sd == 0)) {
     treatment_seeking = treatment_seeking_mean;
   } else {
     double m = treatment_seeking_mean;
@@ -170,25 +170,20 @@ void Host::check_inoc_event(int t) {
   }
   
   // deal with treatment at time t first
-  bool treatment_break = false;
   for (int i = 0; i < max_inoculations; ++i) {
     for (const auto & x : inoc_events[i]) {
-      if (x.first == Event_treatment && x.second == t) {
+      if ((x.first == Event_treatment) && (x.second == t)) {
         treatment(t);
-        treatment_break = true;
-        break;
+        goto treatment_break;
       }
     }
-    if (treatment_break) {
-      break;
-    }
   }
+  treatment_break:
   
-  // find other events that are scheduled for time t
+  // find other events that are scheduled for time t. Simultaneously recalculate
+  // the time of next inoc event
   t_next_inoc_event = max_time + 1;
   for (int i = 0; i < max_inoculations; ++i) {
-    
-    // check for event at this slot that is scheduled for time t
     for (auto it = inoc_events[i].begin(); it != inoc_events[i].end();) {
       if (it->second == t) {
         
@@ -224,6 +219,7 @@ void Host::check_inoc_event(int t) {
         
         // drop this event from inoc_events[i]
         it = inoc_events[i].erase(it);
+        
       } else {
         if (it->second < t_next_inoc_event) {
           t_next_inoc_event = it->second;
@@ -258,7 +254,7 @@ void Host::death(int &host_ID, int t) {
   migrate(home_deme);
   
   // set current deme equal to home deme
-  //deme = home_deme;
+  deme = home_deme;
   
   // new unique ID
   this->host_ID = host_ID++;
