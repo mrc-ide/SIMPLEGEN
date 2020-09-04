@@ -320,7 +320,6 @@ void Host::denovo_infection(int t, int &next_inoc_ID, std::ofstream &transmissio
 // infection
 void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &transmission_record) {
   
-  //print(get_n_active_inoc());
   // return if already at max_inoculations
   if (get_n_active_inoc() == max_inoculations) {
     infection_index++;
@@ -442,7 +441,6 @@ void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &tr
   // update indices
   infection_index++;
   inoc_index++;
-  //print(inoc_index);
   
   // print to transmission record
   if (save_transmission_record) {
