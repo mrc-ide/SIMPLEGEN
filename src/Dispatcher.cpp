@@ -144,6 +144,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
   int index_age_distributions = 0;
   for (int t = 0; t < max_time; ++t) {
     
+    
     // update progress bar
     if (!silent) {
       int remainder = t % int(ceil(double(max_time)/100));
@@ -167,177 +168,171 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
       }
     }
     
-    // only apply main dynamics of model for t > 0. Ensures that user-defined
-    // initial conditions (e.g. the number of seeding infections) are stored as
-    // the first result.
-    if (t > 0) {
+    
+    //-------- MIGRATION --------
+    
+    // loop through all hosts, draw migration
+    for (int i = 0; i < sum(H); ++i) {
+      int this_deme = host_pop[i].deme;
+      int new_deme = sample1(mig_mat[this_deme], 1.0);
+      host_pop[i].migrate(new_deme);
+    }
+    
+    
+    //-------- MAIN LOOP THROUGH DEMES --------
+    
+    for (int k = 0; k < n_demes; ++k) {
       
-      //-------- MIGRATION --------
+      //-------- NEW HUMAN EVENTS --------
       
-      // loop through all hosts, draw migration
-      for (int i = 0; i < sum(H); ++i) {
-        int this_deme = host_pop[i].deme;
-        int new_deme = sample1(mig_mat[this_deme], 1.0);
-        host_pop[i].migrate(new_deme);
+      // get number of new infectious bites on humans
+      EIR[k] = a*Iv[k]/double(H[k]);
+     
+      double prob_infectious_bite = 1 - exp(-EIR[k]);  // probability of new infectious bite on host
+      
+      // one method of drawing infections in humans would be to draw the total
+      // number of infectious bites from Binomial(H[k], prob_infectious_bite),
+      // then loop through all of these and see which infections take hold by
+      // drawing from Bernoulli with probability given by the host-specific
+      // prob_infection. However, this is wasteful as a large number of
+      // infectious bites are rejected. On the other hand, if the
+      // prob_infection was constant then we could draw from Binomial(H[k],
+      // prob_infection*prob_infectious_bite), after which every bite would
+      // lead to infection, however, we cannot do this as prob_infection is
+      // host-specific and changes over inoculations. Therefore, as a
+      // middleground, draw from Binomial(H[k],
+      // max_prob_infection*prob_infectious_bite), where max_prob_infection is
+      // the largest value that prob_infection could possibly take. Loop
+      // through these query infectious bites and draw from a Bernoulli
+      // distribution relative to this value.
+      //
+      // For example, if prob_infection = {0.1, 0.05} then filter based on the
+      // value 0.1, i.e. draw the number of query infected hosts from
+      // Binomial(H[k], 0.1). Then loop these query hosts and draw from the
+      // relative probability of infection, which is Bernoulli with
+      // probability {0.1, 0.05}/0.1 = {1.0, 0.5}.
+      
+      int host_query_infection = rbinom1(H[k], max_prob_infection*prob_infectious_bite);
+      for (int i = 0; i < host_query_infection; ++i) {
+        
+        // choose host at random
+        int rnd1 = sample2(0, H[k]-1);
+        int this_host = host_index[k][rnd1];
+        
+        // determine whether infectious bite is successful
+        if (rbernoulli1(host_pop[this_host].get_prob_infection()/max_prob_infection)) {
+          
+          // choose mosquito at random
+          int rnd1 = sample2(0, Iv[k]-1);
+          
+          // infect host
+          host_pop[this_host].infection(t, next_inoc_ID, Iv_pop[k][rnd1], transmission_record);
+          
+        }
+        
+      }  // end loop over query infectious bites
+      
+      //-------- SCHEDULED MOSQUITO EVENTS --------
+      
+      // deaths in Ev
+      Sv[k] += Ev_death[k][v_ringbuffer];
+      Ev[k] -= Ev_death[k][v_ringbuffer];
+      Ev_death[k][v_ringbuffer] = 0;
+      
+      // move Ev into Iv
+      int delta_Ev = int(Ev_pop[k][v_ringbuffer].size());
+      if (delta_Ev > 0) {
+        Ev[k] -= delta_Ev;
+        Iv[k] += delta_Ev;
+        push_back_multiple(Iv_pop[k], Ev_pop[k][v_ringbuffer]);
+        Ev_pop[k][v_ringbuffer].clear();
       }
       
       
-      //-------- MAIN LOOP THROUGH DEMES --------
+      //-------- NEW MOSQUITO EVENTS --------
       
-      for (int k = 0; k < n_demes; ++k) {
-        
-        //-------- NEW HUMAN EVENTS --------
-        
-        // get number of new infectious bites on humans
-        EIR[k] = a*Iv[k]/double(H[k]);
-       
-        double prob_infectious_bite = 1 - exp(-EIR[k]);  // probability of new infectious bite on host
-        
-        // one method of drawing infections in humans would be to draw the total
-        // number of infectious bites from Binomial(H[k], prob_infectious_bite),
-        // then loop through all of these and see which infections take hold by
-        // drawing from Bernoulli with probability given by the host-specific
-        // prob_infection. However, this is wasteful as a large number of
-        // infectious bites are rejected. On the other hand, if the
-        // prob_infection was constant then we could draw from Binomial(H[k],
-        // prob_infection*prob_infectious_bite), after which every bite would
-        // lead to infection, however, we cannot do this as prob_infection is
-        // host-specific and changes over inoculations. Therefore, as a
-        // middleground, draw from Binomial(H[k],
-        // max_prob_infection*prob_infectious_bite), where max_prob_infection is
-        // the largest value that prob_infection could possibly take. Loop
-        // through these query infectious bites and draw from a Bernoulli
-        // distribution relative to this value.
-        //
-        // For example, if prob_infection = {0.1, 0.05} then filter based on the
-        // value 0.1, i.e. draw the number of query infected hosts from
-        // Binomial(H[k], 0.1). Then loop these query hosts and draw from the
-        // relative probability of infection, which is Bernoulli with
-        // probability {0.1, 0.05}/0.1 = {1.0, 0.5}.
-        
-        int host_query_infection = rbinom1(H[k], max_prob_infection*prob_infectious_bite);
-        for (int i = 0; i < host_query_infection; ++i) {
-          
-          // choose host at random
-          int rnd1 = sample2(0, H[k]-1);
-          int this_host = host_index[k][rnd1];
-          
-          // determine whether infectious bite is successful
-          if (rbernoulli1(host_pop[this_host].get_prob_infection()/max_prob_infection)) {
-            
-            // choose mosquito at random
-            int rnd1 = sample2(0, Iv[k]-1);
-            
-            // infect host
-            host_pop[this_host].infection(t, next_inoc_ID, Iv_pop[k][rnd1], transmission_record);
-            
-          }
-          
-        }  // end loop over query infectious bites
-        
-        //-------- SCHEDULED MOSQUITO EVENTS --------
-        
-        // deaths in Ev
-        Sv[k] += Ev_death[k][v_ringbuffer];
-        Ev[k] -= Ev_death[k][v_ringbuffer];
-        Ev_death[k][v_ringbuffer] = 0;
-        
-        // move Ev into Iv
-        int delta_Ev = int(Ev_pop[k][v_ringbuffer].size());
-        if (delta_Ev > 0) {
-          Ev[k] -= delta_Ev;
-          Iv[k] += delta_Ev;
-          push_back_multiple(Iv_pop[k], Ev_pop[k][v_ringbuffer]);
-          Ev_pop[k][v_ringbuffer].clear();
-        }
-        
-        
-        //-------- NEW MOSQUITO EVENTS --------
-        
-        // rate of mosquito biting infective host
-        double rate_bite_infective = a*host_infective_index[k].size()/double(H[k]); 
-        
-        // draw number of mosquitoes that bite infective host or die (competing
-        // hazards)
-        double prob_bite_infective_or_death = 1 - exp(-(rate_bite_infective + mu));
-        int n_bite_infective_or_death = rbinom1(Sv[k], prob_bite_infective_or_death);
-        
-        // draw number of mosquitoes that bite infective host, rather than dying.
-        double relative_prob_bite_infective = rate_bite_infective/(rate_bite_infective + mu);
-        int n_bite_infective = rbinom1(n_bite_infective_or_death, relative_prob_bite_infective);
-        
-        // use the same method of drawing query infections as used when
-        // infecting human hosts (see above)
-        int mosq_query_infection = rbinom1(n_bite_infective, max_infectivity);
-        for (int i = 0; i < mosq_query_infection; ++i) {
-          
-          // choose host at random from infectives
-          int rnd1 = sample2(0, host_infective_index[k].size()-1);
-          int this_host = host_infective_index[k][rnd1];
-          
-          // get infectivity and draw whether infection takes hold in mosquito
-          double host_infectivity = host_pop[this_host].get_infectivity(t);
-          if (rbernoulli1(host_infectivity/max_infectivity)) {
-            
-            // update deme counts
-            Sv[k]--;
-            Ev[k]++;
-            
-            // the majority of new mosquito infections will die in lag phase.
-            // Schedule these deaths to move back into Sv in future steps.
-            // Otherwise add to Ev_pop
-            int mosq_time_death = rgeom1(prob_mosq_death) + 1;
-            if (mosq_time_death <= v) {
-              
-              // schedule death for future time
-              Ev_death[k][(v_ringbuffer + mosq_time_death) % v]++;
-              
-            } else {
-              
-              // sample inoc IDs from host
-              vector<int> inoc_ID_vec = host_pop[this_host].get_inoc_ID_vec();
-              
-              // add to Ev_pop, scheduled to enter Iv_pop at future time
-              Ev_pop[k][v_ringbuffer].emplace_back(inoc_ID_vec);
-              
-            }
-            
-          }
-        } // end loop through query infective bites
-        
-        // deaths in Iv
-        int death_Iv = rbinom1(Iv[k], prob_mosq_death);
-        Sv[k] += death_Iv;
-        Iv[k] -= death_Iv;
-        for (int i = 0; i < death_Iv; ++i) {
-          int rnd1 = sample2(0, Iv[k]-1);
-          quick_erase(Iv_pop[k], rnd1);
-        }
-        
-        
-        //-------- SCHEDULED HUMAN EVENTS --------
-        
-        // loop through all hosts
-        for (unsigned int i = 0; i < host_pop.size(); ++i) {
-          
-          // check for host death
-          if (host_pop[i].death_day == t) {
-            host_pop[i].death(next_host_ID, t);
-          }
-          
-          // check for host change of prophylactic state
-          if (host_pop[i].t_prophylaxis_stop == t) {
-            host_pop[i].end_prophylaxis();
-          }
-          
-          // apply any scheduled inoc-level events
-          host_pop[i].check_inoc_event(t);
-          
-        }
-        
-      }  // end loop over demes
+      // rate of mosquito biting infective host
+      double rate_bite_infective = a*host_infective_index[k].size()/double(H[k]); 
       
-    }  // end if t > 0
+      // draw number of mosquitoes that bite infective host or die (competing
+      // hazards)
+      double prob_bite_infective_or_death = 1 - exp(-(rate_bite_infective + mu));
+      int n_bite_infective_or_death = rbinom1(Sv[k], prob_bite_infective_or_death);
+      
+      // draw number of mosquitoes that bite infective host, rather than dying.
+      double relative_prob_bite_infective = rate_bite_infective/(rate_bite_infective + mu);
+      int n_bite_infective = rbinom1(n_bite_infective_or_death, relative_prob_bite_infective);
+      
+      // use the same method of drawing query infections as used when
+      // infecting human hosts (see above)
+      int mosq_query_infection = rbinom1(n_bite_infective, max_infectivity);
+      for (int i = 0; i < mosq_query_infection; ++i) {
+        
+        // choose host at random from infectives
+        int rnd1 = sample2(0, host_infective_index[k].size()-1);
+        int this_host = host_infective_index[k][rnd1];
+        
+        // get infectivity and draw whether infection takes hold in mosquito
+        double host_infectivity = host_pop[this_host].get_infectivity(t);
+        if (rbernoulli1(host_infectivity/max_infectivity)) {
+          
+          // update deme counts
+          Sv[k]--;
+          Ev[k]++;
+          
+          // the majority of new mosquito infections will die in lag phase.
+          // Schedule these deaths to move back into Sv in future steps.
+          // Otherwise add to Ev_pop
+          int mosq_time_death = rgeom1(prob_mosq_death) + 1;
+          if (mosq_time_death <= v) {
+            
+            // schedule death for future time
+            Ev_death[k][(v_ringbuffer + mosq_time_death) % v]++;
+            
+          } else {
+            
+            // sample inoc IDs from host
+            vector<int> inoc_ID_vec = host_pop[this_host].get_inoc_ID_vec();
+            
+            // add to Ev_pop, scheduled to enter Iv_pop at future time
+            Ev_pop[k][v_ringbuffer].emplace_back(inoc_ID_vec);
+            
+          }
+          
+        }
+      } // end loop through query infective bites
+      
+      // deaths in Iv
+      int death_Iv = rbinom1(Iv[k], prob_mosq_death);
+      Sv[k] += death_Iv;
+      Iv[k] -= death_Iv;
+      for (int i = 0; i < death_Iv; ++i) {
+        int rnd1 = sample2(0, Iv[k]-1);
+        quick_erase(Iv_pop[k], rnd1);
+      }
+      
+      
+      //-------- SCHEDULED HUMAN EVENTS --------
+      
+      // loop through all hosts
+      for (unsigned int i = 0; i < host_pop.size(); ++i) {
+        
+        // check for host death
+        if (host_pop[i].death_day == t) {
+          host_pop[i].death(next_host_ID, t);
+        }
+        
+        // check for host change of prophylactic state
+        if (host_pop[i].t_prophylaxis_stop == t) {
+          host_pop[i].end_prophylaxis();
+        }
+        
+        // apply any scheduled inoc-level events
+        host_pop[i].check_inoc_event(t);
+        
+      }
+      
+    }  // end loop over demes
     
     
     //-------- STORE RESULTS --------
@@ -355,7 +350,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
     }
     
     // store age distributions
-    if (output_age_distributions && output_age_times[index_age_distributions] == t+1) {
+    if (output_age_distributions && (output_age_times[index_age_distributions] == t+1)) {
       
       get_age_distribution(index_age_distributions);
       
