@@ -96,7 +96,7 @@ public:
   void run_simulation(Rcpp::List &args_functions, Rcpp::List &args_progress);
   void update_host_counts(int t);
   void update_incidence(int t);
-  void get_sample_details(int t, int deme, int n);
+  void get_sample_details(int t, int deme, int n, Diagnosis diag);
   void get_age_distribution(int t_index);
   
 };

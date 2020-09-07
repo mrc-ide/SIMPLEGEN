@@ -382,9 +382,10 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
         // get sampling parameters
         int this_deme = params->ss_deme[index_obtain_samples];
         int this_n = params->ss_n[index_obtain_samples];
+        Diagnosis this_diagnosis = params->ss_diagnosis[index_obtain_samples];
         
         // obtain samples
-        get_sample_details(t, this_deme, this_n);
+        get_sample_details(t, this_deme, this_n, this_diagnosis);
         
         // increment index
         index_obtain_samples++;
@@ -487,7 +488,12 @@ void Dispatcher::update_incidence(int t) {
 
 //------------------------------------------------
 // draw sample from deme
-void Dispatcher::get_sample_details(int t, int deme, int n) {
+void Dispatcher::get_sample_details(int t, int deme, int n, Diagnosis diag) {
+  
+  // n cannot exceed human population size at this point in time
+  if (n > H[deme]) {
+    n = H[deme];
+  }
   
   // draw vector by sampling without replacement
   vector<int> samp = sample4(n, 0, H[deme] - 1);
@@ -500,8 +506,31 @@ void Dispatcher::get_sample_details(int t, int deme, int n) {
     int this_host_ID = host_pop[this_index].host_ID;
     
     // find if positive for malaria parasites
+    bool test_positive =  false;
     Status_host this_host_status = host_pop[this_index].get_host_status();
-    bool test_positive = (this_host_status == Host_Ah || this_host_status == Host_Ch);
+    if (this_host_status == Host_Ah) {
+      
+      // get positive prob for acute microscopy vs PCR
+      double prob_positive = 0.0;
+      if (diag == microscopy) {
+        prob_positive = host_pop[this_index].get_detectability_microscopy_acute(t);
+      } else if (diag == PCR) {
+        prob_positive = host_pop[this_index].get_detectability_PCR_acute(t);
+      }
+      test_positive = rbernoulli1(prob_positive);
+      
+    } else if (this_host_status == Host_Ch) {
+      
+      // get positive prob for chronic microscopy vs PCR
+      double prob_positive = 0.0;
+      if (diag == microscopy) {
+        prob_positive = host_pop[this_index].get_detectability_microscopy_chronic(t);
+      } else if (diag == PCR) {
+        prob_positive = host_pop[this_index].get_detectability_PCR_chronic(t);
+      }
+      test_positive = rbernoulli1(prob_positive);
+      
+    }
     
     // save basic details
     vector<int> this_details = {t+1, deme+1, this_host_ID, test_positive};
