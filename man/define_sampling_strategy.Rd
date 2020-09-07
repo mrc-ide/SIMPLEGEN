@@ -4,13 +4,13 @@
 \alias{define_sampling_strategy}
 \title{Define how samples are taken from transmission model}
 \usage{
-define_sampling_strategy(project, x)
+define_sampling_strategy(project, df_sample)
 }
 \arguments{
 \item{project}{a SIMPLEGEN project, as produced by the
 \code{simplegen_project()} function.}
 
-\item{x}{a dataframe containing all of the following columns:
+\item{df_sample}{a dataframe containing all of the following columns:
 \itemize{
   \item time: the time (in days) at which samples are taken.
   \item deme: the deme from which samples are taken.
