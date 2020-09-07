@@ -16,5 +16,7 @@ plot_daily_states(project, deme = 1, states = c("S", "E", "A", "C", "P"))
 in daily counts.}
 }
 \description{
-TODO.
+Plot the daily value in each state from transmission model
+  output. The actual states plotted are defined by the user, and default to
+  the main human host states.
 }

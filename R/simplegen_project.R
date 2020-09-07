@@ -14,7 +14,11 @@ simplegen_project <- function() {
   project <- list(epi_parameters = NULL,
                   sampling_strategy = NULL,
                   epi_output = NULL,
-                  sample_details = NULL)
+                  sample_details = NULL,
+                  relatedness = NULL,
+                  true_genotypes = NULL,
+                  observed_genotypes = NULL)
+  
   class(project) <- "simplegen_project"
   
   # return
@@ -39,6 +43,8 @@ print.simplegen_project <- function(x, ...) {
 #' @method summary simplegen_project
 #' @export
 summary.simplegen_project <- function(object, ...) {
+  
+  
   
   message("TODO - some default print method")
   

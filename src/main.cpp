@@ -18,17 +18,13 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List 
   
   // define parameters object and load values
   Parameters params;
-  params.load_epi_params(args);
-  params.load_deme_params(args);
-  params.load_migration_params(args);
-  params.load_demog_params(args);
-  params.load_sampling_params(args);
-  params.load_run_params(args);
+  params.load_params(args);
   
   // create dispatcher object and run simulations
   Dispatcher dispatcher;
-  dispatcher.init();
+  dispatcher.init(params);
   dispatcher.run_simulation(args_functions, args_progress);
+  
   
   // end timer
   chrono_timer(t1);

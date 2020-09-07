@@ -7,7 +7,7 @@ simplegen_cols <- function() {
 }
 
 #------------------------------------------------
-# change the alpha value (transparency) on any named colour
+# change the alpha value (transparency) of any named colour
 #' @importFrom grDevices col2rgb rgb
 #' @noRd
 set_col_alpha <- function(col, alpha) {
@@ -17,9 +17,9 @@ set_col_alpha <- function(col, alpha) {
 #------------------------------------------------
 #' @title Generic function for plotting a SIMPLEGEN flexible distribution
 #'
-#' @description Many distributions within the SIMPLEGEN transmission model can
-#'   be defined flexibly, as either a vector or a list of vectors. This function
-#'   facilitates quick visualisation of these distributions.
+#' @description Many distributions within the inbuilt SIMPLEGEN transmission
+#'   model can be defined flexibly, as either a vector or a list of vectors.
+#'   This function facilitates quick visualisation of these distributions.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
@@ -71,12 +71,12 @@ plot_epi_distribution_duration <- function(project, name, normalise = FALSE) {
   # make plotting dataframe
   y <- params_processed[[name]]
   plot_df <- do.call(rbind, mapply(function(i) {
-    ret <- data.frame(x = 1:length(y[[i]]), y = y[[i]], rep = i)
+    ret <- data.frame(x = seq_along(y[[i]]), y = y[[i]], rep = i)
     if (normalise) {
       ret$y <- ret$y/sum(ret$y)
     }
     return(ret)
-  }, 1:length(y), SIMPLIFY = FALSE))
+  }, seq_along(y), SIMPLIFY = FALSE))
   
   # produce plot
   ret <- ggplot2::ggplot(data = plot_df) + ggplot2::theme_bw() +
@@ -106,7 +106,7 @@ plot_epi_distribution_transition <- function(project, name) {
   
   # make plotting dataframe
   y <- project$epi_parameters[[name]]
-  plot_df <- data.frame(x = 1:length(y), y = y)
+  plot_df <- data.frame(x = seq_along(y), y = y)
   
   # produce plot
   ret <- ggplot2::ggplot(data = plot_df) + ggplot2::theme_bw() +
@@ -122,12 +122,12 @@ plot_epi_distribution_transition <- function(project, name) {
 #------------------------------------------------
 #' @title Plot distribution of treatment seeking in the population
 #'
-#' @description Within the inbuilt SIMPLEGEN transmission model each host has its own
-#'   treatment seeking parameter, which defines the probability of actively
-#'   seeking treatment once disease reaches a point that this becomes necessary.
-#'   These parameter values are drawn independently for each host from a Beta
-#'   distribution with user-defined mean and standard deviation. This function
-#'   plots the Beta distribution for the current project values.
+#' @description Within the inbuilt SIMPLEGEN transmission model, each host has
+#'   its own treatment seeking parameter defining the probability of
+#'   actively seeking treatment once disease reaches a point that this becomes
+#'   necessary. These parameter values are drawn independently for each host
+#'   from a Beta distribution with user-defined mean and standard deviation.
+#'   This function plots the Beta distribution for the current project values.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
@@ -173,7 +173,9 @@ plot_treatment_seeking <- function(project) {
 #------------------------------------------------
 #' @title Plot daily counts of each host state
 #'
-#' @description TODO.
+#' @description Plot the daily value in each state from transmission model
+#'   output. The actual states plotted are defined by the user, and default to
+#'   the main human host states.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
@@ -187,6 +189,9 @@ plot_treatment_seeking <- function(project) {
 
 plot_daily_states <- function(project, deme = 1, states = c("S", "E", "A", "C", "P")) {
   
+  # needed to avoid error "no visible global variable"
+  state <- count <- NULL
+  
   # check inputs
   assert_custom_class(project, "simplegen_project")
   assert_dataframe(project$epi_output$daily_values)
@@ -198,36 +203,28 @@ plot_daily_states <- function(project, deme = 1, states = c("S", "E", "A", "C", 
   df_wide <- df_wide[df_wide$deme == deme,]
   
   # get to long format
-  state <- count <- NULL  # needed to avoid error "no visible global variable"
   df_long <- df_wide
   df_long <- tidyr::gather(df_wide, state, count, states, factor_key = TRUE)
-  
-  # choose plotting colours
-  #raw_cols <- simplegen_cols()
-  #plot_cols <- c(S = grey(0.5), E = raw_cols[2], A = raw_cols[1], C = raw_cols[3], P = raw_cols[5],
-  #               Sv = grey(0.8), Ev = raw_cols[6], Iv = raw_cols[7],
-  #               EIR = grey(0.0))
   
   # choose x-axis scale
   max_time <- max(df_wide$time)
   if (max_time <= 30) {
     x_breaks <- seq(0, max(df_wide$time))
-    x_labels <- 0:(length(x_breaks)-1)
+    x_labels <-seq_along(x_breaks) - 1
     x_lab <- "time (days)"
   } else if (max_time <= 365) {
     x_breaks <- seq(0, max(df_wide$time), 365/12)
-    x_labels <- 0:(length(x_breaks)-1)
+    x_labels <-seq_along(x_breaks) - 1
     x_lab <- "time (months)"
   } else {
     x_breaks <- seq(0, max(df_wide$time), 365)
-    x_labels <- 0:(length(x_breaks)-1)
+    x_labels <-seq_along(x_breaks) - 1
     x_lab <- "time (years)"
   }
   
   # produce plot
   ggplot2::ggplot(df_long) + ggplot2::theme_bw() +
     ggplot2::geom_line(ggplot2::aes_(x = ~time, y = ~count, color = ~state)) +
-    #ggplot2::scale_color_manual(values = plot_cols) +
     ggplot2::scale_x_continuous(x_lab, breaks = x_breaks, labels = x_labels)
   
 }
@@ -235,7 +232,9 @@ plot_daily_states <- function(project, deme = 1, states = c("S", "E", "A", "C", 
 #------------------------------------------------
 #' @title Plot age distribution of states
 #'
-#' @description TODO.
+#' @description If project contains age distributions in the output from running
+#'   the transmission model, then this function can be used to produce a simple
+#'   barplot for a specified state.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
@@ -247,7 +246,17 @@ plot_daily_states <- function(project, deme = 1, states = c("S", "E", "A", "C", 
 
 plot_age_states <- function(project, sample_time = 1, deme = 1, state = "S") {
   
-  # TODO - check inputs
+  # check inputs
+  assert_non_null(project$epi_output$age_distributions, message = "no age distribution output found")
+  assert_single_pos_int(sample_time)
+  assert_in(sample_time, project$epi_output$age_distributions$sample_time,
+            message = "sample_time values not found in age distribution output")
+  assert_single_pos_int(deme)
+  assert_in(deme, project$epi_output$age_distributions$deme,
+            message = "deme values not found in age distribution output")
+  assert_single_string(state)
+  assert_in(state, names(project$epi_output$age_distributions),
+            message = "state not found in age distribution output")
   
   # subset data
   dat <- project$epi_output$age_distributions

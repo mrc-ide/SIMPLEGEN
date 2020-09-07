@@ -22,7 +22,8 @@ nice_format <- function(x) {
 #------------------------------------------------
 # x is NULL
 #' @noRd
-assert_null <- function(x, message = "%s must be null", name = deparse(substitute(x))) {
+assert_null <- function(x, message = "%s must be null",
+                        name = paste(deparse(substitute(x)), collapse = "")) {
   if (!is.null(x)) {
     stop(sprintf(message, name), call. = FALSE)
   }
@@ -32,7 +33,8 @@ assert_null <- function(x, message = "%s must be null", name = deparse(substitut
 #------------------------------------------------
 # x is not NULL
 #' @noRd
-assert_non_null <- function(x, message = "%s cannot be null", name = deparse(substitute(x))) {
+assert_non_null <- function(x, message = "%s cannot be null",
+                            name = paste(deparse(substitute(x)), collapse = "")) {
   if (is.null(x)) {
     stop(sprintf(message, name), call. = FALSE)
   }
@@ -42,7 +44,8 @@ assert_non_null <- function(x, message = "%s cannot be null", name = deparse(sub
 #------------------------------------------------
 # x is atomic
 #' @noRd
-assert_atomic <- function(x, message = "%s must be atomic (see ?is.atomic)", name = deparse(substitute(x))) {
+assert_atomic <- function(x, message = "%s must be atomic (see ?is.atomic)",
+                          name = paste(deparse(substitute(x)), collapse = "")) {
   if (!is.atomic(x)) {
     stop(sprintf(message, name), call. = FALSE)
   }
@@ -52,7 +55,8 @@ assert_atomic <- function(x, message = "%s must be atomic (see ?is.atomic)", nam
 #------------------------------------------------
 # x is atomic and single valued (has length 1)
 #' @noRd
-assert_single <- function(x, message = "%s must be a single value", name = deparse(substitute(x))) {
+assert_single <- function(x, message = "%s must be a single value",
+                          name = paste(deparse(substitute(x)), collapse = "")) {
   assert_non_null(x, name = name)
   assert_atomic(x, name = name)
   assert_length(x, 1, name = name)
@@ -62,7 +66,8 @@ assert_single <- function(x, message = "%s must be a single value", name = depar
 #------------------------------------------------
 # x is character string
 #' @noRd
-assert_string <- function(x, message = "%s must be character string", name = deparse(substitute(x))) {
+assert_string <- function(x, message = "%s must be character string",
+                          name = paste(deparse(substitute(x)), collapse = "")) {
   if (!is.character(x)) {
     stop(sprintf(message, name), call. = FALSE)
   }
@@ -72,7 +77,7 @@ assert_string <- function(x, message = "%s must be character string", name = dep
 #------------------------------------------------
 # x is single character string
 #' @noRd
-assert_single_string <- function(x, name = deparse(substitute(x))) {
+assert_single_string <- function(x, name = paste(deparse(substitute(x)), collapse = "")) {
   assert_length(x, n = 1, name = name)
   assert_string(x, name = name)
   return(TRUE)
@@ -81,7 +86,8 @@ assert_single_string <- function(x, name = deparse(substitute(x))) {
 #------------------------------------------------
 # x is logical
 #' @noRd
-assert_logical <- function(x, message = "%s must be logical", name = deparse(substitute(x))) {
+assert_logical <- function(x, message = "%s must be logical",
+                           name = paste(deparse(substitute(x)), collapse = "")) {
   if (!is.logical(x)) {
     stop(sprintf(message, name), call. = FALSE)
   }
@@ -91,7 +97,7 @@ assert_logical <- function(x, message = "%s must be logical", name = deparse(sub
 #------------------------------------------------
 # x is single logical
 #' @noRd
-assert_single_logical <- function(x, name = deparse(substitute(x))) {
+assert_single_logical <- function(x, name = paste(deparse(substitute(x)), collapse = "")) {
   assert_length(x, n = 1, name = name)
   assert_logical(x, name = name)
   return(TRUE)
@@ -100,7 +106,8 @@ assert_single_logical <- function(x, name = deparse(substitute(x))) {
 #------------------------------------------------
 # x is numeric
 #' @noRd
-assert_numeric <- function(x, message = "%s must be numeric", name = deparse(substitute(x))) {
+assert_numeric <- function(x, message = "%s must be numeric",
+                           name = paste(deparse(substitute(x)), collapse = "")) {
   if (!is.numeric(x)) {
     stop(sprintf(message, name), call. = FALSE)
   }
@@ -110,7 +117,7 @@ assert_numeric <- function(x, message = "%s must be numeric", name = deparse(sub
 #------------------------------------------------
 # x is single numeric
 #' @noRd
-assert_single_numeric <- function(x, name = deparse(substitute(x))) {
+assert_single_numeric <- function(x, name = paste(deparse(substitute(x)), collapse = "")) {
   assert_length(x, n = 1, name = name)
   assert_numeric(x, name = name)
   return(TRUE)
@@ -119,7 +126,8 @@ assert_single_numeric <- function(x, name = deparse(substitute(x))) {
 #------------------------------------------------
 # x is integer
 #' @noRd
-assert_int <- function(x, message = "%s must be integer valued", name = deparse(substitute(x))) {
+assert_int <- function(x, message = "%s must be integer valued",
+                       name = paste(deparse(substitute(x)), collapse = "")) {
   assert_numeric(x, name = name)
   if (!isTRUE(all.equal(x, as.integer(x), check.attributes = FALSE))) {
     stop(sprintf(message, name), call. = FALSE)
@@ -130,7 +138,7 @@ assert_int <- function(x, message = "%s must be integer valued", name = deparse(
 #------------------------------------------------
 # x is single integer
 #' @noRd
-assert_single_int <- function(x, name = deparse(substitute(x))) {
+assert_single_int <- function(x, name = paste(deparse(substitute(x)), collapse = "")) {
   assert_length(x, n = 1, name = name)
   assert_int(x, name = name)
   return(TRUE)
@@ -139,7 +147,9 @@ assert_single_int <- function(x, name = deparse(substitute(x))) {
 #------------------------------------------------
 # x is positive (with or without zero allowed)
 #' @noRd
-assert_pos <- function(x, zero_allowed = TRUE, message1 = "%s must be greater than or equal to zero", message2 = "%s must be greater than zero", name = deparse(substitute(x))) {
+assert_pos <- function(x, zero_allowed = TRUE, message1 = "%s must be greater than or equal to zero",
+                       message2 = "%s must be greater than zero",
+                       name = paste(deparse(substitute(x)), collapse = "")) {
   assert_numeric(x, name = name)
   if (zero_allowed) {
     if (!all(x>=0)) {
@@ -156,7 +166,7 @@ assert_pos <- function(x, zero_allowed = TRUE, message1 = "%s must be greater th
 #------------------------------------------------
 # x is single positive (with or without zero allowed)
 #' @noRd
-assert_single_pos <- function(x, zero_allowed = TRUE, name = deparse(substitute(x))) {
+assert_single_pos <- function(x, zero_allowed = TRUE, name = paste(deparse(substitute(x)), collapse = "")) {
   assert_length(x, n = 1, name = name)
   assert_pos(x, zero_allowed = zero_allowed, name = name)
   return(TRUE)
@@ -165,7 +175,7 @@ assert_single_pos <- function(x, zero_allowed = TRUE, name = deparse(substitute(
 #------------------------------------------------
 # x is positive integer (with or without zero allowed)
 #' @noRd
-assert_pos_int <- function(x, zero_allowed = TRUE, name = deparse(substitute(x))) {
+assert_pos_int <- function(x, zero_allowed = TRUE, name = paste(deparse(substitute(x)), collapse = "")) {
   assert_int(x, name = name)
   assert_pos(x, zero_allowed = zero_allowed, name = name)
   return(TRUE)
@@ -174,7 +184,7 @@ assert_pos_int <- function(x, zero_allowed = TRUE, name = deparse(substitute(x))
 #------------------------------------------------
 # x is single positive integer (with or without zero allowed)
 #' @noRd
-assert_single_pos_int <- function(x, zero_allowed = TRUE, name = deparse(substitute(x))) {
+assert_single_pos_int <- function(x, zero_allowed = TRUE, name = paste(deparse(substitute(x)), collapse = "")) {
   assert_length(x, n = 1, name = name)
   assert_pos_int(x, zero_allowed = zero_allowed, name = name)
   return(TRUE)
@@ -183,16 +193,20 @@ assert_single_pos_int <- function(x, zero_allowed = TRUE, name = deparse(substit
 #------------------------------------------------
 # x is single value bounded between limits
 #' @noRd
-assert_single_bounded <- function(x, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE, name = deparse(substitute(x))) {
+assert_single_bounded <- function(x, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE,
+                                  name = paste(deparse(substitute(x)), collapse = "")) {
   assert_length(x, n = 1, name = name)
-  assert_bounded(x, left = left, right = right, inclusive_left = inclusive_left, inclusive_right = inclusive_right, name = name)
+  assert_bounded(x, left = left, right = right,
+                 inclusive_left = inclusive_left, inclusive_right = inclusive_right,
+                 name = name)
   return(TRUE)
 }
 
 #------------------------------------------------
 # x is a vector (and is not a list or another recursive type)
 #' @noRd
-assert_vector <- function(x, message = "%s must be a non-recursive vector", name = deparse(substitute(x))) {
+assert_vector <- function(x, message = "%s must be a non-recursive vector",
+                          name = paste(deparse(substitute(x)), collapse = "")) {
   if (!is.vector(x) || is.recursive(x)) {
     stop(sprintf(message, name), call. = FALSE)
   }
@@ -200,9 +214,77 @@ assert_vector <- function(x, message = "%s must be a non-recursive vector", name
 }
 
 #------------------------------------------------
+# x is a numeric vector
+#' @noRd
+assert_vector_numeric <- function(x, message = "%s must be a non-recursive vector of numeric values",
+                                  name = paste(deparse(substitute(x)), collapse = "")) {
+  assert_numeric(x, message = message, name = name)
+  assert_vector(x, message = message, name = name)
+  return(TRUE)
+}
+
+#------------------------------------------------
+# x is a vector of integers
+#' @noRd
+assert_vector_int <- function(x, message = "%s must be a non-recursive vector of integers",
+                              name = paste(deparse(substitute(x)), collapse = "")) {
+  assert_int(x, message = message, name = name)
+  assert_vector(x, message = message, name = name)
+  return(TRUE)
+}
+
+#------------------------------------------------
+# x is a vector of positive values
+#' @noRd
+assert_vector_pos <- function(x, zero_allowed = TRUE,
+                              message1 = "%s must be a non-recursive vector of positive values or zero",
+                              message2 = "%s must be a non-recursive vector of positive values",
+                              name = paste(deparse(substitute(x)), collapse = "")) {
+  assert_pos(x, zero_allowed = zero_allowed, message1 = message1, message2 = message2, name = name)
+  if (zero_allowed) {
+    assert_vector(x, message = message1, name = name)
+  } else {
+    assert_vector(x, message = message2, name = name)
+  }
+  return(TRUE)
+}
+
+#------------------------------------------------
+# x is a vector of positive integers
+#' @noRd
+assert_vector_pos_int <- function(x, zero_allowed = TRUE,
+                                  message1 = "%s must be a non-recursive vector of positive integers or zero",
+                                  message2 = "%s must be a non-recursive vector of positive integers",
+                                  name = paste(deparse(substitute(x)), collapse = "")) {
+  assert_pos(x, zero_allowed = zero_allowed, message1 = message1, message2 = message2, name = name)
+  
+  if (zero_allowed) {
+    message_final = message1
+  } else {
+    message_final = message2
+  }
+  assert_vector(x, message = message_final, name = name)
+  assert_int(x, message = message_final, name = name)
+  return(TRUE)
+}
+
+#------------------------------------------------
+# x is a vector of bounded values
+#' @noRd
+assert_vector_bounded <- function(x, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE,
+                                  name = paste(deparse(substitute(x)), collapse = "")) {
+  assert_vector(x, name = name)
+  assert_bounded(x, left = left, right = right,
+                 inclusive_left = inclusive_left, inclusive_right = inclusive_right,
+                 name = name)
+  return(TRUE)
+}
+
+#------------------------------------------------
 # x is a matrix
 #' @noRd
-assert_matrix <- function(x, message = "%s must be a matrix", name = deparse(substitute(x))) {
+assert_matrix <- function(x, message = "%s must be a matrix",
+                          name = paste(deparse(substitute(x)), collapse = "")) {
   if (!is.matrix(x)) {
     stop(sprintf(message, name), call. = FALSE)
   }
@@ -210,8 +292,19 @@ assert_matrix <- function(x, message = "%s must be a matrix", name = deparse(sub
 }
 
 #------------------------------------------------
+# x is a matrix of numeric values
+#' @noRd
+assert_matrix_numeric <- function(x, message = "%s must be a numeric matrix",
+                                  name = paste(deparse(substitute(x)), collapse = "")) {
+  assert_matrix(x, message = message, name = name)
+  assert_numeric(x, message = message, name = name)
+  return(TRUE)
+}
+
+#------------------------------------------------
 # x is a list
-assert_list <- function(x, message = "%s must be a list", name = deparse(substitute(x))) {
+assert_list <- function(x, message = "%s must be a list",
+                        name = paste(deparse(substitute(x)), collapse = "")) {
   if (!is.list(x)) {
     stop(sprintf(message, name), call. = FALSE)
   }
@@ -220,7 +313,8 @@ assert_list <- function(x, message = "%s must be a list", name = deparse(substit
 
 #------------------------------------------------
 # x is a data frame
-assert_dataframe <- function(x, message = "%s must be a data frame", name = deparse(substitute(x))) {
+assert_dataframe <- function(x, message = "%s must be a data frame",
+                             name = paste(deparse(substitute(x)), collapse = "")) {
   if (!is.data.frame(x)) {
     stop(sprintf(message, name), call. = FALSE)
   }
@@ -229,7 +323,8 @@ assert_dataframe <- function(x, message = "%s must be a data frame", name = depa
 
 #------------------------------------------------
 # x inherits from custom class c
-assert_custom_class <- function(x, c, message = "%s must inherit from class '%s'", name = deparse(substitute(x))) {
+assert_custom_class <- function(x, c, message = "%s must inherit from class '%s'",
+                                name = paste(deparse(substitute(x)), collapse = "")) {
   if (!inherits(x, c)) {
     stop(sprintf(message, name, c), call. = FALSE)
   }
@@ -238,7 +333,8 @@ assert_custom_class <- function(x, c, message = "%s must inherit from class '%s'
 
 #------------------------------------------------
 # x is a plotting limit, i.e. contains two increasing values
-assert_limit <- function(x, message = "%s must be a valid plotting limit, i.e. contain two increasing values", name = deparse(substitute(x))) {
+assert_limit <- function(x, message = "%s must be a valid plotting limit, i.e. contain two increasing values",
+                         name = paste(deparse(substitute(x)), collapse = "")) {
   assert_vector(x, name = name)
   assert_length(x, 2, name = name)
   assert_numeric(x, name = name)
@@ -253,7 +349,7 @@ assert_limit <- function(x, message = "%s must be a valid plotting limit, i.e. c
 # x and y are equal in all matched comparisons. x and y can be any type
 #' @noRd
 assert_eq <- function(x, y, message = "%s must equal %s",
-                      name_x = deparse(substitute(x)), name_y = nice_format(y)) {
+                      name_x = paste(deparse(substitute(x)), collapse = ""), name_y = nice_format(y)) {
   assert_non_null(x, name = name_x)
   assert_non_null(y, name = name_y)
   assert_same_length(x, y, name_x = name_x, name_y = name_y)
@@ -267,7 +363,7 @@ assert_eq <- function(x, y, message = "%s must equal %s",
 # x and y are unequal in all matched comparisons. x and y can be any type
 #' @noRd
 assert_neq <- function(x, y, message = "%s cannot equal %s",
-                      name_x = deparse(substitute(x)), name_y = nice_format(y)) {
+                       name_x = paste(deparse(substitute(x)), collapse = ""), name_y = nice_format(y)) {
   assert_non_null(x, name = name_x)
   assert_non_null(y, name = name_y)
   assert_same_length(x, y, name_x = name_x, name_y = name_y)
@@ -281,7 +377,8 @@ assert_neq <- function(x, y, message = "%s cannot equal %s",
 # x is greater than y in all matched comparisons
 #' @noRd
 assert_gr <- function(x, y, message = "%s must be greater than %s",
-                      name_x = deparse(substitute(x)), name_y = nice_format(y)) {
+                      name_x = paste(deparse(substitute(x)), collapse = ""),
+                      name_y = nice_format(y)) {
   assert_numeric(x, name = name_x)
   assert_numeric(y, name = name_y)
   assert_in(length(y), c(1,length(x)))
@@ -295,11 +392,11 @@ assert_gr <- function(x, y, message = "%s must be greater than %s",
 # x is greater than or equal to y in all matched comparisons
 #' @noRd
 assert_greq <- function(x, y, message = "%s must be greater than or equal to %s",
-                        name_x = deparse(substitute(x)), name_y = nice_format(y)) {
+                        name_x = paste(deparse(substitute(x)), collapse = ""), name_y = nice_format(y)) {
   assert_numeric(x, name = name_x)
   assert_numeric(y, name = name_y)
   assert_in(length(y), c(1,length(x)))
-  if (!all(x>=y)) {
+  if (!all(x >= y)) {
     stop(sprintf(message, name_x, name_y), call. = FALSE)
   }
   return(TRUE)
@@ -309,7 +406,7 @@ assert_greq <- function(x, y, message = "%s must be greater than or equal to %s"
 # x is less than y in all matched comparisons
 #' @noRd
 assert_le <- function(x, y, message = "%s must be less than %s",
-                      name_x = deparse(substitute(x)), name_y = nice_format(y)) {
+                      name_x = paste(deparse(substitute(x)), collapse = ""), name_y = nice_format(y)) {
   assert_numeric(x, name = name_x)
   assert_numeric(y, name = name_y)
   assert_in(length(y), c(1,length(x)))
@@ -323,7 +420,7 @@ assert_le <- function(x, y, message = "%s must be less than %s",
 # x is less than or equal to y in all matched comparisons
 #' @noRd
 assert_leq <- function(x, y, message = "%s must be less than or equal to %s",
-                       name_x = deparse(substitute(x)), name_y = nice_format(y)) {
+                       name_x = paste(deparse(substitute(x)), collapse = ""), name_y = nice_format(y)) {
   assert_numeric(x, name = name_x)
   assert_numeric(y, name = name_y)
   assert_in(length(y), c(1,length(x)))
@@ -336,7 +433,8 @@ assert_leq <- function(x, y, message = "%s must be less than or equal to %s",
 #------------------------------------------------
 # x is between bounds (inclusive or exclusive)
 #' @noRd
-assert_bounded <- function(x, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE, name = deparse(substitute(x))) {
+assert_bounded <- function(x, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE,
+                           name = paste(deparse(substitute(x)), collapse = "")) {
   assert_numeric(x, name = name)
   if (inclusive_left) {
     if (!all(x>=left)) {
@@ -363,7 +461,7 @@ assert_bounded <- function(x, left = 0, right = 1, inclusive_left = TRUE, inclus
 # all x are in y
 #' @noRd
 assert_in <- function(x, y, message = "all %s must be in %s",
-                      name_x = deparse(substitute(x)), name_y = nice_format(y)) {
+                      name_x = paste(deparse(substitute(x)), collapse = ""), name_y = nice_format(y)) {
   assert_non_null(x, name = name_x)
   assert_non_null(y, name = name_y)
   if (!all(x %in% y)) {
@@ -376,7 +474,7 @@ assert_in <- function(x, y, message = "all %s must be in %s",
 # none of x are in y
 #' @noRd
 assert_not_in <- function(x, y, message = "none of %s can be in %s",
-                          name_x = deparse(substitute(x)), name_y = nice_format(y)) {
+                          name_x = paste(deparse(substitute(x)), collapse = ""), name_y = nice_format(y)) {
   assert_non_null(x, name = name_x)
   assert_non_null(y, name = name_y)
   if (any(x %in% y)) {
@@ -391,7 +489,8 @@ assert_not_in <- function(x, y, message = "none of %s can be in %s",
 #------------------------------------------------
 # length(x) equals n
 #' @noRd
-assert_length <- function(x, n, message = "%s must be of length %s", name = deparse(substitute(x))) {
+assert_length <- function(x, n, message = "%s must be of length %s",
+                          name = paste(deparse(substitute(x)), collapse = "")) {
   assert_pos_int(n)
   if (length(x) != n[1]) {
     stop(sprintf(message, name, n), call. = FALSE)
@@ -403,7 +502,8 @@ assert_length <- function(x, n, message = "%s must be of length %s", name = depa
 # x and y are same length
 #' @noRd
 assert_same_length <- function(x, y, message =  "%s and %s must be the same length",
-                               name_x = deparse(substitute(x)), name_y = deparse(substitute(y))) {
+                               name_x = paste(deparse(substitute(x)), collapse = ""),
+                               name_y = paste(deparse(substitute(y)))) {
   if (length(x) != length(y)) {
     stop(sprintf(message, name_x, name_y), call. = FALSE)
   }
@@ -425,7 +525,8 @@ assert_same_length_multiple <- function(...) {
 #------------------------------------------------
 # x is two-dimensional
 #' @noRd
-assert_2d <- function(x, message = "%s must be two-dimensional", name = deparse(substitute(x))) {
+assert_2d <- function(x, message = "%s must be two-dimensional",
+                      name = paste(deparse(substitute(x)), collapse = "")) {
   is_2d <- FALSE
   if (!is.null(dim(x))) {
     if (length(dim(x)) == 2) {
@@ -441,7 +542,8 @@ assert_2d <- function(x, message = "%s must be two-dimensional", name = deparse(
 #------------------------------------------------
 # nrow(x) equals n
 #' @noRd
-assert_nrow <- function(x, n, message = "%s must have %s rows", name = deparse(substitute(x))) {
+assert_nrow <- function(x, n, message = "%s must have %s rows",
+                        name = paste(deparse(substitute(x)), collapse = "")) {
   assert_2d(x, name = name)
   if (nrow(x) != n) {
     stop(sprintf(message, name, n), call. = FALSE)
@@ -452,7 +554,8 @@ assert_nrow <- function(x, n, message = "%s must have %s rows", name = deparse(s
 #------------------------------------------------
 # ncol(x) equals n
 #' @noRd
-assert_ncol <- function(x, n, message = "%s must have %s cols", name = deparse(substitute(x))) {
+assert_ncol <- function(x, n, message = "%s must have %s cols",
+                        name = paste(deparse(substitute(x)), collapse = "")) {
   assert_2d(x, name = name)
   if (ncol(x) != n) {
     stop(sprintf(message, name, n), call. = FALSE)
@@ -463,7 +566,8 @@ assert_ncol <- function(x, n, message = "%s must have %s cols", name = deparse(s
 #------------------------------------------------
 # dim(x) equals y
 #' @noRd
-assert_dim <- function(x, y, message = "%s must have %s rows and %s columns", name = deparse(substitute(x))) {
+assert_dim <- function(x, y, message = "%s must have %s rows and %s columns",
+                       name = paste(deparse(substitute(x)), collapse = "")) {
   assert_2d(x, name = name)
   assert_pos_int(y, name = "y variable in assert_dim()")
   assert_length(y, 2, name = "y variable in assert_dim()")
@@ -476,7 +580,8 @@ assert_dim <- function(x, y, message = "%s must have %s rows and %s columns", na
 #------------------------------------------------
 # x is square matrix
 #' @noRd
-assert_square_matrix <- function(x, message = "%s must be a square matrix", name = deparse(substitute(x))) {
+assert_square_matrix <- function(x, message = "%s must be a square matrix",
+                                 name = paste(deparse(substitute(x)), collapse = "")) {
   assert_matrix(x, name = name)
   if (nrow(x) != ncol(x)) {
     stop(sprintf(message, name), call. = FALSE)
@@ -484,13 +589,11 @@ assert_square_matrix <- function(x, message = "%s must be a square matrix", name
   return(TRUE)
 }
 
-
-#### MISC ####################################################################
-
 #------------------------------------------------
 # is symmetric matrix
 #' @noRd
-assert_symmetric_matrix <- function(x, message = "%s must be a symmetric matrix", name = deparse(substitute(x))) {
+assert_symmetric_matrix <- function(x, message = "%s must be a symmetric matrix",
+                                    name = paste(deparse(substitute(x)), collapse = "")) {
   assert_square_matrix(x, name = name)
   if (!isSymmetric(x)) {
     stop(sprintf(message, name), call. = FALSE)
@@ -498,10 +601,13 @@ assert_symmetric_matrix <- function(x, message = "%s must be a symmetric matrix"
   return(TRUE)
 }
 
+#### MISC ####################################################################
+
 #------------------------------------------------
 # x contains no duplicates
 #' @noRd
-assert_noduplicates <- function(x, message = "%s must contain no duplicates", name = deparse(substitute(x))) {
+assert_noduplicates <- function(x, message = "%s must contain no duplicates",
+                                name = paste(deparse(substitute(x)), collapse = "")) {
   if (any(duplicated(x))) {
     stop(sprintf(message, name), call. = FALSE)
   }
@@ -511,7 +617,8 @@ assert_noduplicates <- function(x, message = "%s must contain no duplicates", na
 #------------------------------------------------
 # file exists at chosen path
 #' @noRd
-assert_file_exists <- function(x, message = "file not found at path %s", name = deparse(substitute(x))) {
+assert_file_exists <- function(x, message = "file not found at path %s",
+                               name = paste(deparse(substitute(x)), collapse = "")) {
   if (!file.exists(x)) {
     stop(sprintf(message, name), call. = FALSE)
   }
@@ -521,7 +628,8 @@ assert_file_exists <- function(x, message = "file not found at path %s", name = 
 #------------------------------------------------
 # x is increasing
 #' @noRd
-assert_increasing <- function(x, message = "%s must be increasing", name = deparse(substitute(x))) {
+assert_increasing <- function(x, message = "%s must be increasing",
+                              name = paste(deparse(substitute(x)), collapse = "")) {
   assert_non_null(x, name = name)
   assert_numeric(x, name = name)
   if (!all.equal(x, sort(x))) {
@@ -533,7 +641,8 @@ assert_increasing <- function(x, message = "%s must be increasing", name = depar
 #------------------------------------------------
 # x is decreasing
 #' @noRd
-assert_decreasing <- function(x, message = "%s must be decreasing", name = deparse(substitute(x))) {
+assert_decreasing <- function(x, message = "%s must be decreasing",
+                              name = paste(deparse(substitute(x)), collapse = "")) {
   assert_non_null(x, name = name)
   assert_numeric(x, name = name)
   if (!all.equal(x, sort(x, decreasing = TRUE))) {

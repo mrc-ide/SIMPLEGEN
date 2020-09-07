@@ -19,84 +19,84 @@ public:
   // PUBLIC OBJECTS
   
   // scalar epi parameters
-  static double a, p, mu;
-  static int u, v, g, max_inoculations;
+  double a, p, mu;
+  int u, v, g, max_inoculations;
   
   // state transition probabilities and durations
-  static std::vector<double> prob_infection;
-  static int n_prob_infection;
-  static double max_prob_infection;
-  static std::vector<double> prob_acute;
-  static int n_prob_acute;
-  static std::vector<double> prob_AC;
-  static int n_prob_AC;
-  static std::vector<std::vector<double>> duration_acute;
-  static int n_duration_acute;
-  static std::vector<std::vector<double>> duration_chronic;
-  static int n_duration_chronic;
+  std::vector<double> prob_infection;
+  int n_prob_infection;
+  double max_prob_infection;
+  std::vector<double> prob_acute;
+  int n_prob_acute;
+  std::vector<double> prob_AC;
+  int n_prob_AC;
+  std::vector<std::vector<double>> duration_acute;
+  int n_duration_acute;
+  std::vector<std::vector<double>> duration_chronic;
+  int n_duration_chronic;
   
   // detectability
-  static std::vector<std::vector<double>> detectability_microscopy_acute;
-  static int n_detectability_microscopy_acute;
-  static std::vector<std::vector<double>> detectability_microscopy_chronic;
-  static int n_detectability_microscopy_chronic;
-  static std::vector<std::vector<double>> detectability_PCR_acute;
-  static int n_detectability_PCR_acute;
-  static std::vector<std::vector<double>> detectability_PCR_chronic;
-  static int n_detectability_PCR_chronic;
+  std::vector<std::vector<double>> detectability_microscopy_acute;
+  int n_detectability_microscopy_acute;
+  std::vector<std::vector<double>> detectability_microscopy_chronic;
+  int n_detectability_microscopy_chronic;
+  std::vector<std::vector<double>> detectability_PCR_acute;
+  int n_detectability_PCR_acute;
+  std::vector<std::vector<double>> detectability_PCR_chronic;
+  int n_detectability_PCR_chronic;
   
   // treatment
-  static double treatment_seeking_mean, treatment_seeking_sd;
-  static std::vector<std::vector<double>> time_treatment_acute;
-  static int n_time_treatment_acute;
-  static std::vector<std::vector<double>> time_treatment_chronic;
-  static int n_time_treatment_chronic;
-  static std::vector<double> duration_prophylactic;
-  static int n_duration_prophylactic;
+  double treatment_seeking_mean, treatment_seeking_sd;
+  std::vector<std::vector<double>> time_treatment_acute;
+  int n_time_treatment_acute;
+  std::vector<std::vector<double>> time_treatment_chronic;
+  int n_time_treatment_chronic;
+  std::vector<double> duration_prophylactic;
+  int n_duration_prophylactic;
   
   // infectivity
-  static std::vector<std::vector<double>> infectivity_acute;
-  static int n_infectivity_acute;
-  static std::vector<std::vector<double>> infectivity_chronic;
-  static int n_infectivity_chronic;
-  static double max_infectivity;
+  std::vector<std::vector<double>> infectivity_acute;
+  int n_infectivity_acute;
+  std::vector<std::vector<double>> infectivity_chronic;
+  int n_infectivity_chronic;
+  double max_infectivity;
   
   // deme parameters
-  static std::vector<int> H_init;
-  static std::vector<int> seed_infections;
-  static std::vector<int> M;
-  static int n_demes;
+  std::vector<int> H_init;
+  std::vector<int> seed_infections;
+  std::vector<int> M;
+  int n_demes;
   
   // migration parameters
-  static std::vector<std::vector<double>> mig_mat;
+  std::vector<std::vector<double>> mig_mat;
   
   // demog parameters
-  static std::vector<double> life_table;
-  static int n_life_table;
-  static std::vector<double> age_death;
-  static std::vector<double> age_stable;
+  std::vector<double> life_table;
+  int n_life_table;
+  std::vector<double> age_death;
+  std::vector<double> age_stable;
   
   // sampling strategy parameters
-  static bool obtain_samples;
-  static std::vector<int> ss_time;
-  static std::vector<int> ss_deme;
-  static std::vector<Case_detection> ss_case_detection;
-  static std::vector<Diagnosis> ss_diagnosis;
-  static std::vector<int> ss_n;
+  bool obtain_samples;
+  std::vector<int> ss_time;
+  std::vector<int> ss_deme;
+  std::vector<Case_detection> ss_case_detection;
+  std::vector<Diagnosis> ss_diagnosis;
+  std::vector<int> ss_n;
   
   // run parameters
-  static int max_time;
-  static bool save_transmission_record;
-  static std::string transmission_record_location;
-  static bool output_daily_counts;
-  static bool output_age_distributions;
-  static std::vector<int> output_age_times;
-  static int n_output_age_times;
-  static bool pb_markdown;
-  static bool silent;
+  int max_time;
+  bool save_transmission_record;
+  std::string transmission_record_location;
+  bool output_daily_counts;
+  bool output_age_distributions;
+  std::vector<int> output_age_times;
+  int n_output_age_times;
+  bool pb_markdown;
+  bool silent;
   
   // misc parameters
-  static double prob_mosq_death;  // daily probability of mosquito death
+  double prob_mosq_death;  // daily probability of mosquito death
   
   
   // PUBLIC FUNCTIONS
@@ -105,6 +105,7 @@ public:
   Parameters() {};
   
   // methods
+  void load_params(Rcpp::List args);
   void load_epi_params(Rcpp::List args);
   void load_deme_params(Rcpp::List args);
   void load_migration_params(Rcpp::List args);

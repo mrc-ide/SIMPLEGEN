@@ -7,7 +7,7 @@
 life_table_Mali()
 }
 \description{
-The default life table used within the SIMPLEGEN epidemiological
-  model. Values represent probabilities of death in one-year age bands, and
-  are taken from (TODO - insert reference for this table).
+The default life table used within the inbuilt SIMPLEGEN
+  transmission model. Values represent probabilities of death in one-year age
+  bands.
 }

@@ -12,11 +12,14 @@
 
 //------------------------------------------------
 // class for dispatching main simulation. Inherits parameters
-class Dispatcher : public Parameters {
+class Dispatcher {
   
 public:
   
   // PUBLIC OBJECTS
+  
+  // pointer to parameters
+  Parameters * params;
   
   // filestream to transmission record
   std::ofstream transmission_record;
@@ -85,7 +88,7 @@ public:
   Dispatcher() {};
   
   // methods
-  void init();
+  void init(Parameters &params);
   void run_simulation(Rcpp::List &args_functions, Rcpp::List &args_progress);
   void update_host_counts(int t);
   void get_sample_details(int t, int deme, int n);
