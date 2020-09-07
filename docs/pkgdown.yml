@@ -1,8 +1,9 @@
-pandoc: 1.19.2.1
-pkgdown: 1.3.0
+pandoc: 2.7.3
+pkgdown: 1.5.1
 pkgdown_sha: ~
 articles:
   basic_tutorial: basic_tutorial.html
   installation: installation.html
   model_description: model_description.html
+last_built: 2020-09-07T12:37Z
 

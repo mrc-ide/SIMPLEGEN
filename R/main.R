@@ -468,8 +468,7 @@ sim_epi <- function(project,
   assert_single_logical(overwrite_transmission_record)
   assert_single_logical(output_daily_counts)
   assert_single_logical(output_age_distributions)
-  assert_vector(output_age_times)
-  assert_pos_int(output_age_times)
+  assert_vector_pos_int(output_age_times, zero_allowed = FALSE)
   assert_leq(output_age_times, max_time)
   assert_single_logical(pb_markdown)
   assert_single_logical(silent)
@@ -559,7 +558,7 @@ sim_epi <- function(project,
       ret <- as.data.frame(cbind(seq_len(nrow(ret)), i, ret))
       names(ret) <- c("time", "deme", "H", "S", "E", "A", "C", "P",
                       "Sv", "Ev", "Iv",
-                      "EIR",
+                      "EIR", "inc_infection", "inc_acute", "inc_chronic",
                       "A_detectable_microscopy", "C_detectable_microscopy",
                       "A_detectable_PCR", "C_detectable_PCR","n_inoc")
       return(ret)
@@ -572,7 +571,7 @@ sim_epi <- function(project,
     age_distributions <- do.call(rbind, mapply(function(j) {
       ret <- do.call(rbind, mapply(function(i) {
         ret <- do.call(rbind, output_raw$age_distributions[[j]][[i]])
-        colnames(ret) <- c("S", "E", "A", "C", "P")
+        colnames(ret) <- c("S", "E", "A", "C", "P", "inc_infection", "inc_acute", "inc_chronic")
         data.frame(cbind(deme = i, age = seq_len(nrow(ret)) - 1, ret))
       }, seq_along(output_raw$age_distributions[[j]]), SIMPLIFY = FALSE))
       cbind(sample_time = j, ret)

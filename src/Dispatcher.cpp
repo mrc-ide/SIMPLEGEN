@@ -120,10 +120,16 @@ void Dispatcher::init(Parameters &params_) {
   // objects for storing results
   daily_values = vector<vector<vector<double>>>(params->n_demes, vector<vector<double>>(params->max_time));
   // age distributions. Final level: 0 = Sh, 1 = Eh, 2 = Ah, 3 = Ch, 4 = Ph
-  age_distributions = vector<vector<vector<vector<double>>>>(params->n_output_age_times, vector<vector<vector<double>>>(params->n_demes, vector<vector<double>>(params->n_life_table, vector<double>(5))));
+  age_distributions = vector<vector<vector<vector<double>>>>(params->n_output_age_times,
+                              vector<vector<vector<double>>>(params->n_demes,
+                                      vector<vector<double>>(params->n_life_table, vector<double>(8))));
   
   // misc
   EIR = vector<double>(params->n_demes);
+  prob_infectious_bite = vector<double>(params->n_demes);
+  inc_infection = vector<double>(params->n_demes);
+  inc_acute = vector<double>(params->n_demes);
+  inc_chronic = vector<double>(params->n_demes);
   
 }
 
@@ -192,7 +198,8 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
       // get number of new infectious bites on humans
       EIR[k] = params->a * Iv[k] / double(H[k]);
      
-      double prob_infectious_bite = 1 - exp(-EIR[k]);  // probability of new infectious bite on host
+      // probability of new infectious bite on host
+      prob_infectious_bite[k] = 1 - exp(-EIR[k]);
       
       // one method of drawing infections in humans would be to draw the total
       // number of infectious bites from Binomial(H[k], prob_infectious_bite),
@@ -206,17 +213,17 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
       // host-specific and changes over inoculations. Therefore, as a
       // middleground, draw from Binomial(H[k],
       // max_prob_infection*prob_infectious_bite), where max_prob_infection is
-      // the largest value that prob_infection could possibly take. Loop
+      // the largest value that prob_infection could possibly take. Then loop
       // through these query infectious bites and draw from a Bernoulli
       // distribution relative to this value.
       //
       // For example, if prob_infection = {0.1, 0.05} then filter based on the
       // value 0.1, i.e. draw the number of query infected hosts from
-      // Binomial(H[k], 0.1). Then loop these query hosts and draw from the
-      // relative probability of infection, which is Bernoulli with
-      // probability {0.1, 0.05}/0.1 = {1.0, 0.5}.
+      // Binomial(H[k], 0.1*prob_infectious_bite). Then loop through these query
+      // hosts and draw from the relative probability of infection, which is
+      // Bernoulli with probability {0.1, 0.05}/0.1 = {1.0, 0.5}.
       
-      int host_query_infection = rbinom1(H[k], params->max_prob_infection * prob_infectious_bite);
+      int host_query_infection = rbinom1(H[k], params->max_prob_infection * prob_infectious_bite[k]);
       for (int i = 0; i < host_query_infection; ++i) {
         
         // choose host at random
@@ -344,11 +351,14 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
     // update counts of each host status in each deme
     update_host_counts(t);
     
+    // update incidence measures
+    update_incidence(t);
+    
     // store daily values
     for (int k = 0; k < params->n_demes; ++k) {
       daily_values[k][t] = {double(H[k]), double(Sh[k]), double(Eh[k]), double(Ah[k]), double(Ch[k]), double(Ph[k]),
                             double(Sv[k]), double(Ev[k]), double(Iv[k]),
-                            EIR[k],
+                            EIR[k], inc_infection[k], inc_acute[k], inc_chronic[k],
                             Ah_detectable_microscopy[k], Ch_detectable_microscopy[k],
                             Ah_detectable_PCR[k], Ch_detectable_PCR[k],n_inoc[k]};
     }
@@ -356,6 +366,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
     // store age distributions
     if (params->output_age_distributions && (params->output_age_times[index_age_distributions] == t+1)) {
       
+      // get age distribution
       get_age_distribution(index_age_distributions);
       
       // update index
@@ -447,6 +458,30 @@ void Dispatcher::update_host_counts(int t) {
     H[k] = Sh[k] + Eh[k] + Ah[k] + Ch[k] + Ph[k];
   }
   
+}
+
+//------------------------------------------------
+// update incidence measures
+void Dispatcher::update_incidence(int t) {
+  
+  // reset values
+  fill(inc_infection.begin(), inc_infection.end(), 0.0);
+  fill(inc_acute.begin(), inc_acute.end(), 0.0);
+  fill(inc_chronic.begin(), inc_chronic.end(), 0.0);
+  
+  // loop through all hosts, update incidence in given deme
+  for (unsigned int i = 0; i < host_pop.size(); ++i) {
+    int this_deme = host_pop[i].deme;
+    
+    // incidence of infection
+    double inc1 = prob_infectious_bite[this_deme] * host_pop[i].get_prob_infection() / double(H[this_deme]);
+    inc_infection[this_deme] += inc1;
+    
+    // incidence of acute and chronic infection
+    double inc2 = host_pop[i].get_prob_acute();
+    inc_acute[this_deme] += inc1 * inc2;
+    inc_chronic[this_deme] += inc1 * (1.0 - inc2);
+  }
   
 }
 
@@ -495,7 +530,7 @@ void Dispatcher::get_age_distribution(int t_index) {
   // get current time
   int t = params->output_age_times[t_index];
   
-  // loop through all hosts, update age distribution
+  // loop through all hosts, update age distributions
   for (unsigned int i = 0; i < host_pop.size(); ++i) {
     int this_deme = host_pop[i].deme;
     int this_age = host_pop[i].get_age(t);
@@ -519,6 +554,16 @@ void Dispatcher::get_age_distribution(int t_index) {
     default:
       Rcpp::stop("invalid host status in get_age_distribution()");
     }
-  }
+    
+    // incidence of infection
+    double inc1 = prob_infectious_bite[this_deme] * host_pop[i].get_prob_infection() / double(H[this_deme]);
+    age_distributions[t_index][this_deme][this_age][5] += inc1;
+    
+    // incidence of acute and chronic infection
+    double inc2 = host_pop[i].get_prob_acute();
+    age_distributions[t_index][this_deme][this_age][6] += inc1 * inc2;
+    age_distributions[t_index][this_deme][this_age][7] += inc1 * (1.0 - inc2);
+    
+  }  // end loop through hosts
   
 }

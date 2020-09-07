@@ -1,5 +1,18 @@
 
 #------------------------------------------------
+test_that("default epi model fails with bad input", {
+  
+  # create basic project
+  p <- simplegen_project() %>%
+    define_epi_params()
+  
+  # run model with bad input
+  expect_error(sim_epi(p, max_time = 10, output_age_times = c(0,10)))
+  expect_error(sim_epi(p, max_time = 10, output_age_times = c(1,11)))
+  
+})
+
+#------------------------------------------------
 test_that("default epi model runs and produces correct output", {
   
   # define expected project slot names
