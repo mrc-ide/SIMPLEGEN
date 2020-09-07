@@ -12,7 +12,7 @@ Notice that genotypes are not actually generated until near the end of the pipel
 
 A second advantage of breaking simulation into stages is that the user is free to enter the pipeline at any stage. For example, an entirely different epidemiological model could be used in the first stage, just as long as it can produce a transmission record in a standardised format for the second stage. Similarly, if someone wanted to use the inbuilt epidemiological model but explore a different model of parasite genetics then they could enter at a later stage. 
 
-To get started with SIMPLEGEN, take a look at the [installation instructions](https://mrc-ide.github.io/SIMPLEGEN/articles/installation.html), followed by a [basic tutorial](https://mrc-ide.github.io/SIMPLEGEN/articles/basic_tutorial.html) on how to run the program.
+To get started with SIMPLEGEN, take a look at the [installation instructions](https://mrc-ide.github.io/SIMPLEGEN/articles/installation.html), followed by a [basic tutorial](https://mrc-ide.github.io/SIMPLEGEN/articles/basic_tutorial.html) on how to run the program. Alternatively, you may want to read about the [basic epidemiological model](https://mrc-ide.github.io/SIMPLEGEN/articles/model_description.html) that comes with SIMPLEGEN.
 
 
 

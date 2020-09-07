@@ -1,14 +1,49 @@
 
 #------------------------------------------------
-test_that("default epi model fails with bad input", {
+test_that("sampling strategy fails with bad input", {
   
-  # create basic project
+  # create project and load epi parameters
   p <- simplegen_project() %>%
     define_epi_params()
   
+  # define bad strategies
+  df_sample <- data.frame(time = c(100, 10),
+                          deme = 1,
+                          case_detection = "passive",
+                          diagnosis = "microscopy",
+                          n = 5)
+  expect_error(define_sampling_strategy(p, df_sample))
+  
+})
+
+#------------------------------------------------
+test_that("default epi model fails with bad input", {
+  
+  # create empty project
+  p <- simplegen_project()
+  
+  # functions that should fail with no epi parameters loaded
+  expect_error(sim_epi(p))
+  
+  # load epi parameters
+  p <- define_epi_params(p)
+  
   # run model with bad input
-  expect_error(sim_epi(p, max_time = 10, output_age_times = c(0,10)))
-  expect_error(sim_epi(p, max_time = 10, output_age_times = c(1,11)))
+  expect_error(sim_epi(p, max_time = 100, output_age_times = c(0,100)))
+  expect_error(sim_epi(p, max_time = 100, output_age_times = c(1,101)))
+  
+  # define sampling strategy
+  df_sample <- data.frame(time = 100,
+                          deme = 1,
+                          case_detection = "passive",
+                          diagnosis = "microscopy",
+                          n = 5)
+  p <- define_sampling_strategy(p, df_sample)
+  
+  # run model with input that clashes with sampling strategy
+  expect_error(sim_epi(p, max_time = 10))
+  p$sampling_strategy$deme <- 2
+  expect_error(sim_epi(p, max_time = 100))
   
 })
 

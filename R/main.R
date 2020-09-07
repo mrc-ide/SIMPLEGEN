@@ -378,7 +378,7 @@ get_demography <- function(life_table) {
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
-#' @param x a dataframe containing all of the following columns:
+#' @param df_sample a dataframe containing all of the following columns:
 #'   \itemize{
 #'     \item time: the time (in days) at which samples are taken.
 #'     \item deme: the deme from which samples are taken.
@@ -393,24 +393,25 @@ get_demography <- function(life_table) {
 #'
 #' @export
 
-define_sampling_strategy <- function(project, x) {
+define_sampling_strategy <- function(project, df_sample) {
   
   # check inputs
   assert_custom_class(project, "simplegen_project")
-  assert_dataframe(x)
-  assert_eq(names(x), c("time", "deme", "case_detection", "diagnosis", "n"))
-  assert_pos_int(x$time, zero_allowed = FALSE)
-  assert_pos_int(x$deme, zero_allowed = FALSE)
-  assert_in(x$case_detection, c("active", "passive"))
-  assert_in(x$diagnosis, c("microscopy", "PCR"))
-  assert_pos_int(x$n, zero_allowed = FALSE)
+  assert_dataframe(df_sample)
+  assert_eq(names(df_sample), c("time", "deme", "case_detection", "diagnosis", "n"))
+  assert_pos_int(df_sample$time, zero_allowed = FALSE)
+  assert_increasing(df_sample$time)
+  assert_pos_int(df_sample$deme, zero_allowed = FALSE)
+  assert_in(df_sample$case_detection, c("active", "passive"))
+  assert_in(df_sample$diagnosis, c("microscopy", "PCR"))
+  assert_pos_int(df_sample$n, zero_allowed = FALSE)
   
   # specify formats
-  x$case_detection <- as.character(x$case_detection)
-  x$diagnosis <- as.character(x$diagnosis)
+  df_sample$case_detection <- as.character(df_sample$case_detection)
+  df_sample$diagnosis <- as.character(df_sample$diagnosis)
   
   # load into project
-  project$sampling_strategy <- x
+  project$sampling_strategy <- df_sample
   
   invisible(project)
 }
@@ -485,6 +486,13 @@ sim_epi <- function(project,
     stop("no epi parameters defined. See ?define_epi_params")
   }
   
+  # check that inputs are compatible with sampling strategy
+  if (!is.null(project$sampling_strategy)) {
+    ss <- project$sampling_strategy
+    
+    assert_greq(max_time, max(ss$time), message = "%s exceeded by sampling time (%s)")
+    assert_greq(nrow(project$epi_parameters$mig_mat), max(ss$deme), "number of demes defined in sampling strategy exceeds number defined in epi parameters")
+  }
   
   # ---------- define argument lists ----------
   

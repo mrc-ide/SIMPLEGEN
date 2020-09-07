@@ -43,12 +43,39 @@ print.simplegen_project <- function(x, ...) {
 #' @method summary simplegen_project
 #' @export
 summary.simplegen_project <- function(object, ...) {
+  p <- object
   
+  # if empty project
+  if (all(mapply(is.null, p))) {
+    message("(empty project)")
+    invisible(object)
+  }
   
+  # print epi parameters
+  if (!is.null(p$epi_parameters)) {
+    message("Epidemiological model:")
+    n_demes <- length(p$epi_parameters$H)
+    message(sprintf("  demes: %s", n_demes))
+    message(sprintf("  H:\t %s", paste(p$epi_parameters$H, collapse = ", ")))
+    message(sprintf("  M:\t %s", paste(p$epi_parameters$M, collapse = ", ")))
+    message(sprintf("  seed infections: %s", paste(p$epi_parameters$seed_infections, collapse = ", ")))
+  }
   
-  message("TODO - some default print method")
+  # print sampling strategy
+  if (!is.null(p$sampling_strategy)) {
+    message("Sampling strategy:")
+    n_time <- unique(p$sampling_strategy$time)
+    n_samp_time <- mapply(sum, split(p$sampling_strategy$n, f = p$sampling_strategy$time))
+    if (length(n_time) <= 5) {
+      message(sprintf("  time: %s", paste(n_time, collapse = ", ")))
+      message(sprintf("  n: %s", paste(n_samp_time, collapse = ", ")))
+    } else {
+      message("  time: (more than 5)")
+      message("  n: (more than 5)")
+    }
+    
+  }
   
-  # return invisibly
   invisible(object)
 }
 
