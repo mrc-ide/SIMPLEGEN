@@ -32,11 +32,14 @@ enum Event {Event_Eh_to_Ah, Event_Eh_to_Ch,
 
 //------------------------------------------------
 // class defining human host
-class Host : public Parameters {
+class Host {
   
 public:
   
   // PUBLIC OBJECTS
+  
+  // pointer to parameters
+  Parameters * params;
   
   // identifiers
   int index;      // where in the population (vector of hosts) this host resides. The index never changes
@@ -94,7 +97,8 @@ public:
   Host() {};
   
   // other methods
-  void init(int index, int &host_ID, int deme,
+  void init(Parameters &params_,
+            int index, int &host_ID, int deme,
             std::vector<std::vector<int>> &host_index,
             std::vector<std::vector<int>> &host_infective_index,
             Sampler &sampler_age_stable,
