@@ -11,7 +11,8 @@ using namespace std;
 
 //------------------------------------------------
 // initialise host
-void Host::init(int index, int &host_ID, int deme,
+void Host::init(Parameters &params_,
+                int index, int &host_ID, int deme,
                 vector<vector<int>> &host_index,
                 vector<vector<int>> &host_infective_index,
                 Sampler &sampler_age_stable,
@@ -21,6 +22,9 @@ void Host::init(int index, int &host_ID, int deme,
                 vector<Sampler> &sampler_time_treatment_acute,
                 vector<Sampler> &sampler_time_treatment_chronic,
                 Sampler &sampler_duration_prophylatic) {
+  
+  // store pointer to parameters
+  params = &params_;
   
   // identifiers
   this->index = index;
@@ -56,16 +60,16 @@ void Host::init(int index, int &host_ID, int deme,
   draw_treatment_seeking();
   
   // initialise inoculation slots
-  inoc_ID_vec = vector<int>(max_inoculations);
-  inoc_active = vector<bool>(max_inoculations, false);
-  inoc_status_asexual = vector<Status_asexual>(max_inoculations, Inactive_asexual);
-  inoc_status_sexual = vector<Status_sexual>(max_inoculations, Inactive_sexual);
-  inoc_time_asexual = vector<int>(max_inoculations);
-  inoc_time_sexual = vector<int>(max_inoculations);
+  inoc_ID_vec = vector<int>(params->max_inoculations);
+  inoc_active = vector<bool>(params->max_inoculations, false);
+  inoc_status_asexual = vector<Status_asexual>(params->max_inoculations, Inactive_asexual);
+  inoc_status_sexual = vector<Status_sexual>(params->max_inoculations, Inactive_sexual);
+  inoc_time_asexual = vector<int>(params->max_inoculations);
+  inoc_time_sexual = vector<int>(params->max_inoculations);
   
   // initialise events
-  inoc_events = vector<map<Event, int>>(max_inoculations);
-  t_next_inoc_event = max_time + 1;
+  inoc_events = vector<map<Event, int>>(params->max_inoculations);
+  t_next_inoc_event = params->max_time + 1;
   
   // draw age from stable demography distribution
   draw_starting_age();
@@ -100,14 +104,14 @@ void Host::draw_starting_age() {
   // got already.
   int life_days = 0;
   double prop_year_remaining = 1.0 - extra_days/365.0; // (x in the above derivation)
-  double prob_die_this_year = 1.0 - pow(1.0 - life_table[age_years], 1.0 - prop_year_remaining);
+  double prob_die_this_year = 1.0 - pow(1.0 - params->life_table[age_years], 1.0 - prop_year_remaining);
   if (rbernoulli1(prob_die_this_year)) {
     life_days = age_years*365 + sample2(extra_days, 364);
   } else {
     // if we do not die in year age_years then loop through all remaining years,
     // performing Bernoulli draw from probability of dying in that year
-    for (unsigned int i = (age_years+1); i < life_table.size(); ++i) {
-      if (rbernoulli1(life_table[i])) {
+    for (unsigned int i = (age_years+1); i < params->life_table.size(); ++i) {
+      if (rbernoulli1(params->life_table[i])) {
         life_days = i*365 + sample2(0, 364);
         break;
       }
@@ -125,11 +129,11 @@ void Host::draw_starting_age() {
 // or Dirac delta distribution
 void Host::draw_treatment_seeking() {
   
-  if (treatment_seeking_mean == 0 || treatment_seeking_mean == 1 || treatment_seeking_sd == 0) {
-    treatment_seeking = treatment_seeking_mean;
+  if ((params->treatment_seeking_mean == 0) || (params->treatment_seeking_mean == 1) || (params->treatment_seeking_sd == 0)) {
+    treatment_seeking = params->treatment_seeking_mean;
   } else {
-    double m = treatment_seeking_mean;
-    double s = treatment_seeking_sd;
+    double m = params->treatment_seeking_mean;
+    double s = params->treatment_seeking_sd;
     double alpha = m*m*(1 - m)/(s*s) - m;
     double beta = m*(1 - m)*(1 - m)/(s*s) - (1 - m);
     treatment_seeking = rbeta1(alpha, beta);
@@ -170,25 +174,20 @@ void Host::check_inoc_event(int t) {
   }
   
   // deal with treatment at time t first
-  bool treatment_break = false;
-  for (int i = 0; i < max_inoculations; ++i) {
+  for (int i = 0; i < params->max_inoculations; ++i) {
     for (const auto & x : inoc_events[i]) {
-      if (x.first == Event_treatment && x.second == t) {
+      if ((x.first == Event_treatment) && (x.second == t)) {
         treatment(t);
-        treatment_break = true;
-        break;
+        goto treatment_break;
       }
     }
-    if (treatment_break) {
-      break;
-    }
   }
+  treatment_break:
   
-  // find other events that are scheduled for time t
-  t_next_inoc_event = max_time + 1;
-  for (int i = 0; i < max_inoculations; ++i) {
-    
-    // check for event at this slot that is scheduled for time t
+  // find other events that are scheduled for time t. Simultaneously recalculate
+  // the time of next inoc event
+  t_next_inoc_event = params->max_time + 1;
+  for (int i = 0; i < params->max_inoculations; ++i) {
     for (auto it = inoc_events[i].begin(); it != inoc_events[i].end();) {
       if (it->second == t) {
         
@@ -224,6 +223,7 @@ void Host::check_inoc_event(int t) {
         
         // drop this event from inoc_events[i]
         it = inoc_events[i].erase(it);
+        
       } else {
         if (it->second < t_next_inoc_event) {
           t_next_inoc_event = it->second;
@@ -258,7 +258,7 @@ void Host::death(int &host_ID, int t) {
   migrate(home_deme);
   
   // set current deme equal to home deme
-  //deme = home_deme;
+  deme = home_deme;
   
   // new unique ID
   this->host_ID = host_ID++;
@@ -296,10 +296,10 @@ void Host::death(int &host_ID, int t) {
   fill(inoc_time_sexual.begin(), inoc_time_sexual.end(), 0);
   
   // clear all scheduled inoc events
-  for (int i = 0; i < max_inoculations; ++i) {
+  for (int i = 0; i < params->max_inoculations; ++i) {
     inoc_events[i].clear();
   }
-  t_next_inoc_event = max_time + 1;
+  t_next_inoc_event = params->max_time + 1;
   
 }
 
@@ -321,7 +321,7 @@ void Host::denovo_infection(int t, int &next_inoc_ID, std::ofstream &transmissio
 void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &transmission_record) {
   
   // return if already at max_inoculations
-  if (get_n_active_inoc() == max_inoculations) {
+  if (get_n_active_inoc() == params->max_inoculations) {
     infection_index++;
     return;
   }
@@ -346,7 +346,7 @@ void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &tr
   // these events to happen
   int time_consider_treatment = 0;
   bool seek_treatment = false;
-  int t1 = t + u;
+  int t1 = t + params->u;
   bool acute = rbernoulli1(get_prob_acute());
   if (acute) {
     
@@ -354,7 +354,7 @@ void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &tr
     new_inoc_event(t1, Event_Eh_to_Ah, this_slot);
     
     // schedule become acutely infective
-    int t2 = t1 + g;
+    int t2 = t1 + params->g;
     new_inoc_event(t2, Event_begin_infective_acute, this_slot);
     
     // draw duration of acute phase
@@ -377,7 +377,7 @@ void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &tr
       new_inoc_event(t3, Event_Ah_to_Ch, this_slot);
       
       // schedule become chronically infective
-      int t4 = t3 + g;
+      int t4 = t3 + params->g;
       new_inoc_event(t4, Event_begin_infective_chronic, this_slot);
       
       // draw duration of chronic phase
@@ -388,7 +388,7 @@ void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &tr
       new_inoc_event(t5, Event_Ch_to_Sh, this_slot);
       
       // schedule recover from infective
-      int t6 = t5 + g;
+      int t6 = t5 + params->g;
       new_inoc_event(t6, Event_end_infective, this_slot);
       
     } else {  // transition directly from acute to recovery
@@ -397,7 +397,7 @@ void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &tr
       new_inoc_event(t3, Event_Ah_to_Sh, this_slot);
       
       // schedule recover from infective
-      int t4 = t3 + g;
+      int t4 = t3 + params->g;
       new_inoc_event(t4, Event_end_infective, this_slot);
       
     }
@@ -408,7 +408,7 @@ void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &tr
     new_inoc_event(t1, Event_Eh_to_Ch, this_slot);
     
     // schedule become chronically infective
-    int t2 = t1 + g;
+    int t2 = t1 + params->g;
     new_inoc_event(t2, Event_begin_infective_chronic, this_slot);
     
     // draw duration of chronic phase
@@ -427,7 +427,7 @@ void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &tr
     new_inoc_event(t3, Event_Ch_to_Sh, this_slot);
     
     // schedule recover from infective
-    int t4 = t3 + g;
+    int t4 = t3 + params->g;
     new_inoc_event(t4, Event_end_infective, this_slot);
     
   }
@@ -443,7 +443,7 @@ void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &tr
   inoc_index++;
   
   // print to transmission record
-  if (save_transmission_record) {
+  if (params->save_transmission_record) {
     transmission_record << next_inoc_ID;
     for (const auto &x : mosq.inoc_ID) {
       transmission_record << " " << x;
@@ -471,7 +471,7 @@ void Host::treatment(int t) {
   }
   
   // loop through inoculations
-  for (int i = 0; i < max_inoculations; ++i) {
+  for (int i = 0; i < params->max_inoculations; ++i) {
     
     // anything that is currently in the acute or chronic stages is cured
     if (inoc_status_asexual[i] == Acute_asexual || inoc_status_asexual[i] == Chronic_asexual) {
@@ -501,7 +501,7 @@ void Host::treatment(int t) {
       }
       
       // schedule new infectious end
-      new_inoc_event(t + g, Event_end_infective, i);
+      new_inoc_event(t + params->g, Event_end_infective, i);
       
     }
     
@@ -541,8 +541,8 @@ void Host::treatment(int t) {
   }  // end i loop
   
   // recalculate time of next event
-  t_next_inoc_event = max_time + 1;
-  for (int i = 0; i < max_inoculations; ++i) {
+  t_next_inoc_event = params->max_time + 1;
+  for (int i = 0; i < params->max_inoculations; ++i) {
     for (const auto & x : inoc_events[i]) {
       if (x.second < t) {
         print("time =", t);
@@ -715,7 +715,7 @@ void Host::end_infective(int this_slot) {
 // return vector of inoc IDs taken from infective inoculations
 vector<int> Host::get_inoc_ID_vec() {
   vector<int> ret;
-  for (int i = 0; i < max_inoculations; ++i) {
+  for (int i = 0; i < params->max_inoculations; ++i) {
     if (inoc_status_sexual[i] != Inactive_sexual) {
       ret.push_back(inoc_ID_vec[i]);
     }
@@ -736,7 +736,7 @@ Status_host Host::get_host_status() {
     return Host_Ph;
   }
   Status_host ret = Host_Sh;
-  for (int i = 0; i < max_inoculations; ++i) {
+  for (int i = 0; i < params->max_inoculations; ++i) {
     if (ret == Host_Sh && inoc_status_asexual[i] == Liverstage_asexual) {
       ret = Host_Eh;
     }
@@ -755,7 +755,7 @@ Status_host Host::get_host_status() {
 // get total number of liverstage inoculations
 int Host::get_n_liverstage() {
   int ret = 0;
-  for (int i = 0; i < max_inoculations; ++i) {
+  for (int i = 0; i < params->max_inoculations; ++i) {
     if (inoc_status_asexual[i] == Liverstage_asexual) {
       ret ++;
     }
@@ -803,7 +803,7 @@ int Host::get_n_asexual() {
 // get total number of infective (sexual stage) inoculations
 int Host::get_n_infective() {
   int ret = 0;
-  for (int i = 0; i < max_inoculations; ++i) {
+  for (int i = 0; i < params->max_inoculations; ++i) {
     if (inoc_status_sexual[i] == Acute_sexual || inoc_status_sexual[i] == Chronic_sexual) {
       ret ++;
     }
@@ -814,49 +814,49 @@ int Host::get_n_infective() {
 //------------------------------------------------
 // get current probability of infection
 double Host::get_prob_infection() {
-  int index = (infection_index < n_prob_infection) ? infection_index : n_prob_infection - 1;
-  return prob_infection[index];
+  int index = (infection_index < params->n_prob_infection) ? infection_index : params->n_prob_infection - 1;
+  return params->prob_infection[index];
 }
 
 //------------------------------------------------
 // get current probability of going to acute infection
 double Host::get_prob_acute() {
-  int index = (inoc_index < n_prob_acute) ? inoc_index : n_prob_acute - 1;
-  return prob_acute[index];
+  int index = (inoc_index < params->n_prob_acute) ? inoc_index : params->n_prob_acute - 1;
+  return params->prob_acute[index];
 }
 
 //------------------------------------------------
 // get current probability of going to chronic from acute infection
 double Host::get_prob_AC() {
-  int index = (inoc_index < n_prob_AC) ? inoc_index : n_prob_AC - 1;
-  return prob_AC[index];
+  int index = (inoc_index < params->n_prob_AC) ? inoc_index : params->n_prob_AC - 1;
+  return params->prob_AC[index];
 }
 
 //------------------------------------------------
 // get duration of acute disease
 int Host::get_duration_acute() {
-  int index = (inoc_index < n_duration_acute) ? inoc_index : n_duration_acute - 1;
+  int index = (inoc_index < params->n_duration_acute) ? inoc_index : params->n_duration_acute - 1;
   return (*sampler_duration_acute_ptr)[index].draw();
 }
 
 //------------------------------------------------
 // get duration of chronic disease
 int Host::get_duration_chronic() {
-  int index = (inoc_index < n_duration_chronic) ? inoc_index : n_duration_chronic - 1;
+  int index = (inoc_index < params->n_duration_chronic) ? inoc_index : params->n_duration_chronic - 1;
   return (*sampler_duration_chronic_ptr)[index].draw();
 }
 
 //------------------------------------------------
 // get time until treatment of acute disease
 int Host::get_time_treatment_acute() {
-  int index = (inoc_index < n_time_treatment_acute) ? inoc_index : n_time_treatment_acute - 1;
+  int index = (inoc_index < params->n_time_treatment_acute) ? inoc_index : params->n_time_treatment_acute - 1;
   return (*sampler_time_treatment_acute_ptr)[index].draw();
 }
 
 //------------------------------------------------
 // get time until treatment of chronic disease
 int Host::get_time_treatment_chronic() {
-  int index = (inoc_index < n_time_treatment_chronic) ? inoc_index : n_time_treatment_chronic - 1;
+  int index = (inoc_index < params->n_time_treatment_chronic) ? inoc_index : params->n_time_treatment_chronic - 1;
   return (*sampler_time_treatment_chronic_ptr)[index].draw();
 }
 
@@ -872,16 +872,16 @@ double Host::get_detectability_microscopy_acute(int t) {
   
   // acute detectability is the max detectability over all acute inoculations
   double ret = 0;
-  for (int i = 0; i < max_inoculations; ++i) {
+  for (int i = 0; i < params->max_inoculations; ++i) {
     if (inoc_status_asexual[i] == Acute_asexual) {
       
       // get time since became infective
       int time_diff = t - inoc_time_asexual[i];
       
       // get infectivity from appropriate distribution
-      int tmp1 = (inoc_index < n_detectability_microscopy_acute) ? inoc_index : n_detectability_microscopy_acute - 1;
-      int tmp2 = (time_diff < int(detectability_microscopy_acute[tmp1].size())) ? time_diff : int(detectability_microscopy_acute[tmp1].size()) - 1;
-      double inoc_detectability = detectability_microscopy_acute[tmp1][tmp2];
+      int tmp1 = (inoc_index < params->n_detectability_microscopy_acute) ? inoc_index : params->n_detectability_microscopy_acute - 1;
+      int tmp2 = (time_diff < int(params->detectability_microscopy_acute[tmp1].size())) ? time_diff : int(params->detectability_microscopy_acute[tmp1].size()) - 1;
+      double inoc_detectability = params->detectability_microscopy_acute[tmp1][tmp2];
       
       // ret is max of ret and inoc_detectability
       ret = (ret > inoc_detectability) ? ret : inoc_detectability;
@@ -897,16 +897,16 @@ double Host::get_detectability_microscopy_chronic(int t) {
   
   // acute detectability is the max detectability over all chronic inoculations
   double ret = 0;
-  for (int i = 0; i < max_inoculations; ++i) {
+  for (int i = 0; i < params->max_inoculations; ++i) {
     if (inoc_status_asexual[i] == Chronic_asexual) {
       
       // get time since became infective
       int time_diff = t - inoc_time_asexual[i];
       
       // get infectivity from appropriate distribution
-      int tmp1 = (inoc_index < n_detectability_microscopy_chronic) ? inoc_index : n_detectability_microscopy_chronic - 1;
-      int tmp2 = (time_diff < int(detectability_microscopy_chronic[tmp1].size())) ? time_diff : int(detectability_microscopy_chronic[tmp1].size()) - 1;
-      double inoc_detectability = detectability_microscopy_chronic[tmp1][tmp2];
+      int tmp1 = (inoc_index < params->n_detectability_microscopy_chronic) ? inoc_index : params->n_detectability_microscopy_chronic - 1;
+      int tmp2 = (time_diff < int(params->detectability_microscopy_chronic[tmp1].size())) ? time_diff : int(params->detectability_microscopy_chronic[tmp1].size()) - 1;
+      double inoc_detectability = params->detectability_microscopy_chronic[tmp1][tmp2];
       
       // ret is max of ret and inoc_detectability
       ret = (ret > inoc_detectability) ? ret : inoc_detectability;
@@ -922,16 +922,16 @@ double Host::get_detectability_PCR_acute(int t) {
   
   // acute detectability is the max detectability over all acute inoculations
   double ret = 0;
-  for (int i = 0; i < max_inoculations; ++i) {
+  for (int i = 0; i < params->max_inoculations; ++i) {
     if (inoc_status_asexual[i] == Acute_asexual) {
       
       // get time since became infective
       int time_diff = t - inoc_time_asexual[i];
       
       // get infectivity from appropriate distribution
-      int tmp1 = (inoc_index < n_detectability_PCR_acute) ? inoc_index : n_detectability_PCR_acute - 1;
-      int tmp2 = (time_diff < int(detectability_PCR_acute[tmp1].size())) ? time_diff : int(detectability_PCR_acute[tmp1].size()) - 1;
-      double inoc_detectability = detectability_PCR_acute[tmp1][tmp2];
+      int tmp1 = (inoc_index < params->n_detectability_PCR_acute) ? inoc_index : params->n_detectability_PCR_acute - 1;
+      int tmp2 = (time_diff < int(params->detectability_PCR_acute[tmp1].size())) ? time_diff : int(params->detectability_PCR_acute[tmp1].size()) - 1;
+      double inoc_detectability = params->detectability_PCR_acute[tmp1][tmp2];
       
       // ret is max of ret and inoc_detectability
       ret = (ret > inoc_detectability) ? ret : inoc_detectability;
@@ -947,16 +947,16 @@ double Host::get_detectability_PCR_chronic(int t) {
   
   // acute detectability is the max detectability over all chronic inoculations
   double ret = 0;
-  for (int i = 0; i < max_inoculations; ++i) {
+  for (int i = 0; i < params->max_inoculations; ++i) {
     if (inoc_status_asexual[i] == Chronic_asexual) {
       
       // get time since became infective
       int time_diff = t - inoc_time_asexual[i];
       
       // get infectivity from appropriate distribution
-      int tmp1 = (inoc_index < n_detectability_PCR_chronic) ? inoc_index : n_detectability_PCR_chronic - 1;
-      int tmp2 = (time_diff < int(detectability_PCR_chronic[tmp1].size())) ? time_diff : int(detectability_PCR_chronic[tmp1].size()) - 1;
-      double inoc_detectability = detectability_PCR_chronic[tmp1][tmp2];
+      int tmp1 = (inoc_index < params->n_detectability_PCR_chronic) ? inoc_index : params->n_detectability_PCR_chronic - 1;
+      int tmp2 = (time_diff < int(params->detectability_PCR_chronic[tmp1].size())) ? time_diff : int(params->detectability_PCR_chronic[tmp1].size()) - 1;
+      double inoc_detectability = params->detectability_PCR_chronic[tmp1][tmp2];
       
       // ret is max of ret and inoc_detectability
       ret = (ret > inoc_detectability) ? ret : inoc_detectability;
@@ -972,7 +972,7 @@ double Host::get_infectivity(int t) {
   
   // host infectivity is the max infectivity over all inoculations
   double ret = 0;
-  for (int i = 0; i < max_inoculations; ++i) {
+  for (int i = 0; i < params->max_inoculations; ++i) {
     if (inoc_status_sexual[i] == Acute_sexual || inoc_status_sexual[i] == Chronic_sexual) {
       
       // get time since became infective
@@ -983,16 +983,16 @@ double Host::get_infectivity(int t) {
       if (inoc_status_sexual[i] == Acute_sexual) {
         
         // get infectivity from appropriate distribution
-        int tmp1 = (inoc_index < n_infectivity_acute) ? inoc_index : n_infectivity_acute-1;
-        int tmp2 = (time_diff < int(infectivity_acute[tmp1].size())) ? time_diff : int(infectivity_acute[tmp1].size())-1;
-        inoc_infectivity = infectivity_acute[tmp1][tmp2];
+        int tmp1 = (inoc_index < params->n_infectivity_acute) ? inoc_index : params->n_infectivity_acute-1;
+        int tmp2 = (time_diff < int(params->infectivity_acute[tmp1].size())) ? time_diff : int(params->infectivity_acute[tmp1].size())-1;
+        inoc_infectivity = params->infectivity_acute[tmp1][tmp2];
         
       } else {
         
         // get infectivity from appropriate distribution
-        int tmp1 = (inoc_index < n_infectivity_chronic) ? inoc_index : n_infectivity_chronic-1;
-        int tmp2 = (time_diff < int(infectivity_chronic[tmp1].size())) ? time_diff : int(infectivity_chronic[tmp1].size())-1;
-        inoc_infectivity = infectivity_chronic[tmp1][tmp2];
+        int tmp1 = (inoc_index < params->n_infectivity_chronic) ? inoc_index : params->n_infectivity_chronic-1;
+        int tmp2 = (time_diff < int(params->infectivity_chronic[tmp1].size())) ? time_diff : int(params->infectivity_chronic[tmp1].size())-1;
+        inoc_infectivity = params->infectivity_chronic[tmp1][tmp2];
         
       }
       
@@ -1010,7 +1010,7 @@ int Host::get_free_inoc_slot() {
   
   // loop until find inactive slot
   int ret = 0;
-  for (int i = 0; i < max_inoculations; ++i) {
+  for (int i = 0; i < params->max_inoculations; ++i) {
     if (!inoc_active[i]) {
       break;
     }
@@ -1018,7 +1018,7 @@ int Host::get_free_inoc_slot() {
   }
   
   // error check for outside range
-  if (ret == max_inoculations) {
+  if (ret == params->max_inoculations) {
     Rcpp::stop("could not find free inoculation slot");
   }
   
@@ -1035,7 +1035,7 @@ int Host::get_age(int t) {
 // print innoc_events
 void Host::print_inoc_events() {
   
-  for (int i = 0; i < max_inoculations; ++i) {
+  for (int i = 0; i < params->max_inoculations; ++i) {
     for (const auto & x : inoc_events[i]) {
       Rcpp::Rcout << "[" << x.first << ", " << x.second << "] ";
     }
