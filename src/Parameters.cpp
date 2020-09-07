@@ -4,93 +4,18 @@
 using namespace std;
 
 //------------------------------------------------
-// declare static member variables
-
-// scalar epi parameters
-double Parameters::a;
-double Parameters::p;
-double Parameters::mu;
-int Parameters::u;
-int Parameters::v;
-int Parameters::g;
-int Parameters::max_inoculations;
-
-// state transition probabilities and durations
-vector<double> Parameters::prob_infection;
-int Parameters::n_prob_infection;
-double Parameters::max_prob_infection;
-vector<double> Parameters::prob_acute;
-int Parameters::n_prob_acute;
-vector<double> Parameters::prob_AC;
-int Parameters::n_prob_AC;
-vector<vector<double>> Parameters::duration_acute;
-int Parameters::n_duration_acute;
-vector<vector<double>> Parameters::duration_chronic;
-int Parameters::n_duration_chronic;
-
-// detectability
-vector<vector<double>> Parameters::detectability_microscopy_acute;
-int Parameters::n_detectability_microscopy_acute;
-vector<vector<double>> Parameters::detectability_microscopy_chronic;
-int Parameters::n_detectability_microscopy_chronic;
-vector<vector<double>> Parameters::detectability_PCR_acute;
-int Parameters::n_detectability_PCR_acute;
-vector<vector<double>> Parameters::detectability_PCR_chronic;
-int Parameters::n_detectability_PCR_chronic;
-
-// treatment
-double Parameters::treatment_seeking_mean;
-double Parameters::treatment_seeking_sd;
-vector<vector<double>> Parameters::time_treatment_acute;
-int Parameters::n_time_treatment_acute;
-vector<vector<double>> Parameters::time_treatment_chronic;
-int Parameters::n_time_treatment_chronic;
-vector<double> Parameters::duration_prophylactic;
-int Parameters::n_duration_prophylactic;
-
-// infectivity
-vector<vector<double>> Parameters::infectivity_acute;
-int Parameters::n_infectivity_acute;
-vector<vector<double>> Parameters::infectivity_chronic;
-int Parameters::n_infectivity_chronic;
-double Parameters::max_infectivity;
-
-// deme parameters
-vector<int> Parameters::H_init;
-vector<int> Parameters::seed_infections;
-vector<int> Parameters::M;
-int Parameters::n_demes;
-
-// migration parameters
-vector<vector<double>> Parameters::mig_mat;
-
-// demog parameters
-vector<double> Parameters::life_table;
-int Parameters::n_life_table;
-vector<double> Parameters::age_death;
-vector<double> Parameters::age_stable;
-
-// sampling strategy parameters
-bool Parameters::obtain_samples;
-vector<int> Parameters::ss_time;
-vector<int> Parameters::ss_deme;
-vector<Case_detection> Parameters::ss_case_detection;
-vector<Diagnosis> Parameters::ss_diagnosis;
-vector<int> Parameters::ss_n;
-
-// run parameters
-int Parameters::max_time;
-bool Parameters::save_transmission_record;
-string Parameters::transmission_record_location;
-bool Parameters::output_daily_counts;
-bool Parameters::output_age_distributions;
-vector<int> Parameters::output_age_times;
-int Parameters::n_output_age_times;
-bool Parameters::pb_markdown;
-bool Parameters::silent;
-
-// misc parameters
-double Parameters::prob_mosq_death;
+// load all parameter values
+void Parameters::load_params(Rcpp::List args) {
+  
+  // load all parameter values
+  load_epi_params(args);
+  load_deme_params(args);
+  load_migration_params(args);
+  load_demog_params(args);
+  load_sampling_params(args);
+  load_run_params(args);
+  
+}
 
 //------------------------------------------------
 // load epi parameter values

@@ -35,7 +35,8 @@ will overwrite any existing file by the same name. \code{FALSE} by default.}
 \item{output_daily_counts}{whether to output daily counts of key quantities,
 such as the number of infected hosts and the EIR.}
 
-\item{output_age_distributions}{whether to output complete age distributions}
+\item{output_age_distributions}{whether to output complete age distributions
+at certain times.}
 
 \item{output_age_times}{a vector of times at which complete age distributions
 are output.}
@@ -47,9 +48,9 @@ being printed to markdown files.}
 \item{silent}{whether to suppress written messages to the console.}
 }
 \description{
-Simulate from the inbuilt epidemiological model. Parameters are
-  taken from the \code{epi_parameters} slot of the project, and basic outputs
-  are written to the \code{epi_output} slot. If a sampling strategy has been
-  defined then samples will also be obtained and saved in the
-  \code{sample_details} slot (see \code{?define_sampling_strategy()}).
+Simulate from the inbuilt SIMPLEGEN transmission model.
+  Parameters are taken from the \code{epi_parameters} slot of the project,
+  and basic outputs are written to the \code{epi_output} slot. If a sampling
+  strategy has been defined then samples will also be obtained and saved in
+  the \code{sample_details} slot (see \code{?define_sampling_strategy()}).
 }
