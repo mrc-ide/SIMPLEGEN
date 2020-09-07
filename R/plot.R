@@ -260,7 +260,7 @@ plot_age_states <- function(project, sample_time = 1, deme = 1, state = "S") {
   
   # subset data
   dat <- project$epi_output$age_distributions
-  dat <- dat[dat$sample_time == sample_time & dat$deme == deme, c("age", state)]
+  dat <- dat[(dat$sample_time == sample_time) & (dat$deme == deme), c("age", state)]
   names(dat) <- c("age", "y")
   
   # produce plot

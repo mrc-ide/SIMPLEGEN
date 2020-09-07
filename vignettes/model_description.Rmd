@@ -4,7 +4,7 @@ author: "Bob Verity"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{"Model Description"}
+  %\VignetteIndexEntry{Transmission Model Details}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -97,11 +97,11 @@ simplegen_project() %>%
 
 ### Treatment
 
-Treatment is the exception to the rule that inoculations are independent. Upon treatment, all blood-stage inoculations are immediately cured, and the host enters a prophylactic stage in which no new inoculations are possible. Liver stage inoculations are not directly cured, but inoculations that leave the liver stage while the host is in the prophylactic stage are considered immediately cured. Sexual stages are not directly cured, although the termination of the diseased stage will lead to the eventual termination of the sexual stage after the appropriate time-lag.
+Treatment is the exception to the rule that inoculations are independent. Upon treatment, all blood-stage inoculations are immediately cured, and the host enters a prophylactic stage in which no new inoculations are possible. Liver stage inoculations are not directly cured, but inoculations that leave the liver stage while the host is in the prophylactic stage are considered immediately cured. Sexual stages are not directly cured, although the termination of the diseased stage will lead to the eventual termination of the sexual stage after the appropriate time-lag. Treatment can only occur a maximum of once per inoculation: if an inoculation goes through both acute and then chronic stages, only the acute stage will prompt treatment.
 
 Notice that in parameter inputs we can define both the distribution of duration of disease (acute and chronic), and the distribution of time until seeking treatment. These are competing hazards - whichever one of these occurs first takes precedence. If the disease clears naturally first then the host does not seek treatment. If treatment comes first then the host is considered *motivated* to seek treatment at this point in time (for example due to the emergence of clinical features) although treatment is still not guaranteed. Instead, the host draws whether to access care from its own treatment-seeking probability, $p_i$. The value of $p_i$ is defined separately for each host at birth, and represents long-term factors that dictate a host's propensity/ability to obtain treatment. The value of $p_i$ is drawn independently for each host from a Beta distribution with mean `treatment_seeking_mean` and standard deviation `treatment_seeking_sd`. These parameters allow the user to define both the mean access to care in the population, and the extent of inequality in access to care.
 
-This may be confusing at first, so here is an example. We want to model a population that has good access to healthcare overall, but with wide disparity between individuals. We choose parameter values `treatment_seeking_mean = 0.7` and `treatment_seeking_sd = 0.2`, which we can visualise using the `plot_treatment_seeking()` function:
+To make this clearer, here is an example. Imagine we want to model a population that has good access to healthcare overall, but with wide disparity between individuals. We choose parameter values `treatment_seeking_mean = 0.7` and `treatment_seeking_sd = 0.2`, which we can visualise using the `plot_treatment_seeking()` function:
 
 ```{r, fig.width=6, fig.height=4}
 simplegen_project() %>%
@@ -109,7 +109,7 @@ simplegen_project() %>%
   plot_treatment_seeking()
 ```
 
-The dashed line shows that at a population level there is a 70% chance of seeking treatment for malaria, but there is also considerable spread around this value. Each host has a value $p_i$ drawn from this distribution once at birth - imagine a single unlucky individual for which $p_i = 0.1$. This individual has poor access to malaria treatment, either for economic reasons or geographic reasons or whatever. If this individual becomes infected *and* if clinical symptoms occur *before* the disease has chance to clear naturally, then this individual makes the decision whether to obtain treatment, with only a 10% chance of success. If they choose not to seek treatment then the disease continues until it clears naturally.
+The dashed line shows that at a population level there is a 70% chance of seeking treatment for malaria, but there is also considerable spread around this value. Each host has a value $p_i$ drawn from this distribution once at birth. For example, imagine a single unlucky individual for which $p_i = 0.1$. This individual has poor access to malaria treatment, either for economic reasons or geographic reasons or whatever. If this individual becomes infected *and* if clinical symptoms occur *before* the disease has chance to clear naturally, then this individual makes the decision whether to obtain treatment, with only a 10% chance of choosing to do so. If they choose not to seek treatment then the disease continues until it clears naturally.
 
 
 ### Infectivity and mosquitoes

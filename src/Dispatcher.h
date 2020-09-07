@@ -78,6 +78,10 @@ public:
   
   // misc
   std::vector<double> EIR;
+  std::vector<double> prob_infectious_bite;
+  std::vector<double> inc_infection;
+  std::vector<double> inc_acute;
+  std::vector<double> inc_chronic;
   
   // number of active inoculations
   std::vector<double> n_inoc;
@@ -91,7 +95,8 @@ public:
   void init(Parameters &params);
   void run_simulation(Rcpp::List &args_functions, Rcpp::List &args_progress);
   void update_host_counts(int t);
-  void get_sample_details(int t, int deme, int n);
+  void update_incidence(int t);
+  void get_sample_details(int t, int deme, int n, Diagnosis diag);
   void get_age_distribution(int t_index);
   
 };
