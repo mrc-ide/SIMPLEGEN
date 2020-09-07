@@ -474,7 +474,7 @@ void Host::treatment(int t) {
   for (int i = 0; i < params->max_inoculations; ++i) {
     
     // anything that is currently in the acute or chronic stages is cured
-    if (inoc_status_asexual[i] == Acute_asexual || inoc_status_asexual[i] == Chronic_asexual) {
+    if ((inoc_status_asexual[i] == Acute_asexual) || (inoc_status_asexual[i] == Chronic_asexual)) {
       
       // if due to become infective at a future timepoint then store this
       // timepoint
@@ -509,7 +509,8 @@ void Host::treatment(int t) {
     // prophylactic period is cured immediately upon emergence
     if (inoc_status_asexual[i] == Liverstage_asexual) {
       
-      if (inoc_events[i].count(Event_Eh_to_Ah) != 0 && inoc_events[i][Event_Eh_to_Ah] <= t2) {
+      // acute
+      if ((inoc_events[i].count(Event_Eh_to_Ah) != 0) && (inoc_events[i][Event_Eh_to_Ah] <= t2)) {
         
         // store time at which due to emerge
         int t_emerge = inoc_events[i][Event_Eh_to_Ah];
@@ -522,7 +523,8 @@ void Host::treatment(int t) {
         new_inoc_event(t_emerge, Event_Ah_to_Sh, i);
         new_inoc_event(t_emerge, Event_end_infective, i);
         
-      } else if (inoc_events[i].count(Event_Eh_to_Ch) != 0 && inoc_events[i][Event_Eh_to_Ch] <= t2) {
+      // chronic
+      } else if ((inoc_events[i].count(Event_Eh_to_Ch) != 0) && (inoc_events[i][Event_Eh_to_Ch] <= t2)) {
         
         // store time at which due to emerge
         int t_emerge = inoc_events[i][Event_Eh_to_Ch];
@@ -544,6 +546,8 @@ void Host::treatment(int t) {
   t_next_inoc_event = params->max_time + 1;
   for (int i = 0; i < params->max_inoculations; ++i) {
     for (const auto & x : inoc_events[i]) {
+      
+      // catch to ensure that events cannot predate current time
       if (x.second < t) {
         print("time =", t);
         print_inoc_status();
@@ -814,6 +818,13 @@ int Host::get_n_infective() {
 //------------------------------------------------
 // get current probability of infection
 double Host::get_prob_infection() {
+  
+  // situations in which zero chance of infection
+  if ((get_n_active_inoc() == params->max_inoculations) || prophylaxis_on) {
+    return 0.0;
+  }
+  
+  // get probability from flexible distribution
   int index = (infection_index < params->n_prob_infection) ? infection_index : params->n_prob_infection - 1;
   return params->prob_infection[index];
 }

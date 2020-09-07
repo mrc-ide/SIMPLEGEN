@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Define new SIMPLEGEN project — simplegen_project • SIMPLEGEN</title>
+<title>Measures of annual EIR and prevalence (Beier et al.,1999) — EIRprev_beier1999 • SIMPLEGEN</title>
 
 
 <!-- jquery -->
@@ -39,10 +39,11 @@
 
 
 
-<meta property="og:title" content="Define new SIMPLEGEN project — simplegen_project" />
-<meta property="og:description" content="Define a new SIMPLEGEN project. This project will hold all
-  simulation inputs and outputs for a given analysis, and is initialised with
-  the default values of all parameters." />
+<meta property="og:title" content="Measures of annual EIR and prevalence (Beier et al.,1999) — EIRprev_beier1999" />
+<meta property="og:description" content="Data from Beier et al.(1999) consisting of measures of the prevalence of Plasmodium
+falciparum detected by microscopy in children under five years old and annual
+Entomological Innoculation Rate (EIR) for the same year, from 31 sites in Africa. Data were read
+from Figure 1 in the original article using WebPlotDigitizer [https://github.com/ankitrohatgi/WebPlotDigitizer]." />
 
 
 
@@ -123,21 +124,45 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Define new SIMPLEGEN project</h1>
-    <small class="dont-index">Source: <a href='https://github.com/mrc-ide/SIMPLEGEN/blob/master/R/simplegen_project.R'><code>R/simplegen_project.R</code></a></small>
-    <div class="hidden name"><code>simplegen_project.Rd</code></div>
+    <h1>Measures of annual EIR and prevalence (Beier et al.,1999)</h1>
+    <small class="dont-index">Source: <a href='https://github.com/mrc-ide/SIMPLEGEN/blob/master/R/data.R'><code>R/data.R</code></a></small>
+    <div class="hidden name"><code>EIRprev_beier1999.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Define a new SIMPLEGEN project. This project will hold all
-  simulation inputs and outputs for a given analysis, and is initialised with
-  the default values of all parameters.</p>
+    <p>Data from Beier et al.(1999) consisting of measures of the prevalence of Plasmodium
+falciparum detected by microscopy in children under five years old and annual
+Entomological Innoculation Rate (EIR) for the same year, from 31 sites in Africa. Data were read
+from Figure 1 in the original article using WebPlotDigitizer [https://github.com/ankitrohatgi/WebPlotDigitizer].</p>
     </div>
 
-    <pre class="usage"><span class='fu'>simplegen_project</span>()</pre>
+    <pre class="usage"><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span>(<span class='no'>EIRprev_beier1999</span>)</pre>
 
 
+    <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
 
+    <p>A data frame of x rows and two columns. Column one, "annual_EIR" is
+  the annual Entomological Inoculation Rate calculated for Plasmodium
+  falciparum and column 2, "prevalence" is the parasite prevalence of
+  plasmodium falciparum measured at the same site</p>
+    <h2 class="hasAnchor" id="source"><a class="anchor" href="#source"></a>Source</h2>
+
+    <p><a href='https://www.researchgate.net/profile/John_Beier/publication/12867829_Short_report_Entomologic_inoculation_rates_and_Plasmodium_falciparum_malaria_prevalence_in_Africa/links/004635142eb595e31a000000/Short-report-Entomologic-inoculation-rates-and-Plasmodium-falciparum-malaria-prevalence-in-Africa.pdf'>Research
+  Gate</a> <a href='https://github.com/ankitrohatgi/WebPlotDigitizer'>Data extractor hhg</a></p>
+    <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
+
+    <p>Beier, John C., Gerry F. Killeen, and John I. Githure.
+  Entomologic inoculation rates and Plasmodium falciparum malaria prevalence
+  in Africa. The American journal of tropical medicine and hygiene 61.1
+  (1999): 109-113. (<a href='https://www.ncbi.nlm.nih.gov/pubmed/10432066'>PubMed</a>)</p>
+
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span>(<span class='no'>EIRprev_beier1999</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/plot.html'>plot</a></span>( <span class='no'>EIRprev_beier1999</span>$<span class='no'>annual_EIR</span>, <span class='no'>EIRprev_beier1999</span>$<span class='no'>prevalence</span>,
+<span class='kw'>xlab</span> <span class='kw'>=</span> <span class='st'>"Annual EIR (Pf)"</span>,
+<span class='kw'>ylab</span> <span class='kw'>=</span> <span class='st'>"Parasite prevalence (Pf)"</span>,
+<span class='kw'>main</span> <span class='kw'>=</span> <span class='st'>"Annual EIR vs Prevalence, Beier et al., 1999"</span>)</div><div class='img'><img src='EIRprev_beier1999-1.png' alt='' width='700' height='433' /></div><div class='input'>
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
