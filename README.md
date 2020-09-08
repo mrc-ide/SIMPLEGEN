@@ -4,12 +4,11 @@ Bob Verity <r.verity@imperial.ac.uk>
 
 ## Package structure
 
-The overall package structure follows the standard structure of any R package, with the following tweaks:
+The overall package structure follows the standard structure of any R package, with the following idiosyncrasies:
 
 - The "R_ignore" folder is setup to be ignored by R, but not by Github. This is where we can store files that are not part of a standard R package, but that we want included anyway, e.g. papers.
 - If you make an "ignore" folder in your local version of the package then this will be ignored by *both* R and github. This is where you can store local files that you may want to be inside the package for organisational reasons, but not make it into anyone elses version, e.g. test scripts.
 - Note, for both of the above folders, even though R claims to ignore them, in fact it copies and then deletes them when the package is built. Hence, avoid putting anything very large (e.g. whole genomes) in these folders as it will slow things down massively.
-- Data can be stored in many places in an R package. For simplicity, here all data will be stored in inst/extdata. Objects in this folder will be loaded into R using a designated data loading function. This gives greater flexibility with file types - for example, data files can be stored in .csv making them easier to work with directly.
 
 
 ## Code structure and style
@@ -23,24 +22,21 @@ Code should be structured and written in a way that is easy to pick up at a late
 All R functions should be documented using the roxygen method (http://r-pkgs.had.co.nz/man.html). Both R and C++ functions should be documented clearly throughout.
 
 
+## Continuous integration
+
+This package is setup for testing and continuous integration with both travis and appveyor. If you look at the main Github page (https://github.com/mrc-ide/SIMPLEGEN) you should see badges for both platforms showing that the current build is passing. It is crucial that certain branches pass all checks at all times (see below for details).
+
+
 ## Github and branching
 
-This package uses git and Github for version control. This has the advantage that it is impossible to completely break the code as we always have "savegames" going back through time.
+This package uses git and Github for version control. This has the advantage that it is impossible to completely break the code as we always have saves going back through time.
 
 We will use the git-flow branching pattern described here (https://nvie.com/posts/a-successful-git-branching-model/), please read this before working on the code. In simple terms:
 
-- the master branch should always be the most recent stable release. Do not work directly on this branch.
-- main development work should be on the develop branch.
-- specific features should be on feature branches, but don't be shy of contributing to develop if that is more appropriate.
-- once development is complete for a given release, we will create a release branch and at the same time merge changes back to master. After this point, the only changes should be bug-fixes.
+- the master branch is the *outward-facing stable branch*. It should always represent the most recent official release, and therefore should never break. You should never work directly on this branch.
+- the develop branch is the *inward-facing stable branch*. Similar to master, this branch should always pass all checks. The difference is that develop will continually move forward as new features are merged in, whereas master is frozen in time at official release points. You should never work directly on this branch.
+- all code changes should be done through feature branches. These can be very small and short-lived, or more extensive. You are free to break and fix code as much as you like on feature branches. Once you are happy, these should be merged into develop using a Github pull request - not directly in the console. As long as the PR passes all checks you are free to complete the merge, or you can nominate a reviewer if you would like someone else to look over your changes. Always going through PRs in this way ensures that develop remains stable. We will periodically delete old feature branches once merged.
 - version numbers will be used to keep track of releases using the three-part X.Y.Z format, where X = major change, Y = small change e.g. added feature, Z = patch/bug fix. The development version will be 0.Y.Z, the first non-development release will be 1.0.0.
-
-
-## Continuous integration
-
-This package is setup for testing and continuous integration with both travis and appveyor. If you look at the main Github page (https://github.com/mrc-ide/SIMPLEGEN) you should see badges for both platforms showing that the current build is passing.
-
-*If you make a change to the code that causes one of these builds to fail, please fix the error before continuing*
 
 
 ## C++
