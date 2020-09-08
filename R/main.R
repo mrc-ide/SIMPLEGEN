@@ -604,3 +604,63 @@ sim_epi <- function(project,
   invisible(project)
 }
 
+#------------------------------------------------
+#' @title Prune the transmission record
+#'
+#' @description TODO
+#'
+#' @param project a SIMPLEGEN project, as produced by the
+#'   \code{simplegen_project()} function.
+#' @param transmission_record_location the file path to a transmission record
+#'   already written to file.
+#' @param pruned_record_location the file path that the pruned transmission
+#'   record will be written to.
+#' @param overwrite_pruned_record if \code{TRUE} the pruned transmission record
+#'   will overwrite any existing file by the same name. \code{FALSE} by default.
+#' @param silent whether to suppress written messages to the console.
+#' 
+#' @export
+
+prune_transmission_record <- function(project,
+                                      transmission_record_location = "",
+                                      pruned_record_location = "",
+                                      overwrite_pruned_record = FALSE,
+                                      silent = FALSE) {
+  
+  # check inputs
+  assert_custom_class(project, "simplegen_project")
+  assert_string(transmission_record_location)
+  assert_string(pruned_record_location)
+  assert_single_logical(overwrite_pruned_record)
+  assert_single_logical(silent)
+  
+  # check transmission record exists
+  if (!file.exists(transmission_record_location)) {
+    stop(sprintf("could not find file at %s", transmission_record_location))
+  }
+  
+  # optionally return warning if will overwrite pruned transmission record file
+  if (!overwrite_pruned_record) {
+    if (file.exists(pruned_record_location)) {
+      stop(sprintf("file already exists at %s. Change target location, or use argument `overwrite_pruned_record = TRUE` to manually override this warning", pruned_record_location))
+    }
+  }
+  
+  # subset sample details to a vector of inoc_IDs
+  inoc_IDs <- unlist(project$sample_details$inoc_IDs)
+  if (length(inoc_IDs) == 0) {
+    stop("no malaria positive hosts in sample")
+  }
+  
+  # define argument list
+  args <- list(transmission_record_location = transmission_record_location,
+               pruned_record_location = pruned_record_location,
+               inoc_IDs = inoc_IDs,
+               silent = silent)
+  
+  # run efficient C++ code
+  prune_transmission_record_cpp(args)
+  
+  # return project unchanged
+  invisible(project)
+}
