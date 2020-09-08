@@ -5,3 +5,7 @@ indiv_sim_cpp <- function(args, args_functions, args_progress) {
     .Call(`_SIMPLEGEN_indiv_sim_cpp`, args, args_functions, args_progress)
 }
 
+prune_transmission_record_cpp <- function(args) {
+    invisible(.Call(`_SIMPLEGEN_prune_transmission_record_cpp`, args))
+}
+
