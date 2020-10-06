@@ -77,11 +77,3 @@ plot_EIR_prevalence(EIRprev,scale_x="log")
 ```
 
 
-## Comparing  prevalence as detected by PCR and microscopy
-
-
-```{r pressure, echo=FALSE}
-
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
