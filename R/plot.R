@@ -274,6 +274,7 @@ plot_age_states <- function(project, sample_time = 1, deme = 1, state = "S") {
 
 
 #function to plot model output EIR versus prevalence------------------------------------------------
+
 #' @title Plot EIR versus prevalence
 #'
 #' @description Plots relationship between annual EIR and prevalence
