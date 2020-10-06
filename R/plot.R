@@ -271,4 +271,57 @@ plot_age_states <- function(project, sample_time = 1, deme = 1, state = "S") {
   
 }
 
-
+#------------------------------------------------
+#' @title Plot EIR versus prevalence
+#'
+#' @description A function to plot the relationship between annual EIR and prevalence 
+#' @param data dataset produced by the retrieve_prev function
+#' @param plot_studies logical argument whether to plot data from previous empirical studies (currently Hay et al., 2005)
+#' @param scale_x linear or log scale for x axis
+#'
+#' @export
+#'
+#'
+#'
+plot_EIR_prevalence <-
+  function(data = EIRprev,
+           plot_studies = TRUE,
+           scale_x = "linear") {
+    EIRprev <-
+      tidyr::gather(as.data.frame(EIRprev),
+                    key = "detection_type",
+                    value = "prevalence",
+                    -1)
+    
+    if (plot_studies == TRUE) {
+      Hayetal2005$detection_type <-
+        rep("Hay et al., 2005", length.out = nrow(Hayetal2005))
+      EIRprev <- rbind(EIRprev, Hayetal2005)
+    } else {
+    }
+    if (scale_x == "linear") {
+      p <-
+        ggplot2::ggplot(data = as.data.frame(EIRprev),
+                        ggplot2::aes(annual_EIR, prevalence, colour = detection_type)) + ggplot2::theme_bw() +
+        ggplot2::geom_point() +
+        ggplot2::labs(title = "Annual EIR and Prevalence", x = "Annual EIR", y = "Prevalence") +
+        ggplot2::geom_smooth(se = TRUE,
+                             method = "gam",
+                             formula = y ~ log(x + 1e-3)) + ggplot2::coord_cartesian(ylim = c(0, 1))
+      
+      
+    } else if (scale_x == "log") {
+      p <-
+        ggplot2::ggplot(
+          as.data.frame(EIRprev),
+          ggplot2::aes(annual_EIR, prevalence, colour = detection_type)
+        ) + ggplot2::theme_bw() +
+        ggplot2::geom_point() + ggplot2::scale_x_log10() +
+        ggplot2::labs(title = "Annual EIR (log scale) and Prevalence", x = "Annual EIR", y = "Prevalence")
+      #+ggplot2::geom_smooth(se = TRUE, method = "gam", formula = y ~ x)+ ggplot2::coord_cartesian(xlim =c(1,100),ylim=c(0,1))
+      
+    } else {
+      warning("scale_x must be log or linear")
+    }
+    print(p)
+  }
