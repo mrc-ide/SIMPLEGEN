@@ -290,8 +290,8 @@ plot_age_states <- function(project, sample_time = 1, deme = 1, state = "S") {
 plot_EIR_prevalence<-function(data = EIRprev, plot_studies = TRUE, scale_x="linear"){
   
   
-  #load("~/GitHub/SIMPLEGEN/data/EIRprev_hay2005.RData")
-  #load("~/GitHub/SIMPLEGEN/data/EIRprev_beier1999.RData")
+  load("~/GitHub/SIMPLEGEN/data/EIRprev_hay2005.RData")
+  load("~/GitHub/SIMPLEGEN/data/EIRprev_beier1999.RData")
   
   EIRprev<-tidyr::gather(as.data.frame(EIRprev),key = "detection_type", value ="prevalence", -1 )
   
@@ -301,8 +301,8 @@ plot_EIR_prevalence<-function(data = EIRprev, plot_studies = TRUE, scale_x="line
   if (plot_studies == TRUE){
     EIRprev_hay2005$detection_type<-rep("Hay et al., 2005", length.out= nrow( EIRprev_hay2005))
     EIRprev_beier1999$detection_type<-rep("Beier et al., 1999", length.out= nrow( EIRprev_beier1999))
-    EIRprev<-rbind( EIRprev,Hayetal2005)
-    EIRprev<-rbind(EIRprev,Thieved_Beieretal1999_1)
+    EIRprev<-rbind( EIRprev, EIRprev_hay2005)
+    EIRprev<-rbind(EIRprev,EIRprev_beier1999)
   }else {} 
   if(scale_x == "linear"){
     p<-ggplot2::ggplot(data=as.data.frame(EIRprev), ggplot2::aes(annual_EIR,prevalence, colour = detection_type)) + ggplot2::theme_bw() + ggsci::scale_color_lancet()+
