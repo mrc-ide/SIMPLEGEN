@@ -65,7 +65,7 @@ head(EIRprev)
 
 Then we can plot on a linear scale using the inbuilt plot_EIR_prevalence function:
 ```{r, results = 'hide', fig.keep ='all' }
-plot_EIR_prevalence(EIRprev,scale_x="linear")
+plot_EIR_prevalence(data= EIRprev,scale_x="linear")
 
 ```
 

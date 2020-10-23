@@ -287,7 +287,7 @@ plot_age_states <- function(project, sample_time = 1, deme = 1, state = "S") {
 #' 
 #' 
 #' 
-plot_EIR_prevalence<-function(data = EIRprev, plot_studies = TRUE, scale_x="linear"){
+plot_EIR_prevalence<-function(data, plot_studies = TRUE, scale_x="linear"){
   
   
   load("~/GitHub/SIMPLEGEN/data/EIRprev_hay2005.RData")
