@@ -206,6 +206,7 @@ write_text_list <- function(x, file_path) {
 #'     diagnosis = "PCR",
 #'     sampling_time = 1799
 #'  )
+utils::globalVariables(c("a", "othervar"))
 
 retrieve_prev <-
   function(data,
@@ -229,7 +230,7 @@ retrieve_prev <-
       lubridate::year(lubridate::as_date(df_wide$time, origin = lubridate::origin))
     
     annual_EIR <-
-      aggregate(EIR ~ year + deme, data = df_wide, FUN = "sum")
+      stats::aggregate(EIR ~ year + deme, data = df_wide, FUN = "sum")
     #annual_A<-aggregate(A~year + deme,data=df_wide, FUN= "mean" )
     
     sample_year<-lubridate::year(lubridate::as_date(sampling_time, origin = lubridate::origin))
