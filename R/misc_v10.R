@@ -192,6 +192,7 @@ write_text_list <- function(x, file_path) {
 #' @param sampled TO DO - sample from bernoulli distribution to generate simulated numbers of cases detected on each day
 #' @param deme deme of interest - currently assumes just a single deme analysed - i.e. can't pool results of multiple demes
 #'
+#' @importFrom stats aggregate
 #' @return returns named vector :  c("annual_EIR", "prevalence_true", "prevalence_detected")
 #' @export
 #'

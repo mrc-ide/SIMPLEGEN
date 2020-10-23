@@ -99,6 +99,12 @@
 #------------------------------------------------
 #' Details of data from Griffin et al 2014 refit
 #' 
+#'  @docType data
+#'  
+#'  @usage data(study_data_2014)
+#'
+#'  @keywords datasets
+#' 
 #' \describe{
 #'   \item{country_name}{Country name (metadata not used in fitting)}
 #'   \item{site_name}{Site name (metadata not used in fitting)}
