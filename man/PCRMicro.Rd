@@ -4,9 +4,7 @@
 \name{PCRMicro}
 \alias{PCRMicro}
 \title{Measures of prevalence by PCR and Microscopy}
-\format{
-An object of class \code{list} of length 5.
-}
+\format{An object of class \code{list} of length 5.}
 \source{
 \href{https://github.com/cwhittaker1000/Sub_Patent_Malaria_Analysis/blob/master/Data/SI_Systematic_Review_Results_R_Import.csv}{Systematic Review Results}
 }

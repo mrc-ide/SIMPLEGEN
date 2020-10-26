@@ -283,6 +283,8 @@ plot_age_states <- function(project, sample_time = 1, deme = 1, state = "S") {
 #' @param plot_studies logical argument whether to plot data from previous empirical studies (currently Hay et al., 2005)
 #' @param scale_x linear or log scale for x axis
 #'
+#' @importFrom ggsci scale_color_lancet
+#' @importFrom rlang .data
 #' @export
 #' 
 #' 
@@ -305,14 +307,14 @@ plot_EIR_prevalence<-function(data, plot_studies = TRUE, scale_x="linear"){
     EIRprev<-rbind(EIRprev,EIRprev_beier1999)
   }else {} 
   if(scale_x == "linear"){
-    p<-ggplot2::ggplot(data=as.data.frame(EIRprev), ggplot2::aes(annual_EIR,prevalence, colour = detection_type)) + ggplot2::theme_bw() + ggsci::scale_color_lancet()+
+    p<-ggplot2::ggplot(data=as.data.frame(EIRprev), ggplot2::aes(.data$annual_EIR, .data$prevalence, colour = .data$detection_type)) + ggplot2::theme_bw() + ggsci::scale_color_lancet()+
       ggplot2::geom_point() +
       ggplot2::labs(title = "Annual EIR and Prevalence", x = "Annual EIR", y = "Prevalence") +
       ggplot2::coord_cartesian(ylim=c(0,1),xlim= c(0,400))
     
     
   }else if(scale_x == "log"){
-    p<-ggplot2::ggplot(as.data.frame(EIRprev),ggplot2::aes(annual_EIR,prevalence, colour = detection_type)) + ggplot2::theme_bw() +
+    p<-ggplot2::ggplot(as.data.frame(EIRprev),ggplot2::aes(.data$annual_EIR, .data$prevalence, colour = .data$detection_type)) + ggplot2::theme_bw() +
       ggplot2::geom_point() + ggplot2::scale_x_log10() + ggsci::scale_color_lancet()+
       ggplot2::labs(title = "Annual EIR (log scale) and Prevalence", x = "Annual EIR", y = "Prevalence")+
       #ggplot2::geom_smooth(method = "lm")+

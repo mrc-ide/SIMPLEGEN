@@ -4,12 +4,10 @@
 \name{EIRprev_hay2005}
 \alias{EIRprev_hay2005}
 \title{Measures of annual EIR and prevalence within the same site}
-\format{
-A data frame of 130 rows and two columns. Column one, "annual_EIR" is
+\format{A data frame of 130 rows and two columns. Column one, "annual_EIR" is
   the annual Entomological Inoculation Rate calculated for Plasmodium
   falciparum and column 2, "prevalence" is the parasite prevalence of
-  plasmodium falciparum measured at the same site
-}
+  plasmodium falciparum measured at the same site}
 \source{
 \href{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3130901/bin/NIHMS35895-supplement-S2.pdf}{Supplement S2}
 }

@@ -1,14 +1,18 @@
 ---
 title: "Comparing model output to data"
 author: "Isobel Routledge"
-date: "10/5/2020"
-output: html_document
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Comparing model output to data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE, warning=FALSE, error=FALSE, message=FALSE, comment=FALSE, warning= FALSE,progress=FALSE, verbose=FALSE}
 knitr::opts_chunk$set(warning=FALSE, error=FALSE, message=FALSE, comment=FALSE, warning= FALSE)
 ```
-It is often helpful to check model outputs are consistent with emprirical data and sensible - as sanity checks, model validation and calibration. In this package we provide several datasets and examples of SIMPLEGEN model outputs compared to data to check that key epidemiological relationships are represented consistent with empirical data and data generated from other models. 
+It is often helpful to check model outputs are consistent with emprirical data and sensible. In this package we provide several datasets and examples of SIMPLEGEN model outputs compared to data to check that key epidemiological relationships are represented consistent with empirical data and data generated from other models. 
 
 ## Comparing annual EIR to parasite prevalence 
 
@@ -50,7 +54,7 @@ for(i in 1:length(m_pop)){
 
 ```
 
-Then we use the inbuilt function retrieve_prev to retrieve the true prevalence and estimated detected prevalence. We estimate prevalence on a given sampling day and define the type of diagnostic used (PCR or microscopy) andcase detection (active or passive). 
+Then we use the inbuilt function retrieve_prev to retrieve the true prevalence and estimated detected prevalence from the simulation. We estimate prevalence on a given sampling day and define the type of diagnostic used (PCR or microscopy) and case detection (active or passive). 
 
 Expected prevalence is calculated by using the sum of the indidvidual probabilities of detection on a given day (A_detectable_microscopy, C_detectable_microscopy,A_detectable_PCR,C_detectable_PCR), divided by the human population size. For example, if there are 100 cases and P(detection by PCR) for all acute and chronic cases = 0.9,and H=1000, then true prevalence = 100/1000 = 0.1, and expected detected prevalence by PCR is 0.9*100/1000 = 0.09. 
 
