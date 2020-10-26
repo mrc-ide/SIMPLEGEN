@@ -22,7 +22,7 @@ retrieve_prev(
 
 \item{sampling_time}{Sampling time, currently input should be a numeric day e.g. 100 would represent the 100th day of simulation.}
 
-\item{sampled}{TO DO - sample from bernoulli distribution to generate simulated numbers of cases detected on each day}
+\item{sampled}{TO DO - sample from bernoulli distribution to generate simulated numbers of cases detected on each day - done in SIMPLEGEN internally already}
 
 \item{deme}{deme of interest - currently assumes just a single deme analysed - i.e. can't pool results of multiple demes}
 }
@@ -31,15 +31,4 @@ returns named vector :  c("annual_EIR", "prevalence_true", "prevalence_detected"
 }
 \description{
 Retrieve prevalence
-}
-\examples{
-load(INSERT PATH FOR myproj file)
-
-res_act_PCR <-
- retrieve_prev(
-   data = myproj$epi_output$daily_values,
-   case_detection = "Active",
-    diagnosis = "PCR",
-    sampling_time = 1799
- )
 }

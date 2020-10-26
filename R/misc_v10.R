@@ -195,17 +195,7 @@ write_text_list <- function(x, file_path) {
 #' @importFrom stats aggregate
 #' @return returns named vector :  c("annual_EIR", "prevalence_true", "prevalence_detected")
 #' @export
-#'
-#' @examples
-#' load(INSERT PATH FOR myproj file)
-#'
-#' res_act_PCR <-
-#'  retrieve_prev(
-#'    data = myproj$epi_output$daily_values,
-#'    case_detection = "Active",
-#'     diagnosis = "PCR",
-#'     sampling_time = 1799
-#'  )
+
 
 retrieve_prev <-
   function(data,
