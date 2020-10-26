@@ -21,8 +21,11 @@ In order to compare annual EIR to parasite prevalence , we must generate annual 
 First we run SIMPLEGEN for a range of EIRs by changing the mosquito population size:
 
 ```{r, results='hide' }
+# this can be removed once integrated with master
+library(devtools)
+devtools::install_github("mrc-ide/SIMPLEGEN", ref = "sanity_checks")
 
-devtools::load_all("~/GitHub/SIMPLEGEN")
+library(SIMPLEGEN)
 
 check_SIMPLEGEN_loaded()
 
