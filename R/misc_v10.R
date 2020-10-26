@@ -206,7 +206,6 @@ write_text_list <- function(x, file_path) {
 #'     diagnosis = "PCR",
 #'     sampling_time = 1799
 #'  )
-utils::globalVariables(c("a", "othervar"))
 
 retrieve_prev <-
   function(data,
