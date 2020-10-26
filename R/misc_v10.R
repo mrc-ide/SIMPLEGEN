@@ -189,7 +189,7 @@ write_text_list <- function(x, file_path) {
 #' @param case_detection Method of case detection, "Active" or "Passive"
 #' @param diagnosis Method of diagnosis, "Microscopy" or "PCR"
 #' @param sampling_time Sampling time, currently input should be a numeric day e.g. 100 would represent the 100th day of simulation.
-#' @param sampled TO DO - sample from bernoulli distribution to generate simulated numbers of cases detected on each day
+#' @param sampled TO DO - sample from bernoulli distribution to generate simulated numbers of cases detected on each day - done in SIMPLEGEN internally already
 #' @param deme deme of interest - currently assumes just a single deme analysed - i.e. can't pool results of multiple demes
 #'
 #' @importFrom stats aggregate
