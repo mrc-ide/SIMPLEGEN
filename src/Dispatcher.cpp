@@ -599,21 +599,17 @@ void Dispatcher::get_age_distribution(int t_index) {
     
   
   
-    //detectability add as double 
-   double detectable_microscopy_a =  host_pop[i].get_detectability_microscopy_acute(t) ;
-   double detectable_microscopy_c =  host_pop[i].get_detectability_microscopy_chronic(t);
-
-// 
-age_distributions[t_index][this_deme][this_age][8] += detectable_microscopy_a/double(H[this_deme]) ;
-age_distributions[t_index][this_deme][this_age][9] += detectable_microscopy_c/double(H[this_deme]) ;
-
-// 
-double  detectable_PCR_a = host_pop[i].get_detectability_PCR_acute(t) ;
-double  detectable_PCR_c = host_pop[i].get_detectability_PCR_chronic(t);
-
-
-age_distributions[t_index][this_deme][this_age][10] += detectable_PCR_a/double(H[this_deme])  ;
-age_distributions[t_index][this_deme][this_age][11] += detectable_PCR_c/double(H[this_deme])  ;
+    //detectability by microscopy (expectation) 
+    double detectable_microscopy_a =  host_pop[i].get_detectability_microscopy_acute(t) ;
+    double detectable_microscopy_c =  host_pop[i].get_detectability_microscopy_chronic(t);
+    age_distributions[t_index][this_deme][this_age][8] += detectable_microscopy_a/double(H[this_deme]) ;
+    age_distributions[t_index][this_deme][this_age][9] += detectable_microscopy_c/double(H[this_deme]) ;
+    
+    //detectability by PCR (expectation)  
+    double  detectable_PCR_a = host_pop[i].get_detectability_PCR_acute(t) ;
+    double  detectable_PCR_c = host_pop[i].get_detectability_PCR_chronic(t);
+    age_distributions[t_index][this_deme][this_age][10] += detectable_PCR_a/double(H[this_deme])  ;
+    age_distributions[t_index][this_deme][this_age][11] += detectable_PCR_c/double(H[this_deme])  ;
 
 
 
