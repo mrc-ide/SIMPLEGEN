@@ -292,8 +292,8 @@ plot_age_states <- function(project, sample_time = 1, deme = 1, state = "S") {
 plot_EIR_prevalence<-function(data, plot_studies = TRUE, scale_x="linear"){
   
   
-  load("~/GitHub/SIMPLEGEN/data/EIRprev_hay2005.RData")
-  load("~/GitHub/SIMPLEGEN/data/EIRprev_beier1999.RData")
+  load("EIRprev_hay2005")
+  load("EIRprev_beier1999")
   
   EIRprev<-tidyr::gather(as.data.frame(EIRprev),key = "detection_type", value ="prevalence", -1 )
   
