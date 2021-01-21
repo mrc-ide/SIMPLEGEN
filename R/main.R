@@ -582,7 +582,7 @@ sim_epi <- function(project,
         colnames(ret) <- c("S", "E", "A", "C", "P", "inc_infection", "inc_acute", "inc_chronic")
         data.frame(cbind(deme = i, age = seq_len(nrow(ret)) - 1, ret))
       }, seq_along(output_raw$age_distributions[[j]]), SIMPLIFY = FALSE))
-      cbind(sample_time = j, ret)
+      cbind(sample_time = output_age_times[j], ret)
     }, seq_along(output_raw$age_distributions), SIMPLIFY = FALSE))
   }
   
