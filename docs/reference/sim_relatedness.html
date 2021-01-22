@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Define how samples are taken from transmission model — define_sampling_strategy • SIMPLEGEN</title>
+<title>Draw tree of genome-wide relatedness from pruned transmission record — sim_relatedness • SIMPLEGEN</title>
 
 
 <!-- jquery -->
@@ -39,14 +39,16 @@
 
 
 
-<meta property="og:title" content="Define how samples are taken from transmission model — define_sampling_strategy" />
-<meta property="og:description" content="Loads a dataframe into the SIMPLEGEN project that specifies how
-  one or more samples are taken from the population. This is an important
-  step in the SIMPLEGEN pipeline, as ultimately genotypes are only
-  constructed for these sampled individuals. The user can specify details of
-  the sampling scheme, including the type of sampling and the
-  locations/timepoints. Probabilities of detection are taken into account
-  when producing the final sample." />
+<meta property="og:title" content="Draw tree of genome-wide relatedness from pruned transmission record — sim_relatedness" />
+<meta property="og:description" content="Reads in the pruned transmission record from file and creates a
+  new node for each inoculation ID. Nodes at time zero are initialised with a
+  single haplotype, created de novo with a unique haplotype ID. In subsequent
+  generations the nodes that are ancestral to the focal node are known from
+  the pruned transmission record. The haplotypes from ancestral nodes are
+  sampled at random, and brought together in pairs to produce oocysts. The
+  recombinant products of these oocysts are then sampled down to produce a
+  new generation of haplotype IDs for this node, along with the relative
+  densities of each haplotype." />
 
 
 
@@ -127,22 +129,34 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Define how samples are taken from transmission model</h1>
+    <h1>Draw tree of genome-wide relatedness from pruned transmission record</h1>
     <small class="dont-index">Source: <a href='https://github.com/mrc-ide/SIMPLEGEN/blob/master/R/main.R'><code>R/main.R</code></a></small>
-    <div class="hidden name"><code>define_sampling_strategy.Rd</code></div>
+    <div class="hidden name"><code>sim_relatedness.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Loads a dataframe into the SIMPLEGEN project that specifies how
-  one or more samples are taken from the population. This is an important
-  step in the SIMPLEGEN pipeline, as ultimately genotypes are only
-  constructed for these sampled individuals. The user can specify details of
-  the sampling scheme, including the type of sampling and the
-  locations/timepoints. Probabilities of detection are taken into account
-  when producing the final sample.</p>
+    <p>Reads in the pruned transmission record from file and creates a
+  new node for each inoculation ID. Nodes at time zero are initialised with a
+  single haplotype, created de novo with a unique haplotype ID. In subsequent
+  generations the nodes that are ancestral to the focal node are known from
+  the pruned transmission record. The haplotypes from ancestral nodes are
+  sampled at random, and brought together in pairs to produce oocysts. The
+  recombinant products of these oocysts are then sampled down to produce a
+  new generation of haplotype IDs for this node, along with the relative
+  densities of each haplotype.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>define_sampling_strategy</span><span class='op'>(</span><span class='va'>project</span>, <span class='va'>df_sample</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>sim_relatedness</span><span class='op'>(</span>
+  <span class='va'>project</span>,
+  pruned_record_location <span class='op'>=</span> <span class='st'>""</span>,
+  r <span class='op'>=</span> <span class='fl'>1e-06</span>,
+  alpha <span class='op'>=</span> <span class='fl'>1</span>,
+  oocyst_distribution <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/stats/Poisson.html'>dpois</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>10</span>, lambda <span class='op'>=</span> <span class='fl'>2</span><span class='op'>)</span>,
+  hepatocyte_distribution <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/stats/Poisson.html'>dpois</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>10</span>, lambda <span class='op'>=</span> <span class='fl'>5</span><span class='op'>)</span>,
+  contig_lengths <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>643292</span>, <span class='fl'>947102</span>, <span class='fl'>1060087</span>, <span class='fl'>1204112</span>, <span class='fl'>1343552</span>, <span class='fl'>1418244</span>, <span class='fl'>1501717</span>,
+    <span class='fl'>1419563</span>, <span class='fl'>1541723</span>, <span class='fl'>1687655</span>, <span class='fl'>2038337</span>, <span class='fl'>2271478</span>, <span class='fl'>2895605</span>, <span class='fl'>3291871</span><span class='op'>)</span>,
+  silent <span class='op'>=</span> <span class='cn'>FALSE</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -153,18 +167,41 @@
 <code><a href='simplegen_project.html'>simplegen_project()</a></code> function.</p></td>
     </tr>
     <tr>
-      <th>df_sample</th>
-      <td><p>a dataframe containing all of the following columns:</p><ul>
-<li><p>time: the time (in days) at which samples are taken.</p></li>
-<li><p>deme: the deme from which samples are taken.</p></li>
-<li><p>case_detection: the method by which cases are identified. Either
-  "active" or "passive".</p></li>
-<li><p>diagnosis: the method by which infected individuals are diagnosed.
-  Either "microscopy" or "PCR".</p></li>
-<li><p>n: the number of individuals screened. Note that the actual number
-  of infected individuals (and hence the number of genotypes) may be lower
-  than this number.</p></li>
-</ul></td>
+      <th>pruned_record_location</th>
+      <td><p>the file path from which the pruned
+transmission record will be read.</p></td>
+    </tr>
+    <tr>
+      <th>r</th>
+      <td><p>the rate of recombination. The expected number of base pairs in a
+single recombinant block is 1/r.</p></td>
+    </tr>
+    <tr>
+      <th>alpha</th>
+      <td><p>parameter dictating the skew of haplotype densities. Small
+values of <code>alpha</code> create a large skew, and hence make it likely that
+an oocyst will be produced from the same parents. Large values of
+<code>alpha</code> tend toward more even densities.</p></td>
+    </tr>
+    <tr>
+      <th>oocyst_distribution</th>
+      <td><p>vector specifying the probability distribution of
+each number of oocysts within the mosquito midgut.</p></td>
+    </tr>
+    <tr>
+      <th>hepatocyte_distribution</th>
+      <td><p>vector specifying the probability distribution
+of the number of infected hepatocytes in a human host. More broadly, this
+defines the number of independent draws from the oocyst products that make
+it into the host bloodstream upon a bite from an infectious mosquito.</p></td>
+    </tr>
+    <tr>
+      <th>contig_lengths</th>
+      <td><p>vector of lengths (in bp) of each contig.</p></td>
+    </tr>
+    <tr>
+      <th>silent</th>
+      <td><p>whether to suppress written messages to the console.</p></td>
     </tr>
     </table>
 
