@@ -57,7 +57,7 @@ void Tree_node::draw_haplotypes_recombine(int &haplo_ID, const std::vector<int> 
   // over the ancestral inoculations
   vector<int> parental_haplo_IDs;
   vector<double> parental_haplo_densities;
-  for (int i = 1; i < int(inoc_IDs.size()); ++i) {  // start at i=1 because first value is the key ID
+  for (int i = 2; i < int(inoc_IDs.size()); ++i) {  // start at i=2 because first two values are the ID of this node and the timing
     push_back_multiple(parental_haplo_IDs, (*tree_ptr)[inoc_IDs[i]].haplo_ID_vec);
     push_back_multiple(parental_haplo_densities, (*tree_ptr)[inoc_IDs[i]].haplo_density);
   }
@@ -104,16 +104,19 @@ void Tree_node::draw_haplotypes_recombine(int &haplo_ID, const std::vector<int> 
   // push to invervals object
   n_haplotypes = 0;
   for (int i = 0; i < 4*n_oocysts; ++i) {
-    if (n_products[i] != 0) {
-      
-      // update ID and density vector
-      n_haplotypes++;
-      haplo_ID_vec.push_back(haplo_ID++);
-      haplo_density.push_back(rgamma1(alpha*n_products[i], 1.0));
-      
-      // draw recombinant products and push to intervals object
-      draw_intervals(oocyst_parents[i % n_oocysts].first, oocyst_parents[i % n_oocysts].second, r);
+    if (n_products[i] == 0) {
+      continue;
     }
+    
+    // update ID and density vector
+    n_haplotypes++;
+    haplo_ID_vec.push_back(haplo_ID++);
+    haplo_density.push_back(rgamma1(alpha*n_products[i], 1.0));
+    
+    // draw recombinant products and push to intervals object
+    int j = floor(i / 4.0);
+    draw_intervals(oocyst_parents[j].first, oocyst_parents[j].second, r);
+    
   }
   
 }

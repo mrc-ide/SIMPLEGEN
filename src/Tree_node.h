@@ -29,7 +29,7 @@ public:
   
   // main object, specifying ancestry of each haplotype broken down into
   // intervals. Nested vectors are over: 1) number of haplotypes, 2) number of
-  // chromosomes, 3) number of intervals within a chromosome, 4) three values
+  // contigs, 3) number of intervals within a contig, 4) three values
   // giving interval start, interval end, and ancestry index (haplo_ID) that
   // applies throughout this interval
   std::vector<std::vector<std::vector<std::vector<int>>>> intervals;

@@ -244,10 +244,13 @@ plot_daily_states <- function(project, deme = 1, states = c("S", "E", "A", "C", 
 #'
 #' @export
 
-plot_age_states <- function(project, sample_time = 1, deme = 1, state = "S") {
+plot_age_states <- function(project, sample_time = NULL, deme = 1, state = "S") {
   
   # check inputs
   assert_non_null(project$epi_output$age_distributions, message = "no age distribution output found")
+  if (is.null(sample_time)) {
+    sample_time <- project$epi_output$age_distributions$sample_time[1]
+  }
   assert_single_pos_int(sample_time)
   assert_in(sample_time, project$epi_output$age_distributions$sample_time,
             message = "sample_time values not found in age distribution output")

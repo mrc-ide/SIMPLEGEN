@@ -2,6 +2,7 @@
 #include "main.h"
 #include "Parameters.h"
 #include "Dispatcher.h"
+#include "Tree_node.h"
 #include "probability_v10.h"
 
 #include <chrono>
@@ -272,3 +273,118 @@ void add_to_pop(vector<int> &inoc_IDs, const vector<pair<int, int>> &first_IDs,
   
 }
 
+//------------------------------------------------
+// read in a pruned transmission record and simulate relatedness intervals
+// forwards-in-time through this tree
+Rcpp::List sim_relatedness_cpp(Rcpp::List args) {
+  
+  // start timer
+  chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
+  
+  // extract input args
+  string pruned_record_location = rcpp_to_string(args["pruned_record_location"]);
+  double r = rcpp_to_double(args["r"]);
+  double alpha = rcpp_to_double(args["alpha"]);
+  vector<double> oocyst_distribution = rcpp_to_vector_double(args["oocyst_distribution"]);
+  vector<double> hepatocyte_distribution = rcpp_to_vector_double(args["hepatocyte_distribution"]);
+  vector<int> contig_lengths = rcpp_to_vector_int(args["contig_lengths"]);
+  bool silent = rcpp_to_bool(args["silent"]);
+  
+  // open filestream to pruned record and check that opened
+  if (!silent) {
+    print("Opening filestream to pruned transmission record");
+  }
+  ifstream infile;
+  infile.open(pruned_record_location);
+  if (!infile.is_open()) {
+    Rcpp::stop("unable to open filestream at specified location. Check the path exists, and that you have read access");
+  }
+  
+  // create samplers for drawing number of oocysts and hepatocytes
+  Sampler sampler_oocyst(oocyst_distribution, 1000);
+  Sampler sampler_hepatocyte(hepatocyte_distribution, 1000);
+  
+  // read pruned record into an array. For each row, first value gives innoc_ID,
+  // second value gives time of creation, and any subsequent values give
+  // parental inoc_IDs that are ancestral
+  vector<vector<int>> pruned_array;
+  vector<int> this_line;
+  string line, block, element;
+  int t = 0;
+  while (getline(infile, line)) {
+    istringstream iss(line);
+    while (getline(iss, block, ';')) {
+      bool new_block = true;
+      istringstream iss2(block);
+      while (getline(iss2, element, ' ')) {
+        
+        if (new_block) {
+          this_line.clear();
+          int ID_key = stoi(element);
+          this_line.push_back(ID_key);
+          this_line.push_back(t);
+          new_block = false;
+        } else {
+          int ID_val = stoi(element);
+          this_line.push_back(ID_val);
+        }
+        
+      }
+      pruned_array.push_back(this_line);
+    }
+    t++;
+  }
+  
+  // create a map, where each element represents a node in the pruned
+  // transmission tree
+  map<int, Tree_node> tree;
+  
+  // populate map
+  int haplo_ID = 0;
+  for (int i = 0; i < int(pruned_array.size()); ++i) {
+    int ID_key = pruned_array[i][0];
+    tree[ID_key] = Tree_node(pruned_array[i][1], contig_lengths, sampler_oocyst, sampler_hepatocyte, tree);
+    
+    // create node de novo or from ancestral inoculations
+    if (pruned_array[i].size() == 2) {
+      tree[ID_key].draw_haplotypes_denovo(haplo_ID, alpha);
+    } else {
+      tree[ID_key].draw_haplotypes_recombine(haplo_ID, pruned_array[i], r, alpha);
+    }
+  }
+  
+  // get into more convenient output format
+  Rcpp::List ret;
+  for (int i = 0; i < int(pruned_array.size()); ++i) {
+    int ID_key = pruned_array[i][0];
+    
+    // get descriptive details of this node
+    Rcpp::List ret_details;
+    ret_details["inoc_ID"] = ID_key;
+    ret_details["time"] = tree[ID_key].t;
+    ret_details["haplo_IDs"] = tree[ID_key].haplo_ID_vec;
+    ret_details["haplo_densities"] = tree[ID_key].haplo_density;
+    
+    // get haplotype intervals
+    Rcpp::List ret_haplotypes;
+    for (int j = 0; j < tree[ID_key].n_haplotypes; ++j) {
+      ret_haplotypes.push_back(tree[ID_key].intervals[j]);
+    }
+    
+    // push to return list
+    ret.push_back(Rcpp::List::create(Rcpp::Named("details") = ret_details,
+                                     Rcpp::Named("haplotypes") = ret_haplotypes));
+  }
+  
+  // close filestreams
+  if (!silent) {
+    print("Closing filestream");
+  }
+  infile.close();
+  
+  // end timer
+  chrono_timer(t1);
+  
+  
+  return ret;
+}

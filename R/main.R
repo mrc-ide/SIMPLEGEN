@@ -582,7 +582,7 @@ sim_epi <- function(project,
         colnames(ret) <- c("S", "E", "A", "C", "P", "inc_infection", "inc_acute", "inc_chronic")
         data.frame(cbind(deme = i, age = seq_len(nrow(ret)) - 1, ret))
       }, seq_along(output_raw$age_distributions[[j]]), SIMPLIFY = FALSE))
-      cbind(sample_time = j, ret)
+      cbind(sample_time = output_age_times[j], ret)
     }, seq_along(output_raw$age_distributions), SIMPLIFY = FALSE))
   }
   
@@ -663,4 +663,98 @@ prune_transmission_record <- function(project,
   
   # return project unchanged
   invisible(project)
+}
+
+#------------------------------------------------
+#' @title Draw tree of genome-wide relatedness from pruned transmission record
+#'
+#' @description Reads in the pruned transmission record from file and creates a
+#'   new node for each inoculation ID. Nodes at time zero are initialised with a
+#'   single haplotype, created de novo with a unique haplotype ID. In subsequent
+#'   generations the nodes that are ancestral to the focal node are known from
+#'   the pruned transmission record. The haplotypes from ancestral nodes are
+#'   sampled at random, and brought together in pairs to produce oocysts. The
+#'   recombinant products of these oocysts are then sampled down to produce a
+#'   new generation of haplotype IDs for this node, along with the relative
+#'   densities of each haplotype.
+#'
+#' @param project a SIMPLEGEN project, as produced by the
+#'   \code{simplegen_project()} function.
+#' @param pruned_record_location the file path from which the pruned
+#'   transmission record will be read.
+#' @param r the rate of recombination. The expected number of base pairs in a
+#'   single recombinant block is 1/r.
+#' @param alpha parameter dictating the skew of haplotype densities. Small
+#'   values of \code{alpha} create a large skew, and hence make it likely that
+#'   an oocyst will be produced from the same parents. Large values of
+#'   \code{alpha} tend toward more even densities.
+#' @param oocyst_distribution vector specifying the probability distribution of
+#'   each number of oocysts within the mosquito midgut.
+#' @param hepatocyte_distribution vector specifying the probability distribution
+#'   of the number of infected hepatocytes in a human host. More broadly, this
+#'   defines the number of independent draws from the oocyst products that make
+#'   it into the host bloodstream upon a bite from an infectious mosquito.
+#' @param contig_lengths vector of lengths (in bp) of each contig.
+#' @param silent whether to suppress written messages to the console.
+#'
+#' @importFrom stats dpois
+#' @export
+
+sim_relatedness <- function(project,
+                            pruned_record_location = "",
+                            r = 1e-6,
+                            alpha = 1.0,
+                            oocyst_distribution = dpois(1:10, lambda = 2),
+                            hepatocyte_distribution = dpois(1:10, lambda = 5),
+                            contig_lengths = c(643292, 947102, 1060087, 1204112, 1343552,
+                                               1418244, 1501717, 1419563, 1541723, 1687655,
+                                               2038337, 2271478, 2895605, 3291871),
+                            silent = FALSE) {
+  
+  
+  # check inputs
+  assert_custom_class(project, "simplegen_project")
+  assert_string(pruned_record_location)
+  assert_neq(pruned_record_location, "", message = "pruned_record_location cannot be empty")
+  assert_single_pos(r, zero_allowed = TRUE)
+  assert_single_pos(alpha, zero_allowed = FALSE)
+  assert_vector_pos(oocyst_distribution)
+  assert_vector_pos(hepatocyte_distribution)
+  assert_vector_pos_int(contig_lengths, zero_allowed = FALSE)
+  assert_single_logical(silent)
+  
+  # check pruned record exists
+  if (!file.exists(pruned_record_location)) {
+    stop(sprintf("could not find file at %s", pruned_record_location))
+  }
+  
+  # define arguments
+  args <- list(pruned_record_location = pruned_record_location,
+               r = r,
+               alpha = alpha,
+               oocyst_distribution = oocyst_distribution,
+               hepatocyte_distribution = hepatocyte_distribution,
+               contig_lengths = contig_lengths,
+               silent = silent)
+  
+  # run efficient C++ code
+  output_raw <- sim_relatedness_cpp(args)
+  
+  # process output
+  # nested mapply to wrangle raw output into list of dataframes
+  ret <- mapply(function(k) {
+    ret <- do.call(rbind, mapply(function(j) {
+      ret <- do.call(rbind, mapply(function(i) {
+        ret <- do.call(rbind, output_raw[[k]]$haplotypes[[j]][[i]])
+        cbind(i, ret)
+      }, seq_along(output_raw[[k]]$haplotypes[[j]]), SIMPLIFY = FALSE))
+      ret <- as.data.frame(cbind(output_raw[[k]]$details$haplo_IDs[j], ret))
+      names(ret) <- c("haplo_ID", "contig", "interval_start", "interval_end", "parent")
+      return(ret)
+    }, seq_along(output_raw[[k]]$haplotypes), SIMPLIFY = FALSE))
+  }, seq_along(output_raw), SIMPLIFY = FALSE)
+  
+  names(ret) <- mapply(function(x) x$details$inoc_ID, output_raw)
+  
+  return(ret)
 }

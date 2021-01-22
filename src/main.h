@@ -18,3 +18,9 @@ void prune_transmission_record_cpp(Rcpp::List args);
 //------------------------------------------------
 void add_to_pop(std::vector<int> &inoc_IDs, const std::vector<std::pair<int, int>> &first_IDs,
                 std::vector<std::vector<int>> &pop, bool print_pop = false);
+
+//------------------------------------------------
+#ifdef RCPP_ACTIVE
+// [[Rcpp::export]]
+Rcpp::List sim_relatedness_cpp(Rcpp::List args);
+#endif
