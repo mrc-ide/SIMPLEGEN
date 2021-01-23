@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Installation • SIMPLEGEN</title>
+<title>The Transmission Record • SIMPLEGEN</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Installation">
+<script src="../pkgdown.js"></script><meta property="og:title" content="The Transmission Record">
 <meta property="og:description" content="SIMPLEGEN">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -77,67 +77,59 @@
 
       
 
-      </header><script src="installation_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
+      </header><script src="transmission_record_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Installation</h1>
+      <h1 data-toc-skip>The Transmission Record</h1>
                         <h4 class="author">Bob Verity</h4>
             
             <h4 class="date">2021-01-23</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/mrc-ide/SIMPLEGEN/blob/master/vignettes/installation.Rmd"><code>vignettes/installation.Rmd</code></a></small>
-      <div class="hidden name"><code>installation.Rmd</code></div>
+      <small class="dont-index">Source: <a href="https://github.com/mrc-ide/SIMPLEGEN/blob/master/vignettes/transmission_record.Rmd"><code>vignettes/transmission_record.Rmd</code></a></small>
+      <div class="hidden name"><code>transmission_record.Rmd</code></div>
 
     </div>
 
     
     
-<div id="installing-rcpp" class="section level3">
-<h3 class="hasAnchor">
-<a href="#installing-rcpp" class="anchor"></a>Installing Rcpp</h3>
-<p>SIMPLEGEN relies on the <a href="https://cran.r-project.org/web/packages/Rcpp/index.html">Rcpp</a> package, which requires the following OS-specific steps:</p>
+<!---
+Example comment
+-->
+<p>The transmission record is - a record of events in the simulation model</p>
+<p>The overall purpose of the transmission record is - to store the minimum amount of information that permits us to generate genetic data</p>
+<p>This step has two inputs: - the full transmission record of inoculations - the inoculation IDs corresponding to the sampled hosts And one output: - the pruned record</p>
+<p>Vignette sections:</p>
 <ul>
-<li>Windows
+<li>Basic description of record
 <ul>
-<li>Download and install the appropriate version of <a href="https://cran.rstudio.com/bin/windows/Rtools/">Rtools</a> for your version of R. On installation, ensure you check the box to arrange your system PATH as recommended by Rtools</li>
+<li>we need to track inoculations not hosts in order to track potential of super-infection and co-transmission</li>
+<li>figure showing two generations of hosts with intervening mosquitoes and inoculations passing between them</li>
+<li>side-by-side with text version of record</li>
 </ul>
 </li>
-<li>Mac OS X
+<li>More complex example involving partial mosquito feeds
 <ul>
-<li>Download and install <a href="http://itunes.apple.com/us/app/xcode/id497799835?mt=12">XCode</a>
-</li>
-<li>Within XCode go to Preferences : Downloads and install the Command Line Tools</li>
+<li>figure shows mosquito obtaining inoculations from multiple sources, and passing on to multiple hosts</li>
+<li>another side-by-side text version</li>
+<li>assumption that feeds occur on same day. i.e. some information is lost, but hopefully justifiable</li>
 </ul>
 </li>
-<li>Linux (Debian/Ubuntu)
+<li>Pruning
 <ul>
-<li>
-<p>Install the core software development utilities required for R package development as well as LaTeX by executing</p>
-<pre><code>sudo apt-get install r-base-dev texlive-full</code></pre>
+<li>sample usually a small fraction of total population. Most of these events have no relevance to sample.</li>
+<li>transmission model also needs to output the inoculation IDs of the hosts that make up the final sample. This allows us to prune the tree</li>
+<li>coalescent-style figure showing pruning. Side-by-side with pruned record (and full?)</li>
+<li>comment on reduction in size. Important as each inoculation will eventually represent a very large amount of information (potentially up to whole-genome scale) so reductions at this stage are welcome.</li>
+</ul>
 </li>
+<li>Conclusions
+<ul>
+<li>recap purpose and limitations of trasmission record</li>
+<li>note that things like migration are subsumed entirely into the record. Once we have the record we don’t need to know demes.</li>
 </ul>
 </li>
 </ul>
 </div>
-<div id="installing-and-loading-simplegen" class="section level3">
-<h3 class="hasAnchor">
-<a href="#installing-and-loading-simplegen" class="anchor"></a>Installing and loading SIMPLEGEN</h3>
-<p>Next, in R, ensure that you have the <a href="https://www.rstudio.com/products/rpackages/devtools/">devtools</a> package installed by running</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span>, repos<span class="op">=</span><span class="st">'http://cran.us.r-project.org'</span><span class="op">)</span></code></pre></div>
-<p>Then install the SIMPLEGEN package directly from GitHub by running</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"mrc-ide/SIMPLEGEN"</span><span class="op">)</span></code></pre></div>
-<p>If you have any problems installing, please <a href="https://github.com/mrc-ide/SIMPLEGEN/issues">raise an issue</a> on github.</p>
-<p>Assuming everything installed correctly, we need to load the package:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">SIMPLEGEN</span><span class="op">)</span></code></pre></div>
-<p>You can test that the package is loaded and working by running the following command, which should produce the following output:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/check_SIMPLEGEN_loaded.html">check_SIMPLEGEN_loaded</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
-<pre><code>## SIMPLEGEN loaded successfully!</code></pre>
-</div>
-  </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
 
