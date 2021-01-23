@@ -1,0 +1,52 @@
+---
+title: "The Transmission Record"
+author: "Bob Verity"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{The Transmission Record}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<!---
+Example comment
+-->
+
+The transmission record is
+- a record of events in the simulation model
+
+The overall purpose of the transmission record is
+- to store the minimum amount of information that permits us to generate genetic data
+
+This step has two inputs:
+- the full transmission record of inoculations
+- the inoculation IDs corresponding to the sampled hosts
+And one output:
+- the pruned record
+
+Vignette sections:
+
+- Basic description of record
+  - we need to track inoculations not hosts in order to track potential of super-infection and co-transmission
+  - figure showing two generations of hosts with intervening mosquitoes and inoculations passing between them
+  - side-by-side with text version of record
+  
+- More complex example involving partial mosquito feeds
+  - figure shows mosquito obtaining inoculations from multiple sources, and passing on to multiple hosts
+  - another side-by-side text version
+  - assumption that feeds occur on same day. i.e. some information is lost, but hopefully justifiable
+  
+- Pruning
+  - sample usually a small fraction of total population. Most of these events have no relevance to sample.
+  - transmission model also needs to output the inoculation IDs of the hosts that make up the final sample. This allows us to prune the tree
+  - coalescent-style figure showing pruning. Side-by-side with pruned record (and full?)
+  - comment on reduction in size. Important as each inoculation will eventually represent a very large amount of information (potentially up to whole-genome scale) so reductions at this stage are welcome.
+
+- Conclusions
+  - recap purpose and limitations of trasmission record
+  - note that things like migration are subsumed entirely into the record. Once we have the record we don't need to know demes.
+
+
+
+
