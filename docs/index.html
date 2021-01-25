@@ -62,6 +62,12 @@
     <li>
       <a href="articles/model_description.html">Transmission Model Details</a>
     </li>
+    <li>
+      <a href="articles/transmission_record.html">The Transmission Record</a>
+    </li>
+    <li>
+      <a href="articles/simulating_relatedness.html">Simulating Relatedness</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -89,9 +95,9 @@
   <div class="contents col-md-9">
 
 
-<p><code>{r, echo=FALSE, out.height = '123px', out.width = '533px'} knitr::include_graphics("R_ignore/images/simplegenlogo.png")</code></p>
+<p><img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/simplegenlogo.png" height="123px" width="533px"></p>
 <p>SIMPLEGEN is an R package for <strong>sim</strong>ulating <strong>Pl</strong>asmodium <strong>e</strong>pidemiological and <strong>gen</strong>etic data. The rationalle behind SIMPLEGEN is that computationally intensive forwards-simulation of <em>P. falciparum</em> genetic data can be avoided by splitting the process into multiple stages. These stages make up the SIMPLEGEN pipeline:</p>
-<p><code>{r, echo=FALSE, out.width = '100%'} knitr::include_graphics("R_ignore/images/pipeline.png")</code></p>
+<p><img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/pipeline.png" height="185px" width="800px"></p>
 <p>Notice that genotypes are not actually generated until near the end of the pipeline, at which point we have already discarded many unimportant events. For example, we never need to model the genetics of infections that eventually clear, or infections in hosts that are not connected to our final sample. By discarding unimportant events like this we get significant gains in speed, which has a knock-on effect on the size and spatial scale that we can handle. For example, it would not be unusual to simulate a population of thousands of hosts distributed across hundreds of connected demes, and to sample whole <em>P. falciparum</em> genomes.</p>
 <p>A second advantage of breaking simulation into stages is that the user is free to enter the pipeline at any stage. For example, an entirely different epidemiological model could be used in the first stage, just as long as it can produce a transmission record in a standardised format for the second stage. Similarly, if someone wanted to use the inbuilt epidemiological model but explore a different model of parasite genetics then they could enter at a later stage.</p>
 <p>To get started with SIMPLEGEN, take a look at the <a href="https://mrc-ide.github.io/SIMPLEGEN/articles/installation.html">installation instructions</a>, followed by a <a href="https://mrc-ide.github.io/SIMPLEGEN/articles/basic_tutorial.html">basic tutorial</a> on how to run the program. Alternatively, you may want to read about the <a href="https://mrc-ide.github.io/SIMPLEGEN/articles/model_description.html">basic epidemiological model</a> that comes with SIMPLEGEN.</p>

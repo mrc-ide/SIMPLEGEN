@@ -668,15 +668,20 @@ prune_transmission_record <- function(project,
 #------------------------------------------------
 #' @title Draw tree of genome-wide relatedness from pruned transmission record
 #'
-#' @description Reads in the pruned transmission record from file and creates a
-#'   new node for each inoculation ID. Nodes at time zero are initialised with a
-#'   single haplotype, created de novo with a unique haplotype ID. In subsequent
-#'   generations the nodes that are ancestral to the focal node are known from
-#'   the pruned transmission record. The haplotypes from ancestral nodes are
-#'   sampled at random, and brought together in pairs to produce oocysts. The
-#'   recombinant products of these oocysts are then sampled down to produce a
-#'   new generation of haplotype IDs for this node, along with the relative
-#'   densities of each haplotype.
+#' @description Reads in the pruned transmission record from file and uses this
+#'   information to simulate relatedness between parasite lineages from a
+#'   genetic model. The map of relatedness output by this step can be used to
+#'   generate genotypic information of various types.
+#'   
+#'
+#' @details Read in the pruned transmission record and creates a new node for
+#'   each inoculation ID. Nodes at time zero are initialised with a single
+#'   unique lineage created de novo. In subsequent generations the children of
+#'   any given node are known from the pruned transmission record. The lineages
+#'   from parental nodes are sampled at random, and brought together in pairs to
+#'   produce oocysts. The recombinant products of these oocysts are then sampled
+#'   down to produce a new generation of lineage IDs for this node, along with
+#'   the relative densities of each lineage.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
@@ -684,7 +689,7 @@ prune_transmission_record <- function(project,
 #'   transmission record will be read.
 #' @param r the rate of recombination. The expected number of base pairs in a
 #'   single recombinant block is 1/r.
-#' @param alpha parameter dictating the skew of haplotype densities. Small
+#' @param alpha parameter dictating the skew of lineage densities. Small
 #'   values of \code{alpha} create a large skew, and hence make it likely that
 #'   an oocyst will be produced from the same parents. Large values of
 #'   \code{alpha} tend toward more even densities.
