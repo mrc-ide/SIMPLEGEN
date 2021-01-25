@@ -54,6 +54,12 @@
     <li>
       <a href="../articles/model_description.html">Transmission Model Details</a>
     </li>
+    <li>
+      <a href="../articles/transmission_record.html">The Transmission Record</a>
+    </li>
+    <li>
+      <a href="../articles/simulating_relatedness.html">Simulating Relatedness</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -124,7 +130,7 @@
 <span id="cb5-4"><a href="#cb5-4"></a>  <span class="op">|</span><span class="st">                                                                            </span></span>
 <span id="cb5-5"><a href="#cb5-5"></a><span class="st">  </span><span class="er">|======================================================================|</span><span class="st"> </span><span class="dv">100</span>%</span>
 <span id="cb5-6"><a href="#cb5-6"></a><span class="co">#&gt; </span></span>
-<span id="cb5-7"><a href="#cb5-7"></a><span class="co">#&gt; completed in 0.030827 seconds</span></span></code></pre></div>
+<span id="cb5-7"><a href="#cb5-7"></a><span class="co">#&gt; completed in 0.031168 seconds</span></span></code></pre></div>
 <p>Looking at the project again we now see that we have some results:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">myproj</span>
@@ -179,7 +185,7 @@
 <span id="cb11-4"><a href="#cb11-4"></a>  <span class="op">|</span><span class="st">                                                                            </span></span>
 <span id="cb11-5"><a href="#cb11-5"></a><span class="st">  </span><span class="er">|======================================================================|</span><span class="st"> </span><span class="dv">100</span>%</span>
 <span id="cb11-6"><a href="#cb11-6"></a><span class="co">#&gt; </span></span>
-<span id="cb11-7"><a href="#cb11-7"></a><span class="co">#&gt; completed in 0.088054 seconds</span></span></code></pre></div>
+<span id="cb11-7"><a href="#cb11-7"></a><span class="co">#&gt; completed in 0.087592 seconds</span></span></code></pre></div>
 <p>Now when plotting results we can use the <code>deme</code> argument to specify which deme to plot:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/plot_daily_states.html">plot_daily_states</a></span><span class="op">(</span><span class="va">myproj</span>, states <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"C"</span>, <span class="st">"P"</span><span class="op">)</span>, deme <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></code></pre></div>

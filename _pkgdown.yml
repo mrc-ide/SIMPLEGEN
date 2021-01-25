@@ -16,6 +16,10 @@ navbar:
         - text: -------
         - text: "Transmission Model Details"
           href: articles/model_description.html
+        - text: "The Transmission Record"
+          href: articles/transmission_record.html
+        - text: "Simulating Relatedness"
+          href: articles/simulating_relatedness.html
     - text: "Functions"
       href: reference/index.html
   right:
