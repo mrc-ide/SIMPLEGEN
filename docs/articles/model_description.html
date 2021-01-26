@@ -89,7 +89,7 @@
       <h1 data-toc-skip>Transmission Model Details</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2021-01-25</h4>
+            <h4 class="date">2021-01-26</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/mrc-ide/SIMPLEGEN/blob/master/vignettes/model_description.Rmd"><code>vignettes/model_description.Rmd</code></a></small>
       <div class="hidden name"><code>model_description.Rmd</code></div>
@@ -115,19 +115,19 @@ p.caption {
 <p>Each inoculation can be thought of as an independent episode of malaria that goes through the following stages: 1) latent (liver stage) infection, 2) acute blood-stage, 3) chronic blood-stage, 4) clearance. Inoculations can pass through all four stages in order, or they can skip over the acute or chronic stages depending on the model parameters (see <strong>Figure 3</strong>). The acute stage essentially represents the symptomatic stage of infection, although the word “acute” has been used rather than “symptomatic” to avoid forcing a clinical interpretation on the model. The chronic stage is designed to capture long-lasting infections, including possible asymptomatic and/or sub-patent stages (more on detection later).</p>
 <p>The state of a host is defined directly from the state of its inoculations. If there are ANY acute inoculations then the host is in the acute state, otherwise, if there are ANY chronic inoculations then the host is in the chronic state, otherwise, if there are ANY latent inoculations then the host is in the exposed state, otherwise the host is in the susceptible state. This can be seen in <strong>Figure 1</strong>, which shows the host state for a simple case of two overlapping inoculations.</p>
 <div class="figure">
-<img src="../R_ignore/images/progression1.png" alt="**Figure 1** The host carries two inoculations (horizontal boxes), each of which goes through a latent stage and acute and chronic stages before clearing naturally. The host state is dictated from the inoculation states." width="100%"><p class="caption">
+<img src="../../../../My%20Programs/Simulation/SIMPLEGEN/vignettes/images/progression1.png" alt="**Figure 1** The host carries two inoculations (horizontal boxes), each of which goes through a latent stage and acute and chronic stages before clearing naturally. The host state is dictated from the inoculation states." width="100%"><p class="caption">
 <strong>Figure 1</strong> The host carries two inoculations (horizontal boxes), each of which goes through a latent stage and acute and chronic stages before clearing naturally. The host state is dictated from the inoculation states.
 </p>
 </div>
 <p>The only host state that is not dictated directly from its inoculations is the treated (aka prophylactic) state. Treatment is described fully in a later section, but in simple terms treatment causes all blood-stage infections to clear immediately. Liver-stage infections are not cleared, i.e. treatment does not represent a radical cure. After treatment, the host enters a prophylactic state in which new liver-stage infections can occur, but any inoculations leaving the liver within the prophylactic period are immediately cured. Eventually the prophylaxis wears off and the host transitions back into the susceptible or exposed state. <strong>Figure 2</strong> shows a second example of host states, this time for a more complex case involving treatment and prophylaxis.</p>
 <div class="figure">
-<img src="../R_ignore/images/progression2.png" alt="**Figure 2** The host acquires two inoculations, and later receives treatment and enters a prophylactic state. During this prophylactic period a new liver-stage inoculation takes hold, but this leaves the liver within the prophylactic period and is therefore immediately cured. A second liver-stage inoculation occurs within the prophylactic period, but this one leaves the liver outside the prophylactic period and so proceeds as normal." width="100%"><p class="caption">
+<img src="../../../../My%20Programs/Simulation/SIMPLEGEN/vignettes/images/progression2.png" alt="**Figure 2** The host acquires two inoculations, and later receives treatment and enters a prophylactic state. During this prophylactic period a new liver-stage inoculation takes hold, but this leaves the liver within the prophylactic period and is therefore immediately cured. A second liver-stage inoculation occurs within the prophylactic period, but this one leaves the liver outside the prophylactic period and so proceeds as normal." width="100%"><p class="caption">
 <strong>Figure 2</strong> The host acquires two inoculations, and later receives treatment and enters a prophylactic state. During this prophylactic period a new liver-stage inoculation takes hold, but this leaves the liver within the prophylactic period and is therefore immediately cured. A second liver-stage inoculation occurs within the prophylactic period, but this one leaves the liver outside the prophylactic period and so proceeds as normal.
 </p>
 </div>
 <p>Given the description above, we can now visualise the model in a classical compartmental structure. <strong>Figure 3</strong> shows the possible states and transitions of both individual inoculations and hosts.</p>
 <div class="figure">
-<img src="../R_ignore/images/model_diagram_inoc&amp;host.png" alt="**Figure 3** Inoculation states and host states. Dashed arrows indicate transitions that are only possible via super-infection." width="100%"><p class="caption">
+<img src="../../../../My%20Programs/Simulation/SIMPLEGEN/vignettes/images/model_diagram_inoc&amp;host.png" alt="**Figure 3** Inoculation states and host states. Dashed arrows indicate transitions that are only possible via super-infection." width="100%"><p class="caption">
 <strong>Figure 3</strong> Inoculation states and host states. Dashed arrows indicate transitions that are only possible via super-infection.
 </p>
 </div>
@@ -180,7 +180,7 @@ p.caption {
 <code class="sourceCode R"><span class="fu"><a href="../reference/simplegen_project.html">simplegen_project</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="../reference/define_epi_params.html">define_epi_params</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="../reference/plot_epi_distribution.html">plot_epi_distribution</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"duration_acute"</span><span class="op">)</span></code></pre></div>
-<p><img src="model_description_files/figure-html/unnamed-chunk-5-1.png" width="576"></p>
+<p><img src="model_description_files/figure-html/unnamed-chunk-5-1.png" width="480"></p>
 <p>In the case of list inputs, all distributions are plotted together:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/simplegen_project.html">simplegen_project</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
@@ -200,7 +200,7 @@ p.caption {
 <code class="sourceCode R"><span class="fu"><a href="../reference/simplegen_project.html">simplegen_project</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="../reference/define_epi_params.html">define_epi_params</a></span><span class="op">(</span>treatment_seeking_mean <span class="op">=</span> <span class="fl">0.7</span>, treatment_seeking_sd <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="../reference/plot_treatment_seeking.html">plot_treatment_seeking</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
-<p><img src="model_description_files/figure-html/unnamed-chunk-7-1.png" width="576"></p>
+<p><img src="model_description_files/figure-html/unnamed-chunk-7-1.png" width="480"></p>
 <p>The dashed line shows that at a population level there is a 70% chance of seeking treatment for malaria, but there is also considerable spread around this value. Each host has a value <span class="math inline">\(p_i\)</span> drawn from this distribution once at birth. For example, imagine a single unlucky individual for which <span class="math inline">\(p_i = 0.1\)</span>. This individual has poor access to malaria treatment, either for economic reasons or geographic reasons or whatever. If this individual becomes infected <em>and</em> if clinical symptoms occur <em>before</em> the disease has chance to clear naturally, then this individual makes the decision whether to obtain treatment, with only a 10% chance of choosing to do so. If they choose not to seek treatment then the disease continues until it clears naturally.</p>
 </div>
 <div id="infectivity-and-mosquitoes" class="section level3">

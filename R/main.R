@@ -745,21 +745,183 @@ sim_relatedness <- function(project,
   # run efficient C++ code
   output_raw <- sim_relatedness_cpp(args)
   
-  # process output
-  # nested mapply to wrangle raw output into list of dataframes
-  ret <- mapply(function(k) {
-    ret <- do.call(rbind, mapply(function(j) {
-      ret <- do.call(rbind, mapply(function(i) {
-        ret <- do.call(rbind, output_raw[[k]]$haplotypes[[j]][[i]])
-        cbind(i, ret)
-      }, seq_along(output_raw[[k]]$haplotypes[[j]]), SIMPLIFY = FALSE))
-      ret <- as.data.frame(cbind(output_raw[[k]]$details$haplo_IDs[j], ret))
-      names(ret) <- c("haplo_ID", "contig", "interval_start", "interval_end", "parent")
-      return(ret)
-    }, seq_along(output_raw[[k]]$haplotypes), SIMPLIFY = FALSE))
-  }, seq_along(output_raw), SIMPLIFY = FALSE)
+  # get the inoculation IDs of every node in the pruned transmission record
+  inoc_IDs <- mapply(function(x) x$details$inoc_ID, output_raw)
   
-  names(ret) <- mapply(function(x) x$details$inoc_ID, output_raw)
+  # get the lineage IDs of the sampled hosts
+  sample_lineage_IDs <- list()
+  for (i in seq_len(nrow(project$sample_details))) {
+    
+    # get lineage IDs from inoculation IDs
+    node_inoc_IDs <- project$sample_details$inoc_IDs[[i]]
+    if (length(node_inoc_IDs) == 0) {
+      sample_lineage_IDs[[i]] <- integer()
+    } else {
+      # which output elements are we interested in
+      w <- match(node_inoc_IDs, inoc_IDs)
+      
+      # concatenate all lineage IDs over these elements
+      sample_lineage_IDs[[i]] <- unlist(mapply(function(x) x$details$lineage_IDs, output_raw[w], SIMPLIFY = FALSE))
+    }
+  }
   
-  return(ret)
+  # add sampled lineage IDs back into project
+  project$sample_details$lineage_IDs <- sample_lineage_IDs
+  
+  # get list over lineages, ignoring hosts
+  lineage_list <- unlist(mapply(function(k) {
+    ret <- output_raw[[k]]$lineages
+  }, seq_along(output_raw), SIMPLIFY = FALSE), recursive = FALSE)
+  
+  # add lineage list back into project
+  project$relatedness <- lineage_list
+  
+  # return project
+  invisible(project)
+}
+
+#------------------------------------------------
+#' @title Get coalescent time of two lineages
+#'
+#' @description TODO.
+#'
+#' @param project a SIMPLEGEN project, as produced by the
+#'   \code{simplegen_project()} function.
+#' @param lineage_IDs a vector of two lineage IDs with which to calculate coalescent times.
+#' @param max_reps maximum number of steps when searching for coalescent times.
+#' @param silent whether to suppress written messages to the console.
+#'
+#' @export
+
+get_coalescent_times <- function(project,
+                                 lineage_IDs,
+                                 max_reps = 1e3,
+                                 silent = FALSE) {
+  
+  
+  # check inputs
+  assert_custom_class(project, "simplegen_project")
+  assert_vector_int(lineage_IDs)
+  assert_length(lineage_IDs, 2)
+  assert_single_pos_int(max_reps, zero_allowed = FALSE)
+  assert_single_logical(silent)
+  
+  # check lineage_IDs can be found in project output
+  assert_in("lineage_IDs", names(project$sample_details),
+            message = paste0("column 'lineage_IDs' not found in project$sample_details.",
+                             "Check you have run all necessary steps in the pipeline up to this point."))
+  assert_in(lineage_IDs, unlist(project$sample_details$lineage_IDs),
+            message = "lineage_IDs not found in project$sample_details$lineage_IDs")
+  
+  # check project contains relatedness info
+  assert_non_null(project$relatedness, message = "project contains no relatedness information")
+  
+  #------------------------------------------------
+  
+  # function replaces element x[[i]] with ancestral intervals
+  # defined inside function as hard-coded for project$relatedness
+  get_ancestor <- function(x, i, contig) {
+    parent <- x[[i]][length(x[[i]])]
+    if (parent == -1) {
+      return(x)
+    }
+    x_ancestor <- project$relatedness[[parent]][[contig]]
+    x_replace <- list()
+    for (j in seq_along(x_ancestor)) {
+      if (interval_intersect(x_ancestor[[j]], x[[i]])) {
+        left <- max(x[[i]][1], x_ancestor[[j]][1])
+        right <- min(x[[i]][2], x_ancestor[[j]][2])
+        x_replace <- append(x_replace, list(c(left, right, x[[i]][-(1:2)], x_ancestor[[j]][3])))
+      }
+    }
+    ret <- append(x[-i], x_replace, i-1)
+    return(ret)
+  }
+  
+  # loop through contigs
+  contigs <- length(project$relatedness[[lineage_IDs[1]]])
+  ret_list <- list()
+  for (contig in seq_len(contigs)) {
+    message(sprintf("contig %s of %s", contig, contigs))
+    
+    # get starting relatedness info for both lineages
+    x1 <- project$relatedness[[lineage_IDs[1]]][[contig]]
+    x2 <- project$relatedness[[lineage_IDs[2]]][[contig]]
+    
+    # loop back through ancestry, splitting intervals and checking for coalescence
+    for (rep in 1:max_reps) {
+      
+      # get complete list of breakpoints over both x1 and x2
+      all_breaks <- c(mapply(function(x) x[1], x1),
+                      mapply(function(x) x[1], x2))
+      all_breaks <- sort(unique(all_breaks))
+      all_breaks <- c(all_breaks, x1[[length(x1)]][2] + 1)
+      
+      # make intervals the same between x1 and x2
+      for (i in 1:(length(all_breaks) - 1)) {
+        if (x1[[i]][2] != all_breaks[i+1] - 1) {
+          x1 <- append(x1, list(c(x1[[i]][1], all_breaks[i+1] - 1, x1[[i]][-(1:2)])), i - 1)
+          x1[[i+1]][1] <- all_breaks[i+1]
+        }
+        if (x2[[i]][2] != all_breaks[i+1] - 1) {
+          x2 <- append(x2, list(c(x2[[i]][1], all_breaks[i+1] - 1, x2[[i]][-(1:2)])), i - 1)
+          x2[[i+1]][1] <- all_breaks[i+1]
+        }
+      }
+      
+      # find next element of x1/x2 that has not already coalesced
+      all_coal <- TRUE
+      for (i in seq_along(x1)) {
+        if (length(intersect(x1[[i]][-(1:2)], x2[[i]][-(1:2)])) == 0) {
+          all_coal <- FALSE
+          break
+        }
+      }
+      if (all_coal) {
+        break
+      }
+      
+      # split uncoalesced elements of x1 and x2 based on ancestry 
+      x1 <- get_ancestor(x1, i, contig)
+      x2 <- get_ancestor(x2, i, contig)
+      
+    }  # end rep loop
+    
+    # check that didn't time out
+    if (rep == max_reps) {
+      stop("max_reps reached")
+    }
+    
+    # make dataframe of coalescent intervals and timings
+    x_coal <- x1
+    for (i in seq_along(x_coal)) {
+      coal_lineage <- intersect(x1[[i]][-(1:2)], x2[[i]][-(1:2)])
+      gen1 <- which(x1[[i]][-(1:2)] == coal_lineage)
+      gen2 <- which(x2[[i]][-(1:2)] == coal_lineage)
+      x_coal[[i]] <- c(x_coal[[i]][1:2], coal_lineage, gen1, gen2)
+    }
+    x_coal <- as.data.frame(do.call(rbind, x_coal))
+    names(x_coal) <- c("start", "end", "ancestor", "generations1", "generations2")
+    
+    # simplify by merging adjacent intervals with same ancestor
+    i <- 2
+    while (i <= nrow(x_coal)) {
+      if (x_coal$ancestor[i] == x_coal$ancestor[i-1]) {
+        x_coal$end[i-1] <- x_coal$end[i]
+        x_coal <- x_coal[-i,]
+      } else {
+        i <- i + 1
+      }
+    }
+    
+    # add to list over contigs
+    ret_list[[contig]] <- x_coal
+  }
+  
+  # convert to dataframe
+  ret_df <- do.call(rbind, mapply(function(i) {
+    cbind(contig = i, ret_list[[i]])
+  }, seq_along(ret_list), SIMPLIFY = FALSE))
+  
+  return(ret_df)
 }

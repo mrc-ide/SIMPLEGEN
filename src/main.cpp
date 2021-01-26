@@ -335,45 +335,48 @@ Rcpp::List sim_relatedness_cpp(Rcpp::List args) {
     t++;
   }
   
-  // create a map, where each element represents a node in the pruned
+  // create a map, where each element represents an inoculation in the pruned
   // transmission tree
-  map<int, Tree_node> tree;
+  map<int, Tree_node> inoc_tree;
   
   // populate map
-  int haplo_ID = 0;
+  int lineage_ID = 1;
   for (int i = 0; i < int(pruned_array.size()); ++i) {
-    int ID_key = pruned_array[i][0];
-    tree[ID_key] = Tree_node(pruned_array[i][1], contig_lengths, sampler_oocyst, sampler_hepatocyte, tree);
     
-    // create node de novo or from ancestral inoculations
+    // create node for this inoc_ID
+    int inoc_ID = pruned_array[i][0];
+    int t = pruned_array[i][1];
+    inoc_tree[inoc_ID] = Tree_node(t, contig_lengths, sampler_oocyst, sampler_hepatocyte, inoc_tree);
+    
+    // draw lineages de novo or by recombination from ancestral inoculations
     if (pruned_array[i].size() == 2) {
-      tree[ID_key].draw_haplotypes_denovo(haplo_ID, alpha);
+      inoc_tree[inoc_ID].draw_lineages_denovo(lineage_ID, alpha);
     } else {
-      tree[ID_key].draw_haplotypes_recombine(haplo_ID, pruned_array[i], r, alpha);
+      inoc_tree[inoc_ID].draw_lineages_recombine(lineage_ID, pruned_array[i], r, alpha);
     }
   }
   
   // get into more convenient output format
   Rcpp::List ret;
   for (int i = 0; i < int(pruned_array.size()); ++i) {
-    int ID_key = pruned_array[i][0];
+    int inoc_ID = pruned_array[i][0];
     
     // get descriptive details of this node
     Rcpp::List ret_details;
-    ret_details["inoc_ID"] = ID_key;
-    ret_details["time"] = tree[ID_key].t;
-    ret_details["haplo_IDs"] = tree[ID_key].haplo_ID_vec;
-    ret_details["haplo_densities"] = tree[ID_key].haplo_density;
+    ret_details["inoc_ID"] = inoc_ID;
+    ret_details["time"] = inoc_tree[inoc_ID].t;
+    ret_details["lineage_IDs"] = inoc_tree[inoc_ID].lineage_ID_vec;
+    ret_details["lineage_densities"] = inoc_tree[inoc_ID].lineage_density;
     
-    // get haplotype intervals
-    Rcpp::List ret_haplotypes;
-    for (int j = 0; j < tree[ID_key].n_haplotypes; ++j) {
-      ret_haplotypes.push_back(tree[ID_key].intervals[j]);
+    // get lineage intervals
+    Rcpp::List ret_lineages;
+    for (int j = 0; j < inoc_tree[inoc_ID].n_lineages; ++j) {
+      ret_lineages.push_back(inoc_tree[inoc_ID].intervals[j]);
     }
     
     // push to return list
     ret.push_back(Rcpp::List::create(Rcpp::Named("details") = ret_details,
-                                     Rcpp::Named("haplotypes") = ret_haplotypes));
+                                     Rcpp::Named("lineages") = ret_lineages));
   }
   
   // close filestreams
