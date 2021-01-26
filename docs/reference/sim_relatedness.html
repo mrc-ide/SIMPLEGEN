@@ -40,15 +40,10 @@
 
 
 <meta property="og:title" content="Draw tree of genome-wide relatedness from pruned transmission record — sim_relatedness" />
-<meta property="og:description" content="Reads in the pruned transmission record from file and creates a
-  new node for each inoculation ID. Nodes at time zero are initialised with a
-  single haplotype, created de novo with a unique haplotype ID. In subsequent
-  generations the nodes that are ancestral to the focal node are known from
-  the pruned transmission record. The haplotypes from ancestral nodes are
-  sampled at random, and brought together in pairs to produce oocysts. The
-  recombinant products of these oocysts are then sampled down to produce a
-  new generation of haplotype IDs for this node, along with the relative
-  densities of each haplotype." />
+<meta property="og:description" content="Reads in the pruned transmission record from file and uses this
+  information to simulate relatedness between parasite lineages from a
+  genetic model. The map of relatedness output by this step can be used to
+  generate genotypic information of various types." />
 
 
 
@@ -141,15 +136,10 @@
     </div>
 
     <div class="ref-description">
-    <p>Reads in the pruned transmission record from file and creates a
-  new node for each inoculation ID. Nodes at time zero are initialised with a
-  single haplotype, created de novo with a unique haplotype ID. In subsequent
-  generations the nodes that are ancestral to the focal node are known from
-  the pruned transmission record. The haplotypes from ancestral nodes are
-  sampled at random, and brought together in pairs to produce oocysts. The
-  recombinant products of these oocysts are then sampled down to produce a
-  new generation of haplotype IDs for this node, along with the relative
-  densities of each haplotype.</p>
+    <p>Reads in the pruned transmission record from file and uses this
+  information to simulate relatedness between parasite lineages from a
+  genetic model. The map of relatedness output by this step can be used to
+  generate genotypic information of various types.</p>
     </div>
 
     <pre class="usage"><span class='fu'>sim_relatedness</span><span class='op'>(</span>
@@ -184,7 +174,7 @@ single recombinant block is 1/r.</p></td>
     </tr>
     <tr>
       <th>alpha</th>
-      <td><p>parameter dictating the skew of haplotype densities. Small
+      <td><p>parameter dictating the skew of lineage densities. Small
 values of <code>alpha</code> create a large skew, and hence make it likely that
 an oocyst will be produced from the same parents. Large values of
 <code>alpha</code> tend toward more even densities.</p></td>
@@ -211,6 +201,16 @@ it into the host bloodstream upon a bite from an infectious mosquito.</p></td>
     </tr>
     </table>
 
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>Read in the pruned transmission record and creates a new node for
+  each inoculation ID. Nodes at time zero are initialised with a single
+  unique lineage created de novo. In subsequent generations the children of
+  any given node are known from the pruned transmission record. The lineages
+  from parental nodes are sampled at random, and brought together in pairs to
+  produce oocysts. The recombinant products of these oocysts are then sampled
+  down to produce a new generation of lineage IDs for this node, along with
+  the relative densities of each lineage.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

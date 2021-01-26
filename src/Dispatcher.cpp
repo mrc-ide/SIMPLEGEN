@@ -29,7 +29,7 @@ void Dispatcher::init(Parameters &params_) {
   }
   
   // initialise unique IDs for each inoculation
-  next_inoc_ID = 0;
+  next_inoc_ID = 1;
   
   // objects for sampling from probability distributions
   int sampler_draws = 1000;

@@ -14,16 +14,16 @@ Example comment
 -->
 
 The transmission record is
-- a record of events in the simulation model
+  - a record of events in the simulation model
 
 The overall purpose of the transmission record is
-- to store the minimum amount of information that permits us to generate genetic data
+  - to store the minimum amount of information that permits us to generate genetic data
 
 This step has two inputs:
-- the full transmission record of inoculations
-- the inoculation IDs corresponding to the sampled hosts
+  - the full transmission record of inoculations
+  - the inoculation IDs corresponding to the sampled hosts
 And one output:
-- the pruned record
+  - the pruned record
 
 Vignette sections:
 
