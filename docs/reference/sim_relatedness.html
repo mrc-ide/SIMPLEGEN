@@ -142,17 +142,7 @@
   generate genotypic information of various types.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>sim_relatedness</span><span class='op'>(</span>
-  <span class='va'>project</span>,
-  pruned_record_location <span class='op'>=</span> <span class='st'>""</span>,
-  r <span class='op'>=</span> <span class='fl'>1e-06</span>,
-  alpha <span class='op'>=</span> <span class='fl'>1</span>,
-  oocyst_distribution <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/stats/Poisson.html'>dpois</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>10</span>, lambda <span class='op'>=</span> <span class='fl'>2</span><span class='op'>)</span>,
-  hepatocyte_distribution <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/stats/Poisson.html'>dpois</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>10</span>, lambda <span class='op'>=</span> <span class='fl'>5</span><span class='op'>)</span>,
-  contig_lengths <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>643292</span>, <span class='fl'>947102</span>, <span class='fl'>1060087</span>, <span class='fl'>1204112</span>, <span class='fl'>1343552</span>, <span class='fl'>1418244</span>, <span class='fl'>1501717</span>,
-    <span class='fl'>1419563</span>, <span class='fl'>1541723</span>, <span class='fl'>1687655</span>, <span class='fl'>2038337</span>, <span class='fl'>2271478</span>, <span class='fl'>2895605</span>, <span class='fl'>3291871</span><span class='op'>)</span>,
-  silent <span class='op'>=</span> <span class='cn'>FALSE</span>
-<span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>sim_relatedness</span><span class='op'>(</span><span class='va'>project</span>, pruned_record_location <span class='op'>=</span> <span class='st'>""</span>, silent <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -168,34 +158,6 @@
 transmission record will be read.</p></td>
     </tr>
     <tr>
-      <th>r</th>
-      <td><p>the rate of recombination. The expected number of base pairs in a
-single recombinant block is 1/r.</p></td>
-    </tr>
-    <tr>
-      <th>alpha</th>
-      <td><p>parameter dictating the skew of lineage densities. Small
-values of <code>alpha</code> create a large skew, and hence make it likely that
-an oocyst will be produced from the same parents. Large values of
-<code>alpha</code> tend toward more even densities.</p></td>
-    </tr>
-    <tr>
-      <th>oocyst_distribution</th>
-      <td><p>vector specifying the probability distribution of
-each number of oocysts within the mosquito midgut.</p></td>
-    </tr>
-    <tr>
-      <th>hepatocyte_distribution</th>
-      <td><p>vector specifying the probability distribution
-of the number of infected hepatocytes in a human host. More broadly, this
-defines the number of independent draws from the oocyst products that make
-it into the host bloodstream upon a bite from an infectious mosquito.</p></td>
-    </tr>
-    <tr>
-      <th>contig_lengths</th>
-      <td><p>vector of lengths (in bp) of each contig.</p></td>
-    </tr>
-    <tr>
       <th>silent</th>
       <td><p>whether to suppress written messages to the console.</p></td>
     </tr>
@@ -203,7 +165,7 @@ it into the host bloodstream upon a bite from an infectious mosquito.</p></td>
 
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>Read in the pruned transmission record and creates a new node for
+    <p>Reads in the pruned transmission record and creates a new node for
   each inoculation ID. Nodes at time zero are initialised with a single
   unique lineage created de novo. In subsequent generations the children of
   any given node are known from the pruned transmission record. The lineages

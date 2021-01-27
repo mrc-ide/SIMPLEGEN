@@ -28,5 +28,8 @@ will overwrite any existing file by the same name. \code{FALSE} by default.}
 \item{silent}{whether to suppress written messages to the console.}
 }
 \description{
-TODO
+Reads in a saved transmission record from file. Combines this
+  with sampling information in the project to produce a pruned version of the
+  transmission record containing only the events relevant to the final
+  sample. This is also saved to file.
 }

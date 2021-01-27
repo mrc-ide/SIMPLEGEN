@@ -52,5 +52,5 @@ Simulate from the inbuilt SIMPLEGEN transmission model.
   Parameters are taken from the \code{epi_parameters} slot of the project,
   and basic outputs are written to the \code{epi_output} slot. If a sampling
   strategy has been defined then samples will also be obtained and saved in
-  the \code{sample_details} slot (see \code{?define_sampling_strategy()}).
+  the \code{sample_output} slot (see \code{?define_sampling_strategy()}).
 }

@@ -10,7 +10,8 @@ vignette: >
 ---
 
 <!---
-This section sets the font size of figure captions
+Set the font size of figure captions
+Currently not used because figures inserted with html method
 -->
 <style>
 p.caption {
@@ -37,21 +38,25 @@ Each inoculation can be thought of as an independent episode of malaria that goe
 
 The state of a host is defined directly from the state of its inoculations. If there are ANY acute inoculations then the host is in the acute state, otherwise, if there are ANY chronic inoculations then the host is in the chronic state, otherwise, if there are ANY latent inoculations then the host is in the exposed state, otherwise the host is in the susceptible state. This can be seen in **Figure 1**, which shows the host state for a simple case of two overlapping inoculations.
 
-```{r, echo=FALSE, fig.cap="**Figure 1** The host carries two inoculations (horizontal boxes), each of which goes through a latent stage and acute and chronic stages before clearing naturally. The host state is dictated from the inoculation states.", out.width = '100%'}
-knitr::include_graphics("images/progression1.png")
-```
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/progression1.png"/>
+<font size="2">
+<figcaption> **Figure 1** The host carries two inoculations (horizontal boxes), each of which goes through a latent stage and acute and chronic stages before clearing naturally. The host state is dictated from the inoculation states.</figcaption>
+</font>
 
 The only host state that is not dictated directly from its inoculations is the treated (aka prophylactic) state. Treatment is described fully in a later section, but in simple terms treatment causes all blood-stage infections to clear immediately. Liver-stage infections are not cleared, i.e. treatment does not represent a radical cure. After treatment, the host enters a prophylactic state in which new liver-stage infections can occur, but any inoculations leaving the liver within the prophylactic period are immediately cured. Eventually the prophylaxis wears off and the host transitions back into the susceptible or exposed state. **Figure 2** shows a second example of host states, this time for a more complex case involving treatment and prophylaxis.
 
-```{r, echo=FALSE, fig.cap="**Figure 2** The host acquires two inoculations, and later receives treatment and enters a prophylactic state. During this prophylactic period a new liver-stage inoculation takes hold, but this leaves the liver within the prophylactic period and is therefore immediately cured. A second liver-stage inoculation occurs within the prophylactic period, but this one leaves the liver outside the prophylactic period and so proceeds as normal.", out.width = '100%'}
-knitr::include_graphics("images/progression2.png")
-```
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/progression2.png"/>
+<font size="2">
+<figcaption> **Figure 2** The host acquires two inoculations, and later receives treatment and enters a prophylactic state. During this prophylactic period a new liver-stage inoculation takes hold, but this leaves the liver within the prophylactic period and is therefore immediately cured. A second liver-stage inoculation occurs within the prophylactic period, but this one leaves the liver outside the prophylactic period and so proceeds as normal.</figcaption>
+</font>
+
 
 Given the description above, we can now visualise the model in a classical compartmental structure. **Figure 3** shows the possible states and transitions of both individual inoculations and hosts.
 
-```{r, echo=FALSE, fig.cap="**Figure 3** Inoculation states and host states. Dashed arrows indicate transitions that are only possible via super-infection.", out.width = '100%'}
-knitr::include_graphics("images/model_diagram_inoc&host.png")
-```
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/model_diagram_inoc&host.png"/>
+<font size="2">
+<figcaption> **Figure 3** Inoculation states and host states. Dashed arrows indicate transitions that are only possible via super-infection.</figcaption>
+</font>
 
 Notice there are no rates or parameters on any of the arrows in **Figure 3**. This is because state durations and transition probabilities are modelled using flexible distributions rather than fixed parameter values.
 
