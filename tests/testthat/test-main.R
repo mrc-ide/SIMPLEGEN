@@ -51,8 +51,8 @@ test_that("default epi model fails with bad input", {
 test_that("default epi model runs and produces correct output", {
   
   # define expected project slot names
-  expected_names <- c("epi_parameters", "sampling_strategy", "epi_output", "sample_details", 
-                      "relatedness", "true_genotypes", "observed_genotypes")
+  expected_names <- c("epi_parameters", "sampling_strategy", "epi_output", "sample_output", 
+                      "genetic_parameters", "relatedness", "true_genotypes", "observed_genotypes")
   
   # create basic project
   p <- simplegen_project()
@@ -81,11 +81,11 @@ test_that("pruning generates expected output", {
   p <- simplegen_project()
   
   # manually define sample details (shortcut simulation)
-  p$sample_details <- data.frame(time = 365,
-                                 deme = 1,
-                                 host_ID = 1:2,
-                                 positive = TRUE,
-                                 inoc_IDs = c(15,16))
+  p$sample_output <- data.frame(time = 365,
+                                deme = 1,
+                                host_ID = 1:2,
+                                positive = TRUE,
+                                inoc_IDs = c(15,16))
   
   # locations of transmission record (read from package), and pruned record
   # (write to temporary file)

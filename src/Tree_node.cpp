@@ -43,7 +43,7 @@ void Tree_node::draw_lineages_denovo(int &lineage_ID, double alpha) {
   // initialise intervals with no ancestry (-1) over every contig
   intervals = vector<vector<vector<vector<int>>>>(1, vector<vector<vector<int>>>(n_contigs));
   for (int i = 0; i < n_contigs; ++i) {
-    intervals[0][i].push_back({0, contig_lengths[i], -1});
+    intervals[0][i].push_back({0, contig_lengths[i] - 1, -1});
   }
   
 }
@@ -149,7 +149,7 @@ void Tree_node::draw_intervals(int parent0, int parent1, double r) {
     
     // deal with clonal case
     if (parent0 == parent1) {
-      x[i].push_back({0, contig_lengths[i], parent0});
+      x[i].push_back({0, contig_lengths[i] - 1, parent0});
       continue;
     }
     
@@ -163,7 +163,7 @@ void Tree_node::draw_intervals(int parent0, int parent1, double r) {
     // draw location of breakpoints ensuring no duplicates
     vector<int> break_pos(n_breaks);
     for (int j = 0; j < n_breaks; ++j) {
-      break_pos[j] = sample2(1, contig_lengths[i]);
+      break_pos[j] = sample2(1, contig_lengths[i] - 1);
     }
     sort(break_pos.begin(), break_pos.end());
     remove_duplicates(break_pos);
@@ -175,7 +175,7 @@ void Tree_node::draw_intervals(int parent0, int parent1, double r) {
       interval_start = break_pos[j];
       current_parent = (current_parent == parent0) ? parent1 : parent0;
     }
-    x[i].push_back({interval_start, contig_lengths[i], current_parent});
+    x[i].push_back({interval_start, contig_lengths[i] - 1, current_parent});
     
   }  // end i loop
   
