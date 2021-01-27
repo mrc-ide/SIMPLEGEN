@@ -4,17 +4,7 @@
 \alias{sim_relatedness}
 \title{Draw tree of genome-wide relatedness from pruned transmission record}
 \usage{
-sim_relatedness(
-  project,
-  pruned_record_location = "",
-  r = 1e-06,
-  alpha = 1,
-  oocyst_distribution = dpois(1:10, lambda = 2),
-  hepatocyte_distribution = dpois(1:10, lambda = 5),
-  contig_lengths = c(643292, 947102, 1060087, 1204112, 1343552, 1418244, 1501717,
-    1419563, 1541723, 1687655, 2038337, 2271478, 2895605, 3291871),
-  silent = FALSE
-)
+sim_relatedness(project, pruned_record_location = "", silent = FALSE)
 }
 \arguments{
 \item{project}{a SIMPLEGEN project, as produced by the
@@ -22,24 +12,6 @@ sim_relatedness(
 
 \item{pruned_record_location}{the file path from which the pruned
 transmission record will be read.}
-
-\item{r}{the rate of recombination. The expected number of base pairs in a
-single recombinant block is 1/r.}
-
-\item{alpha}{parameter dictating the skew of lineage densities. Small
-values of \code{alpha} create a large skew, and hence make it likely that
-an oocyst will be produced from the same parents. Large values of
-\code{alpha} tend toward more even densities.}
-
-\item{oocyst_distribution}{vector specifying the probability distribution of
-each number of oocysts within the mosquito midgut.}
-
-\item{hepatocyte_distribution}{vector specifying the probability distribution
-of the number of infected hepatocytes in a human host. More broadly, this
-defines the number of independent draws from the oocyst products that make
-it into the host bloodstream upon a bite from an infectious mosquito.}
-
-\item{contig_lengths}{vector of lengths (in bp) of each contig.}
 
 \item{silent}{whether to suppress written messages to the console.}
 }
@@ -50,7 +22,7 @@ Reads in the pruned transmission record from file and uses this
   generate genotypic information of various types.
 }
 \details{
-Read in the pruned transmission record and creates a new node for
+Reads in the pruned transmission record and creates a new node for
   each inoculation ID. Nodes at time zero are initialised with a single
   unique lineage created de novo. In subsequent generations the children of
   any given node are known from the pruned transmission record. The lineages

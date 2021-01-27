@@ -14,7 +14,8 @@ simplegen_project <- function() {
   project <- list(epi_parameters = NULL,
                   sampling_strategy = NULL,
                   epi_output = NULL,
-                  sample_details = NULL,
+                  sample_output = NULL,
+                  genetic_parameters = NULL,
                   relatedness = NULL,
                   true_genotypes = NULL,
                   observed_genotypes = NULL)
@@ -73,7 +74,30 @@ summary.simplegen_project <- function(object, ...) {
       message("  time: (more than 5)")
       message("  n: (more than 5)")
     }
+  }
+  
+  # print sample output
+  if (!is.null(p$sample_output)) {
+    message("Sample output:")
+    N <- nrow(p$sample_output)
+    n_pos <- sum(p$sample_output$positive)
+    message(sprintf("  prevalence: %s/%s (%s%%)", n_pos, N, signif(n_pos/N*100, digits = 2)))
+  }
+  
+  # print genetic parameters
+  if (!is.null(p$genetic_parameters)) {
+    message("Genetic model:")
     
+    oo_dist <- p$genetic_parameters$oocyst_distribution
+    mean_oocysts <- sum(seq_along(oo_dist)*oo_dist) / sum(oo_dist)
+    
+    hep_dist <- p$genetic_parameters$hepatocyte_distribution
+    mean_hepatocytes <- sum(seq_along(hep_dist)*hep_dist) / sum(hep_dist)
+    
+    message(sprintf("  recombination rate: %s", p$genetic_parameters$r))
+    message(sprintf("  mean oocysts: %s", signif(mean_oocysts, digits = 2)))
+    message(sprintf("  mean hepatocytes: %s", signif(mean_hepatocytes, digits = 2)))
+    message(sprintf("  contigs: %s", length(p$genetic_parameters$contig_lengths)))
   }
   
   invisible(object)
