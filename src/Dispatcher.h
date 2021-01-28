@@ -82,6 +82,11 @@ public:
   std::vector<double> inc_infection;
   std::vector<double> inc_acute;
   std::vector<double> inc_chronic;
+  std::vector<double> detect_microscopy_acute ;
+  std::vector<double> detect_microscopy_chronic ;
+  std::vector<double> detect_PCR_acute;
+  std::vector<double> detect_PCR_chronic;
+
   
   // number of active inoculations
   std::vector<double> n_inoc;

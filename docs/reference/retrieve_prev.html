@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Articles • SIMPLEGEN</title>
+<title>Retrieve prevalence — retrieve_prev • SIMPLEGEN</title>
 
 
 <!-- jquery -->
@@ -39,7 +39,8 @@
 
 
 
-<meta property="og:title" content="Articles" />
+<meta property="og:title" content="Retrieve prevalence — retrieve_prev" />
+<meta property="og:description" content="Retrieve prevalence" />
 
 
 
@@ -58,7 +59,7 @@
   </head>
 
   <body data-spy="scroll" data-target="#toc">
-    <div class="container template-article-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -126,28 +127,62 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Articles</h1>
+    <h1>Retrieve prevalence</h1>
+    <small class="dont-index">Source: <a href='https://github.com/mrc-ide/SIMPLEGEN/blob/master/R/misc.R'><code>R/misc.R</code></a></small>
+    <div class="hidden name"><code>retrieve_prev.Rd</code></div>
     </div>
 
-    <div class="section ">
-      <h3>All vignettes</h3>
-      <p class="section-desc"></p>
-
-      <dl>
-        <dt><a href="basic_tutorial.html">Basic Tutorial</a></dt>
-        <dd></dt>
-        <dt><a href="comparing_to_data.html">Comparing model output to data</a></dt>
-        <dd></dt>
-        <dt><a href="installation.html">Installation</a></dt>
-        <dd></dt>
-        <dt><a href="model_description.html">Transmission Model Details</a></dt>
-        <dd></dt>
-        <dt><a href="simulating_relatedness.html">Simulating Relatedness</a></dt>
-        <dd></dt>
-        <dt><a href="transmission_record.html">The Transmission Record</a></dt>
-        <dd></dt>
-      </dl>
+    <div class="ref-description">
+    <p>Retrieve prevalence</p>
     </div>
+
+    <pre class="usage"><span class='fu'>retrieve_prev</span><span class='op'>(</span>
+  <span class='va'>data</span>,
+  <span class='va'>case_detection</span>,
+  <span class='va'>diagnosis</span>,
+  <span class='va'>sampling_time</span>,
+  sampled <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  deme <span class='op'>=</span> <span class='fl'>1</span>
+<span class='op'>)</span></pre>
+
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>data</th>
+      <td><p>Model output from SIMPLEGEN sim_epi() function epi_output$daily_values</p></td>
+    </tr>
+    <tr>
+      <th>case_detection</th>
+      <td><p>Method of case detection, "Active" or "Passive"</p></td>
+    </tr>
+    <tr>
+      <th>diagnosis</th>
+      <td><p>Method of diagnosis, "Microscopy" or "PCR"</p></td>
+    </tr>
+    <tr>
+      <th>sampling_time</th>
+      <td><p>Sampling time, currently input should be a numeric day e.g. 100 would represent the 100th day of simulation.</p></td>
+    </tr>
+    <tr>
+      <th>sampled</th>
+      <td><p>TO DO - sample from bernoulli distribution to generate simulated numbers of cases detected on each day - done in SIMPLEGEN internally already</p></td>
+    </tr>
+    <tr>
+      <th>deme</th>
+      <td><p>deme of interest - currently assumes just a single deme analysed - i.e. can't pool results of multiple demes</p></td>
+    </tr>
+    </table>
+
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>returns named vector :  c("annual_EIR", "prevalence_true", "prevalence_detected")</p>
+
+  </div>
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 </div>
 
