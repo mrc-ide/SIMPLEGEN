@@ -3,10 +3,9 @@ pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
   basic_tutorial: basic_tutorial.html
-  comparing_to_data: comparing_to_data.html
   installation: installation.html
   model_description: model_description.html
   simulating_relatedness: simulating_relatedness.html
   transmission_record: transmission_record.html
-last_built: 2021-01-28T20:08Z
+last_built: 2021-01-28T22:50Z
 
