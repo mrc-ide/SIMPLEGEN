@@ -244,10 +244,13 @@ plot_daily_states <- function(project, deme = 1, states = c("S", "E", "A", "C", 
 #'
 #' @export
 
-plot_age_states <- function(project, sample_time = 1, deme = 1, state = "S") {
+plot_age_states <- function(project, sample_time = NULL, deme = 1, state = "S") {
   
   # check inputs
   assert_non_null(project$epi_output$age_distributions, message = "no age distribution output found")
+  if (is.null(sample_time)) {
+    sample_time <- project$epi_output$age_distributions$sample_time[1]
+  }
   assert_single_pos_int(sample_time)
   assert_in(sample_time, project$epi_output$age_distributions$sample_time,
             message = "sample_time values not found in age distribution output")
@@ -272,54 +275,52 @@ plot_age_states <- function(project, sample_time = 1, deme = 1, state = "S") {
 }
 
 
-
-#function to plot model output EIR versus prevalence------------------------------------------------
-
+#------------------------------------------------
 #' @title Plot EIR versus prevalence
 #'
 #' @description Plots relationship between annual EIR and prevalence
 #'
 #' @param data dataset produced by the retrieve_prev function
-#' @param plot_studies logical argument whether to plot data from previous empirical studies (currently Hay et al., 2005)
+#' @param plot_studies logical argument whether to plot data from previous
+#'   empirical studies (currently Hay et al., 2005)
 #' @param scale_x linear or log scale for x axis
 #'
 #' @importFrom ggsci scale_color_lancet
 #' @importFrom rlang .data
 #' @export
 #' 
-#' 
-#' 
-plot_EIR_prevalence<-function(data, plot_studies = TRUE, scale_x="linear"){
+plot_EIR_prevalence <- function(data, plot_studies = TRUE, scale_x = "linear"){
   
+  # load data (this is apparently not good practice!)
+  #data("EIRprev_hay2005")
+  #data("EIRprev_beier1999")
   
-  data("EIRprev_hay2005")
-  data("EIRprev_beier1999")
+  EIRprev <- tidyr::gather(as.data.frame(EIRprev), key = "detection_type", value = "prevalence", -1)
   
-  EIRprev<-tidyr::gather(as.data.frame(EIRprev),key = "detection_type", value ="prevalence", -1 )
+  # remove zeros to avoid issues when logging
+  EIRprev <- EIRprev[is.finite(log(EIRprev[,"annual_EIR"])),]
   
-  #remove zeros to avoid issues when logging
-  EIRprev<-EIRprev[is.finite(log(EIRprev[,"annual_EIR"])),]
-  
-  if (plot_studies == TRUE){
-    EIRprev_hay2005$detection_type<-rep("Hay et al., 2005", length.out= nrow( EIRprev_hay2005))
-    EIRprev_beier1999$detection_type<-rep("Beier et al., 1999", length.out= nrow( EIRprev_beier1999))
-    EIRprev<-rbind( EIRprev, EIRprev_hay2005)
-    EIRprev<-rbind(EIRprev,EIRprev_beier1999)
-  }else {} 
-  if(scale_x == "linear"){
-    p<-ggplot2::ggplot(data=as.data.frame(EIRprev), ggplot2::aes(.data$annual_EIR, .data$prevalence, colour = .data$detection_type)) + ggplot2::theme_bw() + ggsci::scale_color_lancet()+
+  if (plot_studies) {
+    EIRprev_hay2005$detection_type <- rep("Hay et al., 2005", length.out = nrow( EIRprev_hay2005))
+    EIRprev_beier1999$detection_type <- rep("Beier et al., 1999", length.out = nrow( EIRprev_beier1999))
+    EIRprev <- rbind( EIRprev, EIRprev_hay2005)
+    EIRprev <- rbind(EIRprev,EIRprev_beier1999)
+  }
+  if (scale_x == "linear") {
+    p <- ggplot2::ggplot(data = as.data.frame(EIRprev), ggplot2::aes(.data$annual_EIR, .data$prevalence, colour = .data$detection_type)) +
+      ggplot2::theme_bw() + ggsci::scale_color_lancet() +
       ggplot2::geom_point() +
       ggplot2::labs(title = "Annual EIR and Prevalence", x = "Annual EIR", y = "Prevalence") +
-      ggplot2::coord_cartesian(ylim=c(0,1),xlim= c(0,400))
-    
-    
-  }else if(scale_x == "log"){
-    p<-ggplot2::ggplot(as.data.frame(EIRprev),ggplot2::aes(.data$annual_EIR, .data$prevalence, colour = .data$detection_type)) + ggplot2::theme_bw() +
-      ggplot2::geom_point() + ggplot2::scale_x_log10() + ggsci::scale_color_lancet()+
-      ggplot2::labs(title = "Annual EIR (log scale) and Prevalence", x = "Annual EIR", y = "Prevalence")+
-      #ggplot2::geom_smooth(method = "lm")+
-      ggplot2::coord_cartesian(ylim=c(0,1))
-  } else { warning("scale_x must be log or linear")}
+      ggplot2::coord_cartesian(ylim = c(0,1), xlim = c(0,400))
+  } else if (scale_x == "log") {
+    p <- ggplot2::ggplot(as.data.frame(EIRprev), ggplot2::aes(.data$annual_EIR, .data$prevalence, colour = .data$detection_type)) +
+      ggplot2::theme_bw() +
+      ggplot2::geom_point() + ggplot2::scale_x_log10() + ggsci::scale_color_lancet() +
+      ggplot2::labs(title = "Annual EIR (log scale) and Prevalence", x = "Annual EIR", y = "Prevalence") +
+      ggplot2::coord_cartesian(ylim = c(0,1))
+  } else {
+    warning("scale_x must be log or linear")
+  }
   print(p)
 }
 

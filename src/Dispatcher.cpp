@@ -29,7 +29,7 @@ void Dispatcher::init(Parameters &params_) {
   }
   
   // initialise unique IDs for each inoculation
-  next_inoc_ID = 0;
+  next_inoc_ID = 1;
   
   // objects for sampling from probability distributions
   int sampler_draws = 1000;
@@ -573,29 +573,29 @@ void Dispatcher::get_age_distribution(int t_index) {
       age_distributions[t_index][this_deme][this_age][0] += 1.0/double(H[this_deme]);
       break;
     case Host_Eh:
-      age_distributions[t_index][this_deme][this_age][1] += 1.0/double(H[this_deme]);
+      age_distributions[t_index][this_deme][this_age][1] += 1.0 / double(H[this_deme]);
       break;
     case Host_Ah:
-      age_distributions[t_index][this_deme][this_age][2] += 1.0/double(H[this_deme]);
+      age_distributions[t_index][this_deme][this_age][2] += 1.0 / double(H[this_deme]);
       break;
     case Host_Ch:
-      age_distributions[t_index][this_deme][this_age][3] += 1.0/double(H[this_deme]);
+      age_distributions[t_index][this_deme][this_age][3] += 1.0 / double(H[this_deme]);
       break;
     case Host_Ph:
-      age_distributions[t_index][this_deme][this_age][4] += 1.0/double(H[this_deme]);
+      age_distributions[t_index][this_deme][this_age][4] += 1.0 / double(H[this_deme]);
       break;
     default:
       Rcpp::stop("invalid host status in get_age_distribution()");
     }
     
     // incidence of infection
-    double inc1 = prob_infectious_bite[this_deme] * host_pop[i].get_prob_infection() / double(H[this_deme]);
-    age_distributions[t_index][this_deme][this_age][5] += inc1;
+    double inc = prob_infectious_bite[this_deme] * host_pop[i].get_prob_infection() / double(H[this_deme]);
+    age_distributions[t_index][this_deme][this_age][5] += inc;
     
     // incidence of acute and chronic infection
-    double inc2 = host_pop[i].get_prob_acute();
-    age_distributions[t_index][this_deme][this_age][6] += inc1 * inc2;
-    age_distributions[t_index][this_deme][this_age][7] += inc1 * (1.0 - inc2);
+    double p = host_pop[i].get_prob_acute();
+    age_distributions[t_index][this_deme][this_age][6] += inc * p;
+    age_distributions[t_index][this_deme][this_age][7] += inc * (1.0 - p);
     
   
   

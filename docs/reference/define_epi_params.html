@@ -97,6 +97,12 @@
     <li>
       <a href="../articles/model_description.html">Transmission Model Details</a>
     </li>
+    <li>
+      <a href="../articles/transmission_record.html">The Transmission Record</a>
+    </li>
+    <li>
+      <a href="../articles/simulating_relatedness.html">Simulating Relatedness</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -106,7 +112,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/mrc-ide/SIMPLEGEN">
-    <span class="fa fa-github"></span>
+    <span class="fas fa-github"></span>
      
   </a>
 </li>
@@ -134,37 +140,37 @@
  defined as <code>NULL</code> will be set to default values.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>define_epi_params</span>(
-  <span class='no'>project</span>,
-  <span class='kw'>a</span> <span class='kw'>=</span> <span class='fl'>0.3</span>,
-  <span class='kw'>p</span> <span class='kw'>=</span> <span class='fl'>0.85</span>,
-  <span class='kw'>mu</span> <span class='kw'>=</span> -<span class='fu'><a href='https://rdrr.io/r/base/Log.html'>log</a></span>(<span class='no'>p</span>),
-  <span class='kw'>u</span> <span class='kw'>=</span> <span class='fl'>12</span>,
-  <span class='kw'>v</span> <span class='kw'>=</span> <span class='fl'>10</span>,
-  <span class='kw'>g</span> <span class='kw'>=</span> <span class='fl'>12</span>,
-  <span class='kw'>prob_infection</span> <span class='kw'>=</span> <span class='fl'>0.6</span>,
-  <span class='kw'>prob_acute</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>prob_AC</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>duration_acute</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/stats/Geometric.html'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>25</span>, <span class='fl'>1</span>/<span class='fl'>5</span>),
-  <span class='kw'>duration_chronic</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/stats/Geometric.html'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>250</span>, <span class='fl'>1</span>/<span class='fl'>50</span>),
-  <span class='kw'>detectability_microscopy_acute</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>detectability_microscopy_chronic</span> <span class='kw'>=</span> <span class='fl'>0.1</span>,
-  <span class='kw'>detectability_PCR_acute</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>detectability_PCR_chronic</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>time_treatment_acute</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/stats/Geometric.html'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>100</span>, <span class='fl'>1</span>/<span class='fl'>20</span>),
-  <span class='kw'>time_treatment_chronic</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/stats/Geometric.html'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>100</span>, <span class='fl'>1</span>/<span class='fl'>20</span>),
-  <span class='kw'>treatment_seeking_mean</span> <span class='kw'>=</span> <span class='fl'>0.5</span>,
-  <span class='kw'>treatment_seeking_sd</span> <span class='kw'>=</span> <span class='fl'>0.1</span>,
-  <span class='kw'>duration_prophylactic</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/stats/Geometric.html'>dgeom</a></span>(<span class='fl'>1</span>:<span class='fl'>25</span>, <span class='fl'>1</span>/<span class='fl'>5</span>),
-  <span class='kw'>infectivity_acute</span> <span class='kw'>=</span> <span class='fl'>0.07</span>,
-  <span class='kw'>infectivity_chronic</span> <span class='kw'>=</span> <span class='fl'>0.07</span>,
-  <span class='kw'>max_inoculations</span> <span class='kw'>=</span> <span class='fl'>5</span>,
-  <span class='kw'>H</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
-  <span class='kw'>seed_infections</span> <span class='kw'>=</span> <span class='fl'>100</span>,
-  <span class='kw'>M</span> <span class='kw'>=</span> <span class='fl'>1000</span>,
-  <span class='kw'>mig_mat</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/diag.html'>diag</a></span>(<span class='fl'>1</span>),
-  <span class='kw'>life_table</span> <span class='kw'>=</span> <span class='fu'><a href='life_table_Mali.html'>life_table_Mali</a></span>()
-)</pre>
+    <pre class="usage"><span class='fu'>define_epi_params</span><span class='op'>(</span>
+  <span class='va'>project</span>,
+  a <span class='op'>=</span> <span class='fl'>0.3</span>,
+  p <span class='op'>=</span> <span class='fl'>0.85</span>,
+  mu <span class='op'>=</span> <span class='op'>-</span><span class='fu'><a href='https://rdrr.io/r/base/Log.html'>log</a></span><span class='op'>(</span><span class='va'>p</span><span class='op'>)</span>,
+  u <span class='op'>=</span> <span class='fl'>12</span>,
+  v <span class='op'>=</span> <span class='fl'>10</span>,
+  g <span class='op'>=</span> <span class='fl'>12</span>,
+  prob_infection <span class='op'>=</span> <span class='fl'>0.6</span>,
+  prob_acute <span class='op'>=</span> <span class='fl'>1</span>,
+  prob_AC <span class='op'>=</span> <span class='fl'>1</span>,
+  duration_acute <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/stats/Geometric.html'>dgeom</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>25</span>, <span class='fl'>1</span><span class='op'>/</span><span class='fl'>5</span><span class='op'>)</span>,
+  duration_chronic <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/stats/Geometric.html'>dgeom</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>250</span>, <span class='fl'>1</span><span class='op'>/</span><span class='fl'>50</span><span class='op'>)</span>,
+  detectability_microscopy_acute <span class='op'>=</span> <span class='fl'>1</span>,
+  detectability_microscopy_chronic <span class='op'>=</span> <span class='fl'>0.1</span>,
+  detectability_PCR_acute <span class='op'>=</span> <span class='fl'>1</span>,
+  detectability_PCR_chronic <span class='op'>=</span> <span class='fl'>1</span>,
+  time_treatment_acute <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/stats/Geometric.html'>dgeom</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>100</span>, <span class='fl'>1</span><span class='op'>/</span><span class='fl'>20</span><span class='op'>)</span>,
+  time_treatment_chronic <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/stats/Geometric.html'>dgeom</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>100</span>, <span class='fl'>1</span><span class='op'>/</span><span class='fl'>20</span><span class='op'>)</span>,
+  treatment_seeking_mean <span class='op'>=</span> <span class='fl'>0.5</span>,
+  treatment_seeking_sd <span class='op'>=</span> <span class='fl'>0.1</span>,
+  duration_prophylactic <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/stats/Geometric.html'>dgeom</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>25</span>, <span class='fl'>1</span><span class='op'>/</span><span class='fl'>5</span><span class='op'>)</span>,
+  infectivity_acute <span class='op'>=</span> <span class='fl'>0.07</span>,
+  infectivity_chronic <span class='op'>=</span> <span class='fl'>0.07</span>,
+  max_inoculations <span class='op'>=</span> <span class='fl'>5</span>,
+  H <span class='op'>=</span> <span class='fl'>1000</span>,
+  seed_infections <span class='op'>=</span> <span class='fl'>100</span>,
+  M <span class='op'>=</span> <span class='fl'>1000</span>,
+  mig_mat <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/diag.html'>diag</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>)</span>,
+  life_table <span class='op'>=</span> <span class='fu'><a href='life_table_Mali.html'>life_table_Mali</a></span><span class='op'>(</span><span class='op'>)</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -347,7 +353,7 @@ population. Defaults to a life table taken from Mali - see
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

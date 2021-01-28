@@ -198,8 +198,8 @@ define_epi_params <- function(project,
   # carried out later)
   assert_custom_class(project, "simplegen_project")
   
-  # if the project is completely new then create all parameters de novo, using
-  # default values where not specified by user
+  # if there are no defined epi parameters then create all parameters from
+  # scratch using default values where not specified by user
   if (is.null(project$epi_parameters)) {
     project$epi_parameters <- as.list(environment())
     invisible(project)
@@ -228,42 +228,28 @@ define_epi_params <- function(project,
 process_epi_params <- function(x) {
   
   # for objects that can be defined as list or vector, force to list
-  if (!is.list(x$duration_acute)) {
-    x$duration_acute <- list(x$duration_acute)
+  force_list <- function(x) {
+    if (!is.list(x)) {
+      x <- list(x)
+    }
+    return(x)
   }
-  if (!is.list(x$duration_chronic)) {
-    x$duration_chronic <- list(x$duration_chronic)
-  }
-  if (!is.list(x$detectability_microscopy_acute)) {
-    x$detectability_microscopy_acute <- list(x$detectability_microscopy_acute)
-  }
-  if (!is.list(x$detectability_microscopy_chronic)) {
-    x$detectability_microscopy_chronic <- list(x$detectability_microscopy_chronic)
-  }
-  if (!is.list(x$detectability_PCR_acute)) {
-    x$detectability_PCR_acute <- list(x$detectability_PCR_acute)
-  }
-  if (!is.list(x$detectability_PCR_chronic)) {
-    x$detectability_PCR_chronic <- list(x$detectability_PCR_chronic)
-  }
-  if (!is.list(x$time_treatment_acute)) {
-    x$time_treatment_acute <- list(x$time_treatment_acute)
-  }
-  if (!is.list(x$time_treatment_chronic)) {
-    x$time_treatment_chronic <- list(x$time_treatment_chronic)
-  }
-  if (!is.list(x$infectivity_acute)) {
-    x$infectivity_acute <- list(x$infectivity_acute)
-  }
-  if (!is.list(x$infectivity_chronic)) {
-    x$infectivity_chronic <- list(x$infectivity_chronic)
-  }
+  x$duration_acute <- force_list(x$duration_acute)
+  x$duration_chronic <- force_list(x$duration_chronic)
+  x$detectability_microscopy_acute <- force_list(x$detectability_microscopy_acute)
+  x$detectability_microscopy_chronic <- force_list(x$detectability_microscopy_chronic)
+  x$detectability_PCR_acute <- force_list(x$detectability_PCR_acute)
+  x$detectability_PCR_chronic <- force_list(x$detectability_PCR_chronic)
+  x$time_treatment_acute <- force_list(x$time_treatment_acute)
+  x$time_treatment_chronic <- force_list(x$time_treatment_chronic)
+  x$infectivity_acute <- force_list(x$infectivity_acute)
+  x$infectivity_chronic <- force_list(x$infectivity_chronic)
   
   return(x)
 }
 
 #------------------------------------------------
-# perform checks on parameters
+# perform checks on epi parameters
 #' @noRd
 check_epi_params <- function(x) {
   
@@ -423,7 +409,7 @@ define_sampling_strategy <- function(project, df_sample) {
 #'   Parameters are taken from the \code{epi_parameters} slot of the project,
 #'   and basic outputs are written to the \code{epi_output} slot. If a sampling
 #'   strategy has been defined then samples will also be obtained and saved in
-#'   the \code{sample_details} slot (see \code{?define_sampling_strategy()}).
+#'   the \code{sample_output} slot (see \code{?define_sampling_strategy()}).
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
@@ -482,9 +468,7 @@ sim_epi <- function(project,
   }
   
   # check for defined epi params
-  if (is.null(project$epi_parameters)) {
-    stop("no epi parameters defined. See ?define_epi_params")
-  }
+  assert_non_null(project$epi_parameters, message = "no epi parameters defined. See ?define_epi_params")
   
   # check that inputs are compatible with sampling strategy
   if (!is.null(project$sampling_strategy)) {
@@ -582,23 +566,23 @@ sim_epi <- function(project,
         colnames(ret) <- c("S", "E", "A", "C", "P", "inc_infection", "inc_acute", "inc_chronic","detect_microscopy_acute","detect_microscopy_chronic", "detect_PCR_acute", "detect_PCR_chronic" )
         data.frame(cbind(deme = i, age = seq_len(nrow(ret)) - 1, ret))
       }, seq_along(output_raw$age_distributions[[j]]), SIMPLIFY = FALSE))
-      cbind(sample_time = j, ret)
+      cbind(sample_time = output_age_times[j], ret)
     }, seq_along(output_raw$age_distributions), SIMPLIFY = FALSE))
   }
   
   # wrangle sample details into dataframe
-  sample_details_list <- mapply(function(x) {
+  sample_output_list <- mapply(function(x) {
     ret <- data.frame(time = x[1], deme = x[2], host_ID = x[3], positive = x[4])
     ret$inoc_IDs <- list(x[-(1:4)])
     return(ret)
   }, output_raw$sample_details, SIMPLIFY = FALSE)
-  sample_details <- do.call(rbind, sample_details_list)
+  sample_output <- do.call(rbind, sample_output_list)
   
   # append to project
   project$epi_output <- list(daily_values = daily_values,
                              age_distributions = age_distributions)
-  if (!is.null(sample_details)) {
-    project$sample_details <- sample_details
+  if (!is.null(sample_output)) {
+    project$sample_output <- sample_output
   }
   
   invisible(project)
@@ -607,7 +591,10 @@ sim_epi <- function(project,
 #------------------------------------------------
 #' @title Prune the transmission record
 #'
-#' @description TODO
+#' @description Reads in a saved transmission record from file. Combines this
+#'   with sampling information in the project to produce a pruned version of the
+#'   transmission record containing only the events relevant to the final
+#'   sample. This is also saved to file.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
@@ -647,7 +634,7 @@ prune_transmission_record <- function(project,
   }
   
   # subset sample details to a vector of inoc_IDs
-  inoc_IDs <- unlist(project$sample_details$inoc_IDs)
+  inoc_IDs <- unlist(project$sample_output$inoc_IDs)
   if (length(inoc_IDs) == 0) {
     stop("no malaria positive hosts in sample")
   }
@@ -663,4 +650,320 @@ prune_transmission_record <- function(project,
   
   # return project unchanged
   invisible(project)
+}
+
+#------------------------------------------------
+#' @title Define genetic parameters
+#'
+#' @description Defines all parameters relating to the genetic model. This
+#'   includes parameters related to recombination etc. that are used when
+#'   simulating relatedness between lineages, as well as parameters related to
+#'   mutation and sequencing errors etc. that are used at a later stage when
+#'   converting relatedness into actual genotypes.
+#'
+#' @param project a SIMPLEGEN project, as produced by the
+#'   \code{simplegen_project()} function.
+#' @param r the rate of recombination. The expected number of base pairs in a
+#'   single recombinant block is 1/r.
+#' @param alpha parameter dictating the skew of lineage densities. Small
+#'   values of \code{alpha} create a large skew, and hence make it likely that
+#'   an oocyst will be produced from the same parents. Large values of
+#'   \code{alpha} tend toward more even densities.
+#' @param oocyst_distribution vector specifying the probability distribution of
+#'   each number of oocysts within the mosquito midgut.
+#' @param hepatocyte_distribution vector specifying the probability distribution
+#'   of the number of infected hepatocytes in a human host. More broadly, this
+#'   defines the number of independent draws from the oocyst products that make
+#'   it into the host bloodstream upon a bite from an infectious mosquito.
+#' @param contig_lengths vector of lengths (in bp) of each contig.
+#' 
+#' @export
+
+define_genetic_params <- function(project,
+                                  r = 1e-6,
+                                  alpha = 1.0,
+                                  oocyst_distribution = dpois(1:10, lambda = 2),
+                                  hepatocyte_distribution = dpois(1:10, lambda = 5),
+                                  contig_lengths = c(643292, 947102, 1060087, 1204112, 1343552,
+                                                     1418244, 1501717, 1419563, 1541723, 1687655,
+                                                     2038337, 2271478, 2895605, 3291871)) {
+  
+  # NB. This function is written so that only parameters specified by the user
+  # are updated. Any parameters that already have values within the project are
+  # left alone
+  
+  # basic checks on inputs (more thorough checks on parameter values will be
+  # carried out later)
+  assert_custom_class(project, "simplegen_project")
+  
+  # if there are no defined genetic parameters then create all parameters from
+  # scratch using default values where not specified by user
+  if (is.null(project$genetic_parameters)) {
+    project$genetic_parameters <- as.list(environment())
+    invisible(project)
+  }
+  
+  # find which parameters are user-defined
+  userlist <- as.list(match.call())
+  userlist <- userlist[!(names(userlist) %in% c("", "project"))]
+  
+  # replace project parameters with user-defined
+  project$genetic_parameters[names(userlist)] <- mapply(eval, userlist, SIMPLIFY = FALSE)
+  
+  # perform checks on parameters
+  check_genetic_params(project$genetic_parameters)
+  
+  # return
+  invisible(project)
+}
+
+#------------------------------------------------
+# perform checks on genetic parameters
+#' @noRd
+check_genetic_params <- function(x) {
+  
+  # perform checks
+  assert_single_pos(x$r, zero_allowed = TRUE)
+  assert_single_pos(x$alpha, zero_allowed = FALSE)
+  assert_vector_pos(x$oocyst_distribution)
+  assert_vector_pos(x$hepatocyte_distribution)
+  assert_vector_pos_int(x$contig_lengths, zero_allowed = FALSE)
+  
+}
+
+#------------------------------------------------
+#' @title Draw tree of genome-wide relatedness from pruned transmission record
+#'
+#' @description Reads in the pruned transmission record from file and uses this
+#'   information to simulate relatedness between parasite lineages from a
+#'   genetic model. The map of relatedness output by this step can be used to
+#'   generate genotypic information of various types.
+#'   
+#'
+#' @details Reads in the pruned transmission record and creates a new node for
+#'   each inoculation ID. Nodes at time zero are initialised with a single
+#'   unique lineage created de novo. In subsequent generations the children of
+#'   any given node are known from the pruned transmission record. The lineages
+#'   from parental nodes are sampled at random, and brought together in pairs to
+#'   produce oocysts. The recombinant products of these oocysts are then sampled
+#'   down to produce a new generation of lineage IDs for this node, along with
+#'   the relative densities of each lineage.
+#'
+#' @param project a SIMPLEGEN project, as produced by the
+#'   \code{simplegen_project()} function.
+#' @param pruned_record_location the file path from which the pruned
+#'   transmission record will be read.
+#' @param silent whether to suppress written messages to the console.
+#'
+#' @importFrom stats dpois
+#' @export
+
+sim_relatedness <- function(project,
+                            pruned_record_location = "",
+                            silent = FALSE) {
+  
+  # check inputs
+  assert_custom_class(project, "simplegen_project")
+  assert_string(pruned_record_location)
+  assert_neq(pruned_record_location, "", message = "pruned_record_location cannot be empty")
+  assert_single_logical(silent)
+  
+  # check pruned record exists
+  if (!file.exists(pruned_record_location)) {
+    stop(sprintf("could not find file at %s", pruned_record_location))
+  }
+  
+  # check for defined genetic params
+  assert_non_null(project$genetic_parameters, message = "no genetic parameters defined. See ?define_genetic_params")
+  
+  # define arguments
+  args <- append(project$genetic_parameters,
+                 list(pruned_record_location = pruned_record_location,
+                      silent = silent))
+  
+  # run efficient C++ code
+  output_raw <- sim_relatedness_cpp(args)
+  
+  # get the inoculation IDs of every node in the pruned transmission record
+  inoc_IDs <- mapply(function(x) x$details$inoc_ID, output_raw)
+  
+  # get the lineage IDs of the sampled hosts
+  sample_lineage_IDs <- list()
+  for (i in seq_len(nrow(project$sample_output))) {
+    
+    # get lineage IDs from inoculation IDs
+    node_inoc_IDs <- project$sample_output$inoc_IDs[[i]]
+    if (length(node_inoc_IDs) == 0) {
+      sample_lineage_IDs[[i]] <- integer()
+    } else {
+      # which output elements are we interested in
+      w <- match(node_inoc_IDs, inoc_IDs)
+      
+      # concatenate all lineage IDs over these elements
+      sample_lineage_IDs[[i]] <- unlist(mapply(function(x) x$details$lineage_IDs, output_raw[w], SIMPLIFY = FALSE))
+    }
+  }
+  
+  # add sampled lineage IDs back into project
+  project$sample_output$lineage_IDs <- sample_lineage_IDs
+  
+  # get list over lineages, ignoring hosts
+  lineage_list <- unlist(mapply(function(k) {
+    ret <- output_raw[[k]]$lineages
+  }, seq_along(output_raw), SIMPLIFY = FALSE), recursive = FALSE)
+  
+  # add lineage list back into project
+  project$relatedness <- lineage_list
+  
+  # return project
+  invisible(project)
+}
+
+#------------------------------------------------
+#' @title Get coalescent time of two lineages
+#'
+#' @description TODO.
+#'
+#' @param project a SIMPLEGEN project, as produced by the
+#'   \code{simplegen_project()} function.
+#' @param lineage_IDs a vector of two lineage IDs with which to calculate coalescent times.
+#' @param max_reps maximum number of steps when searching for coalescent times.
+#' @param silent whether to suppress written messages to the console.
+#'
+#' @export
+
+get_coalescent_times <- function(project,
+                                 lineage_IDs,
+                                 max_reps = 1e3,
+                                 silent = FALSE) {
+  
+  
+  # check inputs
+  assert_custom_class(project, "simplegen_project")
+  assert_vector_int(lineage_IDs)
+  assert_length(lineage_IDs, 2)
+  assert_single_pos_int(max_reps, zero_allowed = FALSE)
+  assert_single_logical(silent)
+  
+  # check lineage_IDs can be found in project output
+  assert_in("lineage_IDs", names(project$sample_output),
+            message = paste0("column 'lineage_IDs' not found in project$sample_output.",
+                             "Check you have run all necessary steps in the pipeline up to this point."))
+  assert_in(lineage_IDs, unlist(project$sample_output$lineage_IDs),
+            message = "lineage_IDs not found in project$sample_output$lineage_IDs")
+  
+  # check project contains relatedness info
+  assert_non_null(project$relatedness, message = "project contains no relatedness information")
+  
+  #------------------------------------------------
+  
+  # function replaces element x[[i]] with ancestral intervals
+  # defined inside function as hard-coded for project$relatedness
+  get_ancestor <- function(x, i, contig) {
+    parent <- x[[i]][length(x[[i]])]
+    if (parent == -1) {
+      return(x)
+    }
+    x_ancestor <- project$relatedness[[parent]][[contig]]
+    x_replace <- list()
+    for (j in seq_along(x_ancestor)) {
+      if (interval_intersect(x_ancestor[[j]], x[[i]])) {
+        left <- max(x[[i]][1], x_ancestor[[j]][1])
+        right <- min(x[[i]][2], x_ancestor[[j]][2])
+        x_replace <- append(x_replace, list(c(left, right, x[[i]][-(1:2)], x_ancestor[[j]][3])))
+      }
+    }
+    ret <- append(x[-i], x_replace, i-1)
+    return(ret)
+  }
+  
+  # loop through contigs
+  contigs <- length(project$relatedness[[lineage_IDs[1]]])
+  ret_list <- list()
+  for (contig in seq_len(contigs)) {
+    message(sprintf("contig %s of %s", contig, contigs))
+    
+    # get starting relatedness info for both lineages
+    x1 <- project$relatedness[[lineage_IDs[1]]][[contig]]
+    x2 <- project$relatedness[[lineage_IDs[2]]][[contig]]
+    
+    # loop back through ancestry, splitting intervals and checking for coalescence
+    for (rep in 1:max_reps) {
+      
+      # get complete list of breakpoints over both x1 and x2
+      all_breaks <- c(mapply(function(x) x[1], x1),
+                      mapply(function(x) x[1], x2))
+      all_breaks <- sort(unique(all_breaks))
+      all_breaks <- c(all_breaks, x1[[length(x1)]][2] + 1)
+      
+      # make intervals the same between x1 and x2
+      for (i in 1:(length(all_breaks) - 1)) {
+        if (x1[[i]][2] != all_breaks[i+1] - 1) {
+          x1 <- append(x1, list(c(x1[[i]][1], all_breaks[i+1] - 1, x1[[i]][-(1:2)])), i - 1)
+          x1[[i+1]][1] <- all_breaks[i+1]
+        }
+        if (x2[[i]][2] != all_breaks[i+1] - 1) {
+          x2 <- append(x2, list(c(x2[[i]][1], all_breaks[i+1] - 1, x2[[i]][-(1:2)])), i - 1)
+          x2[[i+1]][1] <- all_breaks[i+1]
+        }
+      }
+      
+      # find next element of x1/x2 that has not already coalesced
+      all_coal <- TRUE
+      for (i in seq_along(x1)) {
+        if (length(intersect(x1[[i]][-(1:2)], x2[[i]][-(1:2)])) == 0) {
+          all_coal <- FALSE
+          break
+        }
+      }
+      if (all_coal) {
+        break
+      }
+      
+      # split uncoalesced elements of x1 and x2 based on ancestry 
+      x1 <- get_ancestor(x1, i, contig)
+      x2 <- get_ancestor(x2, i, contig)
+      
+    }  # end rep loop
+    
+    # check that didn't time out
+    if (rep == max_reps) {
+      stop("max_reps reached")
+    }
+    
+    # make dataframe of coalescent intervals and timings
+    x_coal <- x1
+    for (i in seq_along(x_coal)) {
+      coal_lineage <- intersect(x1[[i]][-(1:2)], x2[[i]][-(1:2)])
+      gen1 <- which(x1[[i]][-(1:2)] == coal_lineage)
+      gen2 <- which(x2[[i]][-(1:2)] == coal_lineage)
+      x_coal[[i]] <- c(x_coal[[i]][1:2], coal_lineage, gen1, gen2)
+    }
+    x_coal <- as.data.frame(do.call(rbind, x_coal))
+    names(x_coal) <- c("start", "end", "ancestor", "generations1", "generations2")
+    
+    # simplify by merging adjacent intervals with same ancestor
+    i <- 2
+    while (i <= nrow(x_coal)) {
+      if (x_coal$ancestor[i] == x_coal$ancestor[i-1]) {
+        x_coal$end[i-1] <- x_coal$end[i]
+        x_coal <- x_coal[-i,]
+      } else {
+        i <- i + 1
+      }
+    }
+    
+    # add to list over contigs
+    ret_list[[contig]] <- x_coal
+  }
+  
+  # convert to dataframe
+  ret_df <- do.call(rbind, mapply(function(i) {
+    cbind(contig = i, ret_list[[i]])
+  }, seq_along(ret_list), SIMPLIFY = FALSE))
+  
+  # add segment length column
+  ret_df <- as.data.frame(append(as.list(ret_df), list(length = ret_df$end - ret_df$start + 1), 3))
+  
+  return(ret_df)
 }

@@ -54,6 +54,12 @@
     <li>
       <a href="../articles/model_description.html">Transmission Model Details</a>
     </li>
+    <li>
+      <a href="../articles/transmission_record.html">The Transmission Record</a>
+    </li>
+    <li>
+      <a href="../articles/simulating_relatedness.html">Simulating Relatedness</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -63,7 +69,7 @@
 <ul class="nav navbar-nav navbar-right">
 <li>
   <a href="https://github.com/mrc-ide/SIMPLEGEN">
-    <span class="fa fa-github"></span>
+    <span class="fas fa-github"></span>
      
   </a>
 </li>
@@ -83,7 +89,7 @@
       <h1 data-toc-skip>Transmission Model Details</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2020-09-08</h4>
+            <h4 class="date">2021-01-28</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/mrc-ide/SIMPLEGEN/blob/master/vignettes/model_description.Rmd"><code>vignettes/model_description.Rmd</code></a></small>
       <div class="hidden name"><code>model_description.Rmd</code></div>
@@ -92,34 +98,43 @@
 
     
     
-<p>The first step in the SIMPLEGEN pipeline is to simulate from an epidemiological transmission model. An inbuilt transmission model is included with the program to make life easier, but any transmission model can be used just as long as it can produce output in a standardised format. The inbuilt model is designed to be as simple as possible but no simpler - it does not attempt to be a complete phenomenological description of the malaria life cycle, but rather a cartoon that captures key relationships. It is also designed to be highly flexible, giving the user greater control over durations and flows in each state.</p>
+<!---
+Set the font size of figure captions
+Currently not used because figures inserted with html method
+-->
+<style>
+p.caption {
+  font-size: 0.9em;
+}
+</style>
+<p>The first step in the SIMPLEGEN pipeline is to simulate from an epidemiological transmission model. An inbuilt transmission model is included with the program to make life easier, but any transmission model can be used as long as it can produce output in a standardised format. The inbuilt model is designed to be as simple as possible but no simpler - it does not attempt to be a complete phenomenological description of the malaria life cycle, but rather a cartoon that captures key relationships. It is also designed to be highly flexible, giving the user greater control over specific assumptions.</p>
 <p>This vignette gives a high-level description of the inbuilt transmission model.</p>
 <div id="inoculations-and-host-states" class="section level3">
 <h3 class="hasAnchor">
 <a href="#inoculations-and-host-states" class="anchor"></a>Inoculations and host states</h3>
-<p>The most important concept in the model is the idea of an “inoculation”, defined here as a population of parasites that are passed from mosquito to human host upon successful infection. Each host within SIMPLEGEN can be thought of having multiple inoculation “slots”, and each new inoculation falls into a new slot. There are a finite number of slots available per host, defined by <code>max_inoculations</code>, but for most applications we can set this number to be large enough that hosts never saturate all their slots.</p>
-<p>Each inoculation can be thought of as an independent episode of malaria that goes through the following stages: 1) liver stage, 2) acute blood-stage, 3) chronic blood-stage, 4) recovery. Inoculations can pass through all four stages in order, or they can pass directly from 1) to 3) or from 2) to 4), depending on the model parameters (see diagrom below). The acute stage essentially represents the symptomatic stage of infection, although the word “acute” has been used rather than “symptomatic” to avoid forcing a clinical interpretation on the model. The chronic stage is designed to capture long-lasting infections, including possible asymptomatic and/or sub-patent stages (more on detection later).</p>
-<p>The state of a host is defined directly from the state of its inoculations. If there are <strong>any</strong> acute inoculations then the host is in the acute state, otherwise, if there are <strong>any</strong> chronic inoculations then the host is in the chronic state, otherwise, if there are <strong>any</strong> liver stage inoculations then the host is in the liver state, otherwise the host is in the susceptible state. This can be seen in <strong>Figure 1</strong>, which shows the host state for a simple case of two overlapping inoculations.</p>
-<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/inoc_diagram1.png"><font size="2">
-<figcaption><strong>Figure 1</strong> The host carries two inoculations (horizontal boxes), each of which goes through liver stage and acute and chronic stages before clearing naturally. The host state is dictated by the inoculation states using a defined ranking.
+<p>The most important concept in the model is the idea of an “inoculation”, defined here as a population of parasites that are passed from mosquito to human host upon successful infection. Each host within the model can be thought of having multiple inoculation “slots”, and each new inoculation falls into a new slot. There are a finite number of slots available per host, defined by <code>max_inoculations</code>, but most of the time we can set this number to be large enough that hosts never saturate all their slots.</p>
+<p>Each inoculation can be thought of as an independent episode of malaria that goes through the following stages: 1) latent (liver stage) infection, 2) acute blood-stage, 3) chronic blood-stage, 4) clearance. Inoculations can pass through all four stages in order, or they can skip over the acute or chronic stages depending on the model parameters (see <strong>Figure 3</strong>). The acute stage essentially represents the symptomatic stage of infection, although the word “acute” has been used rather than “symptomatic” to avoid forcing a clinical interpretation on the model. The chronic stage is designed to capture long-lasting infections, including possible asymptomatic and/or sub-patent stages (more on detection later).</p>
+<p>The state of a host is defined directly from the state of its inoculations. If there are ANY acute inoculations then the host is in the acute state, otherwise, if there are ANY chronic inoculations then the host is in the chronic state, otherwise, if there are ANY latent inoculations then the host is in the exposed state, otherwise the host is in the susceptible state. This can be seen in <strong>Figure 1</strong>, which shows the host state for a simple case of two overlapping inoculations.</p>
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/progression1.png"><font size="2">
+<figcaption><strong>Figure 1</strong> The host carries two inoculations (horizontal boxes), each of which goes through a latent stage and acute and chronic stages before clearing naturally. The host state is dictated from the inoculation states.
 </figcaption><p></p></font>
 <p>The only host state that is not dictated directly from its inoculations is the treated (aka prophylactic) state. Treatment is described fully in a later section, but in simple terms treatment causes all blood-stage infections to clear immediately. Liver-stage infections are not cleared, i.e. treatment does not represent a radical cure. After treatment, the host enters a prophylactic state in which new liver-stage infections can occur, but any inoculations leaving the liver within the prophylactic period are immediately cured. Eventually the prophylaxis wears off and the host transitions back into the susceptible or exposed state. <strong>Figure 2</strong> shows a second example of host states, this time for a more complex case involving treatment and prophylaxis.</p>
-<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/inoc_diagram2.png"><font size="2">
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/progression2.png"><font size="2">
 <figcaption><strong>Figure 2</strong> The host acquires two inoculations, and later receives treatment and enters a prophylactic state. During this prophylactic period a new liver-stage inoculation takes hold, but this leaves the liver within the prophylactic period and is therefore immediately cured. A second liver-stage inoculation occurs within the prophylactic period, but this one leaves the liver outside the prophylactic period and so proceeds as normal.
 </figcaption><p></p></font>
 <p>Given the description above, we can now visualise the model in a classical compartmental structure. <strong>Figure 3</strong> shows the possible states and transitions of both individual inoculations and hosts.</p>
-<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/compartment_states.png" width="700" height="280"><font size="2">
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/model_diagram_inoc&amp;host.png"><font size="2">
 <figcaption><strong>Figure 3</strong> Inoculation states and host states. Dashed arrows indicate transitions that are only possible via super-infection.
 </figcaption><p></p></font>
-<p>Notice that, contrary to the standard mathematical convention, there are no rates or parameters on any of the arrows in <strong>Figure 3</strong>. This is because state durations and transition probabilities are modelled using flexible distributions, described below.</p>
+<p>Notice there are no rates or parameters on any of the arrows in <strong>Figure 3</strong>. This is because state durations and transition probabilities are modelled using flexible distributions rather than fixed parameter values.</p>
 </div>
 <div id="flexible-distributions" class="section level3">
 <h3 class="hasAnchor">
 <a href="#flexible-distributions" class="anchor"></a>Flexible distributions</h3>
 <p>There are two elements that describe how inoculations move between states - duration distributions and transition probabilities. Duration distributions dictate the probability that an inoculation leaves a given state on each day since entering that state. Once it is decided that an inoculation will leave a state, transition probabilities dictate the chance of moving to each possible destination state.</p>
-<p>Both duration distributions and transition probabilities can be defined in a flexible way, giving fine control over how inoculations move between states. Duration distributions can be input as a vector of daily probabilities, which are normalised internally to sum to one. Durations are then obtained in the model by sampling from this vector. Alternatively, the user can input a list of vectors, in which case the first element applies the first time the host is exposed to an inoculation, the second element the second time, and so on. Once we reach the final element in the list, this applies for all subsequent inoculations. Similarly, transition probabilities can be defined as a single value, or as a vector of values in which case the first value applies to the first exposure, the second value to the second exposure, and so on. By varying these inputs we can capture a great deal of richness within quite a simple model. For example, we could arrive at a simple exposure-driven immunity model by assuming that subsequent infections are more likely to be chronic, and/or last longer.</p>
+<p>Both duration distributions and transition probabilities can be defined in a flexible way, giving fine control over how inoculations move between states. Duration distributions can be input as a vector of daily probabilities, and durations within the model are obtained by sampling from this vector. Alternatively, the user can input a list of vectors, in which case the first element applies the first time the host is exposed to an inoculation, the second element the second time, and so on. Once we reach the final element in the list, this applies for all subsequent inoculations. Similarly, transition probabilities can be defined as a single value, or as a vector of values in which case the first value applies to the first exposure, the second value to the second exposure, and so on. By varying these inputs we can capture a great deal of richness within quite a simple model. For example, we could arrive at a simple exposure-driven immunity model by setting up distributions such that subsequent infections are more likely to be chronic, and/or last longer.</p>
 <p>Finally, there are some daily probabilities that can be defined in a flexible way, for example the daily probability of being detected by microscopy. These differ from duration distributions in that they are not normalised probability mass functions, rather they give a probability between 0 and 1 on each day. These can also be defined as either a vector or a list of vectors that increment with exposure.</p>
-<p>The following parameters can be defined in a flexible way:</p>
+<p>Here is a complete list of parameters that can be flexibly defined:</p>
 <div id="duration-distributions" class="section level4">
 <h4 class="hasAnchor">
 <a href="#duration-distributions" class="anchor"></a>duration distributions:</h4>
@@ -139,9 +154,9 @@
 <li>
 <code>prob_infection</code>: the probability of becoming infected, given a bite from an infectious mosquito</li>
 <li>
-<code>prob_acute</code>: the probability of going to acute stage vs. directly to chronic stage</li>
+<code>prob_acute</code>: the probability of an inoculation going to acute stage vs. directly to chronic stage</li>
 <li>
-<code>prob_AC</code>: the probability of an acute infection going to chronic stage on recovery vs. directly back to susceptible</li>
+<code>prob_AC</code>: the probability of an acute inoculation going to chronic stage vs. clearing directly</li>
 </ul>
 </div>
 <div id="daily-probabilities" class="section level4">
@@ -153,37 +168,40 @@
 <li>
 <code>detectability_PCR_acute</code>, <code>detectability_PCR_chronic</code>: detectability by polymerase chain reaction in the acute and chronic stages</li>
 <li>
-<code>infectivity_acute</code>, <code>infectivity_chronic</code>: the onward infectivity of the acute and chronic stages</li>
+<code>infectivity_acute</code>, <code>infectivity_chronic</code>: onward infectivity of inoculations in the acute and chronic stages</li>
 </ul>
 <p>All flexible distributions can be visualised using the function <code><a href="../reference/plot_epi_distribution.html">plot_epi_distribution()</a></code>, for example:</p>
-<div class="sourceCode" id="cb1"><html><body><pre class="r"><span class="fu"><a href="../reference/simplegen_project.html">simplegen_project</a></span>() <span class="kw">%&gt;%</span>
-  <span class="fu"><a href="../reference/define_epi_params.html">define_epi_params</a></span>() <span class="kw">%&gt;%</span>
-  <span class="fu"><a href="../reference/plot_epi_distribution.html">plot_epi_distribution</a></span>(<span class="kw">name</span> <span class="kw">=</span> <span class="st">"duration_acute"</span>)</pre></body></html></div>
-<p><img src="model_description_files/figure-html/unnamed-chunk-2-1.png" width="576"></p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/simplegen_project.html">simplegen_project</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="../reference/define_epi_params.html">define_epi_params</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="../reference/plot_epi_distribution.html">plot_epi_distribution</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"duration_acute"</span><span class="op">)</span></code></pre></div>
+<p><img src="model_description_files/figure-html/unnamed-chunk-2-1.png" width="480"></p>
 <p>In the case of list inputs, all distributions are plotted together:</p>
-<div class="sourceCode" id="cb2"><html><body><pre class="r"><span class="fu"><a href="../reference/simplegen_project.html">simplegen_project</a></span>() <span class="kw">%&gt;%</span>
-  <span class="fu"><a href="../reference/define_epi_params.html">define_epi_params</a></span>(<span class="kw">duration_acute</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="fu"><a href="https://rdrr.io/r/stats/Geometric.html">dgeom</a></span>(<span class="fl">0</span>:<span class="fl">30</span>, <span class="fl">0.2</span>),
-                                          <span class="fu"><a href="https://rdrr.io/r/stats/Geometric.html">dgeom</a></span>(<span class="fl">0</span>:<span class="fl">30</span>, <span class="fl">0.1</span>))) <span class="kw">%&gt;%</span>
-  <span class="fu"><a href="../reference/plot_epi_distribution.html">plot_epi_distribution</a></span>(<span class="kw">name</span> <span class="kw">=</span> <span class="st">"duration_acute"</span>)</pre></body></html></div>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/simplegen_project.html">simplegen_project</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="../reference/define_epi_params.html">define_epi_params</a></span><span class="op">(</span>duration_acute <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Geometric.html">dgeom</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">30</span>, <span class="fl">0.2</span><span class="op">)</span>,
+                                          <span class="fu"><a href="https://rdrr.io/r/stats/Geometric.html">dgeom</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">30</span>, <span class="fl">0.1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="../reference/plot_epi_distribution.html">plot_epi_distribution</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"duration_acute"</span><span class="op">)</span></code></pre></div>
 <p><img src="model_description_files/figure-html/unnamed-chunk-3-1.png" width="768"></p>
 </div>
 </div>
 <div id="treatment" class="section level3">
 <h3 class="hasAnchor">
 <a href="#treatment" class="anchor"></a>Treatment</h3>
-<p>Treatment is the exception to the rule that inoculations are independent. Upon treatment, all blood-stage inoculations are immediately cured, and the host enters a prophylactic stage in which no new inoculations are possible. Liver stage inoculations are not directly cured, but inoculations that leave the liver stage while the host is in the prophylactic stage are considered immediately cured. Sexual stages are not directly cured, although the termination of the diseased stage will lead to the eventual termination of the sexual stage after the appropriate time-lag. Treatment can only occur a maximum of once per inoculation: if an inoculation goes through both acute and then chronic stages, only the acute stage will prompt treatment.</p>
-<p>Notice that in parameter inputs we can define both the distribution of duration of disease (acute and chronic), and the distribution of time until seeking treatment. These are competing hazards - whichever one of these occurs first takes precedence. If the disease clears naturally first then the host does not seek treatment. If treatment comes first then the host is considered <em>motivated</em> to seek treatment at this point in time (for example due to the emergence of clinical features) although treatment is still not guaranteed. Instead, the host draws whether to access care from its own treatment-seeking probability, <span class="math inline">\(p_i\)</span>. The value of <span class="math inline">\(p_i\)</span> is defined separately for each host at birth, and represents long-term factors that dictate a host’s propensity/ability to obtain treatment. The value of <span class="math inline">\(p_i\)</span> is drawn independently for each host from a Beta distribution with mean <code>treatment_seeking_mean</code> and standard deviation <code>treatment_seeking_sd</code>. These parameters allow the user to define both the mean access to care in the population, and the extent of inequality in access to care.</p>
-<p>To make this clearer, here is an example. Imagine we want to model a population that has good access to healthcare overall, but with wide disparity between individuals. We choose parameter values <code>treatment_seeking_mean = 0.7</code> and <code>treatment_seeking_sd = 0.2</code>, which we can visualise using the <code><a href="../reference/plot_treatment_seeking.html">plot_treatment_seeking()</a></code> function:</p>
-<div class="sourceCode" id="cb3"><html><body><pre class="r"><span class="fu"><a href="../reference/simplegen_project.html">simplegen_project</a></span>() <span class="kw">%&gt;%</span>
-  <span class="fu"><a href="../reference/define_epi_params.html">define_epi_params</a></span>(<span class="kw">treatment_seeking_mean</span> <span class="kw">=</span> <span class="fl">0.7</span>, <span class="kw">treatment_seeking_sd</span> <span class="kw">=</span> <span class="fl">0.2</span>) <span class="kw">%&gt;%</span>
-  <span class="fu"><a href="../reference/plot_treatment_seeking.html">plot_treatment_seeking</a></span>()</pre></body></html></div>
-<p><img src="model_description_files/figure-html/unnamed-chunk-4-1.png" width="576"></p>
+<p>Treatment is the exception to the rule that inoculations are modelled as independent. Upon treatment, all blood-stage inoculations are immediately cured, and the host enters a prophylactic stage in which no new inoculations are possible. Liver stage inoculations are not directly cured, but inoculations that leave the liver stage while the host is in the prophylactic stage are considered immediately cured. Sexual stages are not directly cured, although the termination of the diseased stage will lead to the eventual termination of the sexual stage after the appropriate time-lag. Treatment is only prompted a maximum of once per inoculation: if an inoculation goes through both acute and then chronic stages then only the acute stage will prompt treatment, whereas if an inoculation goes directly to chronic then this stage will prompt treatment.</p>
+<p>Notice that in parameter inputs we can define both the distribution of duration of disease (acute and chronic), and the distribution of time until seeking treatment. These are competing hazards - whichever one of these occurs first takes precedence. If the disease clears naturally first then the host does not seek treatment. If treatment comes first then the host is considered <em>prompted</em> to seek treatment at this point in time (for example due to the emergence of clinical features) although treatment is still not guaranteed. Instead, the host draws whether to access care from its own treatment-seeking probability, <span class="math inline">\(p_i\)</span>. The value of <span class="math inline">\(p_i\)</span> is defined separately for each host at birth, and represents long-term factors that dictate a host’s propensity/ability to obtain treatment. The value of <span class="math inline">\(p_i\)</span> is drawn independently for each host from a Beta distribution with mean <code>treatment_seeking_mean</code> and standard deviation <code>treatment_seeking_sd</code>. These parameters allow the user to define both the mean access to care in the population, and the extent of inequality in access to care.</p>
+<p>For example, imagine we want to model a population that has good access to healthcare overall, but with wide disparity between individuals. We choose parameter values <code>treatment_seeking_mean = 0.7</code> and <code>treatment_seeking_sd = 0.2</code>, which we can visualise using the <code><a href="../reference/plot_treatment_seeking.html">plot_treatment_seeking()</a></code> function:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/simplegen_project.html">simplegen_project</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="../reference/define_epi_params.html">define_epi_params</a></span><span class="op">(</span>treatment_seeking_mean <span class="op">=</span> <span class="fl">0.7</span>, treatment_seeking_sd <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="../reference/plot_treatment_seeking.html">plot_treatment_seeking</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<p><img src="model_description_files/figure-html/unnamed-chunk-4-1.png" width="480"></p>
 <p>The dashed line shows that at a population level there is a 70% chance of seeking treatment for malaria, but there is also considerable spread around this value. Each host has a value <span class="math inline">\(p_i\)</span> drawn from this distribution once at birth. For example, imagine a single unlucky individual for which <span class="math inline">\(p_i = 0.1\)</span>. This individual has poor access to malaria treatment, either for economic reasons or geographic reasons or whatever. If this individual becomes infected <em>and</em> if clinical symptoms occur <em>before</em> the disease has chance to clear naturally, then this individual makes the decision whether to obtain treatment, with only a 10% chance of choosing to do so. If they choose not to seek treatment then the disease continues until it clears naturally.</p>
 </div>
 <div id="infectivity-and-mosquitoes" class="section level3">
 <h3 class="hasAnchor">
 <a href="#infectivity-and-mosquitoes" class="anchor"></a>Infectivity and mosquitoes</h3>
-<p>The onward infectivity of an inoculation stems from the sexual stage of the parasite. These also go through acute and chronic stages, which are lagged from the asexual stages by a fixed amount. For example, take an inoculation that transitions from liver stage to acute stage on day 20, then to chronic infection on day 40, then recovers on day 100. If the gametocyte lag parameter <code>g</code> is equal to 10 days then the inoculation will enter the acute infective stage on day 30, the chronic infective stage on day 50, and will become uninfective on day 110. The daily infectivity of the acute and chronic stages can be defined flexibly (see above). If a host carries multiple inoculations then the infectivity is taken to be the <em>maximum</em> of the infectivity of its inoculations.</p>
+<p>The onward infectivity of an inoculation stems from the sexual stage of the parasite. These are also modelled as going through acute and chronic stages, which are lagged from the asexual stages by a fixed duration For example, take an inoculation that transitions from liver stage to acute stage on day 20, then to chronic infection on day 40, then recovers on day 100. If the gametocyte lag parameter <code>g</code> is equal to 10 days then the inoculation will enter the acute infective stage on day 30, the chronic infective stage on day 50, and will become uninfective on day 110. The daily infectivity of the acute and chronic stages can be defined flexibly (see above). If a host carries multiple inoculations then the infectivity is taken to be the <em>maximum</em> of the infectivity of its inoculations.</p>
 <p>Mosquitoes exist in three stages: susceptible, latently infected, and infectious. Upon biting an infectious human host and becoming infected, they enter the latent stage which has fixed duration <code>v</code> (the extrinsic incubation period). Upon leaving the latent stage they become infective to humans. Natural death occurs with constant rate <code>mu</code> throughout the mosquito lifetime, and every death is matched with a new birth in the susceptible stage, leading to a constant mosquito population size <code>M</code> (strictly speaking this is size of the adult female mosquito population).</p>
 </div>
 <div id="demographics" class="section level3">
@@ -211,7 +229,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

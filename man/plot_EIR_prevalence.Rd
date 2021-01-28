@@ -9,7 +9,8 @@ plot_EIR_prevalence(data, plot_studies = TRUE, scale_x = "linear")
 \arguments{
 \item{data}{dataset produced by the retrieve_prev function}
 
-\item{plot_studies}{logical argument whether to plot data from previous empirical studies (currently Hay et al., 2005)}
+\item{plot_studies}{logical argument whether to plot data from previous
+empirical studies (currently Hay et al., 2005)}
 
 \item{scale_x}{linear or log scale for x axis}
 }

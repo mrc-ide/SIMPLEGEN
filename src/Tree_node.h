@@ -7,7 +7,7 @@
 #include <vector>
 
 //------------------------------------------------
-// class defining a single node in the pruned transmission record
+// class defining a single node in the inoculation tree
 class Tree_node {
   
 public:
@@ -18,20 +18,22 @@ public:
   int t;
   std::vector<int> contig_lengths;
   int n_contigs;
-  int n_haplotypes;
-  std::vector<int> haplo_ID_vec;
-  std::vector<double> haplo_density;
+  int n_lineages;
+  std::vector<int> lineage_ID_vec;
+  std::vector<double> lineage_density;
   
   // pointers to external objects
   Sampler *sampler_oocyst_ptr;
   Sampler *sampler_hepatocyte_ptr;
   std::map<int, Tree_node> *tree_ptr;
   
-  // main object, specifying ancestry of each haplotype broken down into
-  // intervals. Nested vectors are over: 1) number of haplotypes, 2) number of
-  // chromosomes, 3) number of intervals within a chromosome, 4) three values
-  // giving interval start, interval end, and ancestry index (haplo_ID) that
-  // applies throughout this interval
+  // main object, specifying ancestry of each lineage broken down into
+  // intervals. Nested vectors are over:
+  //     1) number of lineages in this inoculation
+  //     2) number of contigs
+  //     3) number of disjoint intervals within a contig
+  //     4) three values giving interval start, interval end, and ancestral
+  //        lineage_ID that applies throughout this interval
   std::vector<std::vector<std::vector<std::vector<int>>>> intervals;
   
   
@@ -45,9 +47,9 @@ public:
   // other methods
   void init(int t, const std::vector<int> &contig_lengths, Sampler &sampler_oocyst,
             Sampler &sampler_hepatocyte, std::map<int, Tree_node> &tree);
-  void draw_haplotypes_denovo(int &haplo_ID, double alpha);
-  void draw_haplotypes_recombine(int &haplo_ID, const std::vector<int> &inoc_IDs, double r, double alpha);
+  void draw_lineages_denovo(int &lineage_ID, double alpha);
+  void draw_lineages_recombine(int &lineage_ID, const std::vector<int> &inoc_IDs, double r, double alpha);
   void draw_intervals(int parent0, int parent1, double r);
-  void print_intervals(int haplo = 0, int chrom = 0);
+  void print_intervals(int lineage = 0, int contig = 0);
   
 };

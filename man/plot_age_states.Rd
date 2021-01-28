@@ -4,7 +4,7 @@
 \alias{plot_age_states}
 \title{Plot age distribution of states}
 \usage{
-plot_age_states(project, sample_time = 1, deme = 1, state = "S")
+plot_age_states(project, sample_time = NULL, deme = 1, state = "S")
 }
 \arguments{
 \item{project}{a SIMPLEGEN project, as produced by the

@@ -10,8 +10,18 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE, warning=FALSE, error=FALSE, message=FALSE, comment=FALSE, warning= FALSE,progress=FALSE, verbose=FALSE}
-knitr::opts_chunk$set(warning=FALSE, error=FALSE, message=FALSE, comment=FALSE, warning= FALSE)
+# set global chunk options
+knitr::opts_chunk$set(warning = FALSE, error = FALSE, message = FALSE, comment = FALSE, warning = FALSE)
 ```
+
+```{r echo=FALSE}
+# set random seed
+set.seed(1)
+
+# load the SIMPLEGEN package
+library(SIMPLEGEN)
+```
+
 It is often helpful to check model outputs are consistent with emprirical data and sensible. In this package we provide several datasets and examples of SIMPLEGEN model outputs compared to data to check that key epidemiological relationships are represented consistent with empirical data and data generated from other models. 
 
 ## Comparing annual EIR to parasite prevalence 
@@ -21,40 +31,25 @@ In order to compare annual EIR to parasite prevalence , we must generate annual 
 First we run SIMPLEGEN for a range of EIRs by changing the mosquito population size:
 
 ```{r, results='hide' }
-# this can be removed once integrated with master
-library(devtools)
-devtools::install_github("mrc-ide/SIMPLEGEN", ref = "sanity_checks")
+# vector of mosquito population sizes
+m_pop <- c(seq(1e3, 9e3, 1e3), seq(1e4, 9e4, 1e4), 1e5, 2e5)
+m_pop <- c(1e4, 1e5)
 
-library(SIMPLEGEN)
-
-check_SIMPLEGEN_loaded()
-
- set.seed(134)
-
- #mosquito population size
-m_pop<-c(1e3,2e3,3e3,4e3,5e3,6e3,7e3,8e3,9e3,1e4,2e4,3e4,4e4,5e4,6e4,7e4,8e4,9e4,1e5,2e5)
- 
-dat<-list()
-list_proj<-list()
-
-
-for(i in 1:length(m_pop)){
-  myproj <- simplegen_project()
-  myproj <- define_epi_params(myproj,
-                              seed_infections = 100,
-                              H=1e3,
-                              M= m_pop[i],
-                              #prob_acute=c(1.0,0.95,0.9,0.85,0.8,0.75,0.7,0.65,0.6,0.55,0.5,0.45,0.4),
-                              detectability_microscopy_chronic = 0.45,
-                              detectability_PCR_chronic =0.95)
+# run simulation and store results
+dat <- list()
+list_proj <- list()
+for (i in seq_along(m_pop)) {
   
-  
-  myproj <- sim_epi(myproj, max_time=365*10)
-  dat[[i]]<- myproj$epi_output$daily_values
-  list_proj[[i]]<-myproj
-  rm(myproj)
+  myproj <- simplegen_project() %>%
+    define_epi_params(seed_infections = 100,
+                      H = 1e3,
+                      M = m_pop[i],
+                      detectability_microscopy_chronic = 0.45,
+                      detectability_PCR_chronic = 0.95) %>%
+    sim_epi(max_time = 365*10)
+  dat[[i]] <- myproj$epi_output$daily_values
+  list_proj[[i]] <- myproj
 }
-
 ```
 
 Then we use the inbuilt function retrieve_prev to retrieve the true prevalence and estimated detected prevalence from the simulation. We estimate prevalence on a given sampling day and define the type of diagnostic used (PCR or microscopy) and case detection (active or passive). 
@@ -64,23 +59,21 @@ Expected prevalence is calculated by using the sum of the indidvidual probabilit
 We then apply this to the different simulated datasets to create a table of annual EIR and prevalence estimates.
 
 ```{r}
-EIRprev<-t(sapply(dat,FUN=retrieve_prev, case_detection = "Active", diagnosis = "Microscopy",
-                     sampling_time = 3000))
+EIRprev <- t(sapply(dat, FUN = retrieve_prev,
+                    case_detection = "Active", diagnosis = "Microscopy",
+                    sampling_time = 3000))
 head(EIRprev)
-
 ```
 
 Then we can plot on a linear scale using the inbuilt plot_EIR_prevalence function:
-```{r, results = 'hide', fig.keep ='all' }
-plot_EIR_prevalence(data = EIRprev,scale_x="linear")
- 
+
+```{r, fig.width = 6}
+plot_EIR_prevalence(data = EIRprev,scale_x = "linear")
 ```
 
 Next we can plot on a log scale:
-```{r, warning = FALSE, results = 'hide', fig.keep ='all'}
-plot_EIR_prevalence(EIRprev,scale_x="log")
-
-
+```{r, fig.width = 6}
+plot_EIR_prevalence(EIRprev,scale_x = "log")
 ```
 
 

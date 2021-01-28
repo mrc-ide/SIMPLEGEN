@@ -4,10 +4,12 @@
 \name{EIRprev_beier1999}
 \alias{EIRprev_beier1999}
 \title{Measures of annual EIR and prevalence (Beier et al.,1999)}
-\format{A data frame of x rows and two columns. Column one, "annual_EIR" is
+\format{
+A data frame of x rows and two columns. Column one, "annual_EIR" is
   the annual Entomological Inoculation Rate calculated for Plasmodium
   falciparum and column 2, "prevalence" is the parasite prevalence of
-  plasmodium falciparum measured at the same site}
+  plasmodium falciparum measured at the same site
+}
 \source{
 \href{https://www.researchgate.net/profile/John_Beier/publication/12867829_Short_report_Entomologic_inoculation_rates_and_Plasmodium_falciparum_malaria_prevalence_in_Africa/links/004635142eb595e31a000000/Short-report-Entomologic-inoculation-rates-and-Plasmodium-falciparum-malaria-prevalence-in-Africa.pdf}{Research
   Gate} \href{https://github.com/ankitrohatgi/WebPlotDigitizer}{Data extractor hhg}

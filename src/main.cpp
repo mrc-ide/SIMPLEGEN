@@ -2,6 +2,7 @@
 #include "main.h"
 #include "Parameters.h"
 #include "Dispatcher.h"
+#include "Tree_node.h"
 #include "probability_v10.h"
 
 #include <chrono>
@@ -272,3 +273,121 @@ void add_to_pop(vector<int> &inoc_IDs, const vector<pair<int, int>> &first_IDs,
   
 }
 
+//------------------------------------------------
+// read in a pruned transmission record and simulate relatedness intervals
+// forwards-in-time through this tree
+Rcpp::List sim_relatedness_cpp(Rcpp::List args) {
+  
+  // start timer
+  chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
+  
+  // extract input args
+  string pruned_record_location = rcpp_to_string(args["pruned_record_location"]);
+  double r = rcpp_to_double(args["r"]);
+  double alpha = rcpp_to_double(args["alpha"]);
+  vector<double> oocyst_distribution = rcpp_to_vector_double(args["oocyst_distribution"]);
+  vector<double> hepatocyte_distribution = rcpp_to_vector_double(args["hepatocyte_distribution"]);
+  vector<int> contig_lengths = rcpp_to_vector_int(args["contig_lengths"]);
+  bool silent = rcpp_to_bool(args["silent"]);
+  
+  // open filestream to pruned record and check that opened
+  if (!silent) {
+    print("Opening filestream to pruned transmission record");
+  }
+  ifstream infile;
+  infile.open(pruned_record_location);
+  if (!infile.is_open()) {
+    Rcpp::stop("unable to open filestream at specified location. Check the path exists, and that you have read access");
+  }
+  
+  // create samplers for drawing number of oocysts and hepatocytes
+  Sampler sampler_oocyst(oocyst_distribution, 1000);
+  Sampler sampler_hepatocyte(hepatocyte_distribution, 1000);
+  
+  // read pruned record into an array. For each row, first value gives innoc_ID,
+  // second value gives time of creation, and any subsequent values give
+  // parental inoc_IDs that are ancestral
+  vector<vector<int>> pruned_array;
+  vector<int> this_line;
+  string line, block, element;
+  int t = 0;
+  while (getline(infile, line)) {
+    istringstream iss(line);
+    while (getline(iss, block, ';')) {
+      bool new_block = true;
+      istringstream iss2(block);
+      while (getline(iss2, element, ' ')) {
+        
+        if (new_block) {
+          this_line.clear();
+          int ID_key = stoi(element);
+          this_line.push_back(ID_key);
+          this_line.push_back(t);
+          new_block = false;
+        } else {
+          int ID_val = stoi(element);
+          this_line.push_back(ID_val);
+        }
+        
+      }
+      pruned_array.push_back(this_line);
+    }
+    t++;
+  }
+  
+  // create a map, where each element represents an inoculation in the pruned
+  // transmission tree
+  map<int, Tree_node> inoc_tree;
+  
+  // populate map
+  int lineage_ID = 1;
+  for (int i = 0; i < int(pruned_array.size()); ++i) {
+    
+    // create node for this inoc_ID
+    int inoc_ID = pruned_array[i][0];
+    int t = pruned_array[i][1];
+    inoc_tree[inoc_ID] = Tree_node(t, contig_lengths, sampler_oocyst, sampler_hepatocyte, inoc_tree);
+    
+    // draw lineages de novo or by recombination from ancestral inoculations
+    if (pruned_array[i].size() == 2) {
+      inoc_tree[inoc_ID].draw_lineages_denovo(lineage_ID, alpha);
+    } else {
+      inoc_tree[inoc_ID].draw_lineages_recombine(lineage_ID, pruned_array[i], r, alpha);
+    }
+  }
+  
+  // get into more convenient output format
+  Rcpp::List ret;
+  for (int i = 0; i < int(pruned_array.size()); ++i) {
+    int inoc_ID = pruned_array[i][0];
+    
+    // get descriptive details of this node
+    Rcpp::List ret_details;
+    ret_details["inoc_ID"] = inoc_ID;
+    ret_details["time"] = inoc_tree[inoc_ID].t;
+    ret_details["lineage_IDs"] = inoc_tree[inoc_ID].lineage_ID_vec;
+    ret_details["lineage_densities"] = inoc_tree[inoc_ID].lineage_density;
+    
+    // get lineage intervals
+    Rcpp::List ret_lineages;
+    for (int j = 0; j < inoc_tree[inoc_ID].n_lineages; ++j) {
+      ret_lineages.push_back(inoc_tree[inoc_ID].intervals[j]);
+    }
+    
+    // push to return list
+    ret.push_back(Rcpp::List::create(Rcpp::Named("details") = ret_details,
+                                     Rcpp::Named("lineages") = ret_lineages));
+  }
+  
+  // close filestreams
+  if (!silent) {
+    print("Closing filestream");
+  }
+  infile.close();
+  
+  // end timer
+  chrono_timer(t1);
+  
+  
+  return ret;
+}
