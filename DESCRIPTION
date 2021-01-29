@@ -29,11 +29,16 @@ Imports:
     coda,
     magrittr,
     ggplot2,
-    tidyr
+    tidyr,
+    stats,
+    ggsci,
+    lubridate,
+    rlang
 SystemRequirements: C++11
 Suggests: 
     testthat (>= 2.1.0),
     covr,
     knitr,
-    rmarkdown
+    rmarkdown,
+    devtools
 VignetteBuilder: knitr
