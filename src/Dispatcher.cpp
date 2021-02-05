@@ -122,7 +122,7 @@ void Dispatcher::init(Parameters &params_) {
   // age distributions. Final level: 0 = Sh, 1 = Eh, 2 = Ah, 3 = Ch, 4 = Ph
   age_distributions = vector<vector<vector<vector<double>>>>(params->n_output_age_times,
                               vector<vector<vector<double>>>(params->n_demes,
-                                      vector<vector<double>>(params->n_life_table, vector<double>(8))));
+                                      vector<vector<double>>(params->n_life_table, vector<double>(12))));
   
   // misc
   EIR = vector<double>(params->n_demes);
@@ -130,6 +130,10 @@ void Dispatcher::init(Parameters &params_) {
   inc_infection = vector<double>(params->n_demes);
   inc_acute = vector<double>(params->n_demes);
   inc_chronic = vector<double>(params->n_demes);
+  detect_microscopy_acute = vector<double>(params->n_demes);
+  detect_microscopy_chronic = vector<double>(params->n_demes);
+  detect_PCR_acute = vector<double>(params->n_demes);
+  detect_PCR_chronic = vector<double>(params->n_demes);
   
 }
 
@@ -593,6 +597,22 @@ void Dispatcher::get_age_distribution(int t_index) {
     age_distributions[t_index][this_deme][this_age][6] += inc * p;
     age_distributions[t_index][this_deme][this_age][7] += inc * (1.0 - p);
     
+  
+  
+    //detectability by microscopy (expectation) 
+    double detectable_microscopy_a =  host_pop[i].get_detectability_microscopy_acute(t) ;
+    double detectable_microscopy_c =  host_pop[i].get_detectability_microscopy_chronic(t);
+    age_distributions[t_index][this_deme][this_age][8] += detectable_microscopy_a/double(H[this_deme]) ;
+    age_distributions[t_index][this_deme][this_age][9] += detectable_microscopy_c/double(H[this_deme]) ;
+    
+    //detectability by PCR (expectation)  
+    double  detectable_PCR_a = host_pop[i].get_detectability_PCR_acute(t) ;
+    double  detectable_PCR_c = host_pop[i].get_detectability_PCR_chronic(t);
+    age_distributions[t_index][this_deme][this_age][10] += detectable_PCR_a/double(H[this_deme])  ;
+    age_distributions[t_index][this_deme][this_age][11] += detectable_PCR_c/double(H[this_deme])  ;
+
+
+
   }  // end loop through hosts
   
 }

@@ -563,7 +563,7 @@ sim_epi <- function(project,
     age_distributions <- do.call(rbind, mapply(function(j) {
       ret <- do.call(rbind, mapply(function(i) {
         ret <- do.call(rbind, output_raw$age_distributions[[j]][[i]])
-        colnames(ret) <- c("S", "E", "A", "C", "P", "inc_infection", "inc_acute", "inc_chronic")
+        colnames(ret) <- c("S", "E", "A", "C", "P", "inc_infection", "inc_acute", "inc_chronic","detect_microscopy_acute","detect_microscopy_chronic", "detect_PCR_acute", "detect_PCR_chronic" )
         data.frame(cbind(deme = i, age = seq_len(nrow(ret)) - 1, ret))
       }, seq_along(output_raw$age_distributions[[j]]), SIMPLIFY = FALSE))
       cbind(sample_time = output_age_times[j], ret)
