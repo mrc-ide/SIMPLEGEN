@@ -48,17 +48,17 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li>
-      <a href="../articles/basic_tutorial.html">Basic Tutorial</a>
+      <a href="../articles/basic_tutorial.html">Basic tutorial</a>
     </li>
     <li class="divider">
     <li>
-      <a href="../articles/model_description.html">Transmission Model Details</a>
+      <a href="../articles/model_description.html">The inbuilt epidemiological model</a>
     </li>
     <li>
-      <a href="../articles/transmission_record.html">The Transmission Record</a>
+      <a href="../articles/transmission_record.html">The transmission record</a>
     </li>
     <li>
-      <a href="../articles/simulating_relatedness.html">Simulating Relatedness</a>
+      <a href="../articles/simulating_relatedness.html">Simulating relatedness</a>
     </li>
   </ul>
 </li>
@@ -89,7 +89,7 @@
       <h1 data-toc-skip>Transmission Model Details</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2021-01-28</h4>
+            <h4 class="date">2021-02-05</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/mrc-ide/SIMPLEGEN/blob/master/vignettes/model_description.Rmd"><code>vignettes/model_description.Rmd</code></a></small>
       <div class="hidden name"><code>model_description.Rmd</code></div>
@@ -113,20 +113,31 @@ p.caption {
 <h3 class="hasAnchor">
 <a href="#inoculations-and-host-states" class="anchor"></a>Inoculations and host states</h3>
 <p>The most important concept in the model is the idea of an “inoculation”, defined here as a population of parasites that are passed from mosquito to human host upon successful infection. Each host within the model can be thought of having multiple inoculation “slots”, and each new inoculation falls into a new slot. There are a finite number of slots available per host, defined by <code>max_inoculations</code>, but most of the time we can set this number to be large enough that hosts never saturate all their slots.</p>
-<p>Each inoculation can be thought of as an independent episode of malaria that goes through the following stages: 1) latent (liver stage) infection, 2) acute blood-stage, 3) chronic blood-stage, 4) clearance. Inoculations can pass through all four stages in order, or they can skip over the acute or chronic stages depending on the model parameters (see <strong>Figure 3</strong>). The acute stage essentially represents the symptomatic stage of infection, although the word “acute” has been used rather than “symptomatic” to avoid forcing a clinical interpretation on the model. The chronic stage is designed to capture long-lasting infections, including possible asymptomatic and/or sub-patent stages (more on detection later).</p>
-<p>The state of a host is defined directly from the state of its inoculations. If there are ANY acute inoculations then the host is in the acute state, otherwise, if there are ANY chronic inoculations then the host is in the chronic state, otherwise, if there are ANY latent inoculations then the host is in the exposed state, otherwise the host is in the susceptible state. This can be seen in <strong>Figure 1</strong>, which shows the host state for a simple case of two overlapping inoculations.</p>
+<p>Each inoculation can be thought of as an independent episode of malaria that goes through the following stages:</p>
+<ol style="list-style-type: decimal">
+<li>latent (liver stage) infection</li>
+<li>acute blood-stage</li>
+<li>chronic blood-stage</li>
+<li>clearance</li>
+</ol>
+<p>Inoculations can pass through all four stages in order, or they can skip over the acute or chronic stages depending on the model parameters (see <strong>Figure 4</strong>). The acute stage essentially represents the symptomatic stage of infection, although the word “acute” has been used rather than “symptomatic” to avoid forcing a clinical interpretation on the model. The chronic stage is designed to capture long-lasting infections, including possible asymptomatic and/or sub-patent stages (more on detection later).</p>
+<p>The state of a host is defined using the decision tree in <strong>Figure 1</strong>.</p>
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/host_decision_tree.png"><font size="2">
+<figcaption><strong>Figure 1</strong> Decision tree showing how the state of a host is decided.
+</figcaption><p></p></font>
+<p>Unless the host has recently recieved treatment, and so is in the prophylactic stage, the state of the host is dictated by the states of the inoculations it carries.. This can be seen in <strong>Figure 2</strong>, which shows the host state for a simple case of two overlapping inoculations.</p>
 <img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/progression1.png"><font size="2">
-<figcaption><strong>Figure 1</strong> The host carries two inoculations (horizontal boxes), each of which goes through a latent stage and acute and chronic stages before clearing naturally. The host state is dictated from the inoculation states.
+<figcaption><strong>Figure 2</strong> The host carries two inoculations (horizontal boxes), each of which goes through a latent stage and acute and chronic stages before clearing naturally. The host state is dictated from the inoculation states.
 </figcaption><p></p></font>
-<p>The only host state that is not dictated directly from its inoculations is the treated (aka prophylactic) state. Treatment is described fully in a later section, but in simple terms treatment causes all blood-stage infections to clear immediately. Liver-stage infections are not cleared, i.e. treatment does not represent a radical cure. After treatment, the host enters a prophylactic state in which new liver-stage infections can occur, but any inoculations leaving the liver within the prophylactic period are immediately cured. Eventually the prophylaxis wears off and the host transitions back into the susceptible or exposed state. <strong>Figure 2</strong> shows a second example of host states, this time for a more complex case involving treatment and prophylaxis.</p>
+<p>The only host state that is not dictated directly from its inoculations is the treated (aka prophylactic) state. Treatment is described fully in a later section, but in simple terms treatment causes all blood-stage infections to clear immediately. Liver-stage infections are not cleared, i.e. treatment does not represent a radical cure. After treatment, the host enters a prophylactic state in which new liver-stage infections can occur, but any inoculations leaving the liver within the prophylactic period are immediately cured. Eventually the prophylaxis wears off and the host transitions back into the susceptible or exposed state. <strong>Figure 3</strong> shows a second example of host states, this time for a more complex case involving treatment and prophylaxis.</p>
 <img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/progression2.png"><font size="2">
-<figcaption><strong>Figure 2</strong> The host acquires two inoculations, and later receives treatment and enters a prophylactic state. During this prophylactic period a new liver-stage inoculation takes hold, but this leaves the liver within the prophylactic period and is therefore immediately cured. A second liver-stage inoculation occurs within the prophylactic period, but this one leaves the liver outside the prophylactic period and so proceeds as normal.
+<figcaption><strong>Figure 3</strong> The host acquires two inoculations, and later receives treatment and enters a prophylactic state. During this prophylactic period a new liver-stage inoculation takes hold, but this leaves the liver within the prophylactic period and is therefore immediately cured. A second liver-stage inoculation occurs within the prophylactic period, but this one leaves the liver outside the prophylactic period and so proceeds as normal.
 </figcaption><p></p></font>
-<p>Given the description above, we can now visualise the model in a classical compartmental structure. <strong>Figure 3</strong> shows the possible states and transitions of both individual inoculations and hosts.</p>
+<p>Given the description above, we can now visualise the model in a classical compartmental structure. <strong>Figure 4</strong> shows the possible states and transitions of both individual inoculations and hosts.</p>
 <img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/model_diagram_inoc&amp;host.png"><font size="2">
-<figcaption><strong>Figure 3</strong> Inoculation states and host states. Dashed arrows indicate transitions that are only possible via super-infection.
+<figcaption><strong>Figure 4</strong> Inoculation states and host states. Dashed arrows indicate transitions that are only possible via super-infection.
 </figcaption><p></p></font>
-<p>Notice there are no rates or parameters on any of the arrows in <strong>Figure 3</strong>. This is because state durations and transition probabilities are modelled using flexible distributions rather than fixed parameter values.</p>
+<p>Notice there are no rates or parameters on any of the arrows in <strong>Figure 4</strong>. This is because state durations and transition probabilities are modelled using flexible distributions rather than fixed parameter values.</p>
 </div>
 <div id="flexible-distributions" class="section level3">
 <h3 class="hasAnchor">
