@@ -8,7 +8,7 @@ using namespace std;
 void Parameters::load_params(Rcpp::List args) {
   
   // load all parameter values
-  load_epi_params(args);
+  load_model_params(args);
   load_deme_params(args);
   load_migration_params(args);
   load_demog_params(args);
@@ -18,8 +18,8 @@ void Parameters::load_params(Rcpp::List args) {
 }
 
 //------------------------------------------------
-// load epi parameter values
-void Parameters::load_epi_params(Rcpp::List args) {
+// load epi model parameter values
+void Parameters::load_model_params(Rcpp::List args) {
   
   // scalar epi parameters
   a = rcpp_to_double(args["a"]);
@@ -121,7 +121,7 @@ void Parameters::load_demog_params(Rcpp::List args) {
 //------------------------------------------------
 // load sampling strategy parameter values
 void Parameters::load_sampling_params(Rcpp::List args) {
-  
+  /*
   // whether samples are being obtained
   obtain_samples = rcpp_to_bool(args["obtain_samples"]);
   
@@ -158,7 +158,7 @@ void Parameters::load_sampling_params(Rcpp::List args) {
     ss_n = rcpp_to_vector_int(args["ss_n"]);
     
   }
-  
+  */
 }
 
 //------------------------------------------------
@@ -169,10 +169,6 @@ void Parameters::load_run_params(Rcpp::List args) {
   max_time = rcpp_to_int(args["max_time"]);
   save_transmission_record = rcpp_to_bool(args["save_transmission_record"]);
   transmission_record_location = rcpp_to_string(args["transmission_record_location"]);
-  output_daily_counts = rcpp_to_bool(args["output_daily_counts"]);
-  output_age_distributions = rcpp_to_bool(args["output_age_distributions"]);
-  output_age_times = rcpp_to_vector_int(args["output_age_times"]);
-  n_output_age_times = int(output_age_times.size());
   silent = rcpp_to_bool(args["silent"]);
   pb_markdown = rcpp_to_bool(args["pb_markdown"]);
   
@@ -243,13 +239,8 @@ void Parameters::summary() {
   print("max_time:", max_time);
   print("save_transmission_record:", save_transmission_record);
   print("transmission_record_location:", transmission_record_location);
-  print("output_daily_counts:", output_daily_counts);
-  print("output_age_distributions:", output_age_distributions);
   print("pb_markdown:", pb_markdown);
   print("silent:", silent);
   
-  // print run vectors
-  print("output_age_times:");
-  print_vector(output_age_times);
 }
 

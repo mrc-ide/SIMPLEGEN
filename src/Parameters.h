@@ -54,7 +54,7 @@ public:
   std::vector<double> duration_prophylactic;
   int n_duration_prophylactic;
   
-  // infectivity
+  // onward infectivity
   std::vector<std::vector<double>> infectivity_acute;
   int n_infectivity_acute;
   std::vector<std::vector<double>> infectivity_chronic;
@@ -77,21 +77,19 @@ public:
   std::vector<double> age_stable;
   
   // sampling strategy parameters
+  /*
   bool obtain_samples;
   std::vector<int> ss_time;
   std::vector<int> ss_deme;
   std::vector<Case_detection> ss_case_detection;
   std::vector<Diagnosis> ss_diagnosis;
   std::vector<int> ss_n;
+  */
   
   // run parameters
   int max_time;
   bool save_transmission_record;
   std::string transmission_record_location;
-  bool output_daily_counts;
-  bool output_age_distributions;
-  std::vector<int> output_age_times;
-  int n_output_age_times;
   bool pb_markdown;
   bool silent;
   
@@ -106,7 +104,7 @@ public:
   
   // methods
   void load_params(Rcpp::List args);
-  void load_epi_params(Rcpp::List args);
+  void load_model_params(Rcpp::List args);
   void load_deme_params(Rcpp::List args);
   void load_migration_params(Rcpp::List args);
   void load_demog_params(Rcpp::List args);

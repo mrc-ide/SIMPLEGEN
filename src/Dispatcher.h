@@ -73,8 +73,8 @@ public:
   
   // objects for storing results
   std::vector<std::vector<std::vector<double>>> daily_values;
-  std::vector<std::vector<std::vector<std::vector<double>>>> age_distributions;
-  std::vector<std::vector<int>> sample_details;
+  //std::vector<std::vector<std::vector<std::vector<double>>>> age_distributions;
+  //std::vector<std::vector<int>> sample_details;
   
   // misc
   std::vector<double> EIR;
@@ -87,9 +87,6 @@ public:
   std::vector<double> detect_PCR_acute;
   std::vector<double> detect_PCR_chronic;
 
-  
-  // number of active inoculations
-  std::vector<double> n_inoc;
   
   // PUBLIC FUNCTIONS
   

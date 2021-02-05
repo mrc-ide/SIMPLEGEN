@@ -198,11 +198,10 @@ define_epi_model_parameters <- function(project,
   # carried out later)
   assert_custom_class(project, "simplegen_project")
   
-  # if there are no defined epi parameters then create all parameters from
+  # if there are no defined parameters then create all parameters from
   # scratch using default values where not specified by user
-  if (is.null(project$epi_parameters)) {
-    project$epi_parameters <- as.list(environment())
-    invisible(project)
+  if (is.null(project$epi_model_parameters)) {
+    project$epi_model_parameters <- within(as.list(environment()), rm(project))
   }
   
   # find which parameters are user-defined
@@ -210,48 +209,56 @@ define_epi_model_parameters <- function(project,
   userlist <- userlist[!(names(userlist) %in% c("", "project"))]
   
   # replace project parameters with user-defined
-  project$epi_parameters[names(userlist)] <- mapply(eval, userlist, SIMPLIFY = FALSE)
+  project$epi_model_parameters[names(userlist)] <- mapply(eval, userlist, SIMPLIFY = FALSE)
   
-  # standardise parameters (e.g. normalise distributions)
-  params_processed <- process_epi_params(project$epi_parameters)
+  # standardise and process parameters
+  project <- process_epi_model_params(project)
   
-  # perform checks on parameters
-  check_epi_params(params_processed)
+  # perform checks on final parameters
+  check_epi_model_params(project)
   
   # return
   invisible(project)
 }
 
 #------------------------------------------------
-# convert epi parameters to standardised types
+# convert epi model parameters to standardised types
 #' @noRd
-process_epi_params <- function(x) {
+process_epi_model_params <- function(project) {
   
-  # for objects that can be defined as list or vector, force to list
+  # function that forces objects that can be defined as list or vector to list
   force_list <- function(x) {
     if (!is.list(x)) {
       x <- list(x)
     }
     return(x)
   }
-  x$duration_acute <- force_list(x$duration_acute)
-  x$duration_chronic <- force_list(x$duration_chronic)
-  x$detectability_microscopy_acute <- force_list(x$detectability_microscopy_acute)
-  x$detectability_microscopy_chronic <- force_list(x$detectability_microscopy_chronic)
-  x$detectability_PCR_acute <- force_list(x$detectability_PCR_acute)
-  x$detectability_PCR_chronic <- force_list(x$detectability_PCR_chronic)
-  x$time_treatment_acute <- force_list(x$time_treatment_acute)
-  x$time_treatment_chronic <- force_list(x$time_treatment_chronic)
-  x$infectivity_acute <- force_list(x$infectivity_acute)
-  x$infectivity_chronic <- force_list(x$infectivity_chronic)
   
-  return(x)
+  # force parameters to list
+  name_vec <- c("duration_acute", "duration_chronic",
+                "detectability_microscopy_acute", "detectability_microscopy_chronic",
+                "detectability_PCR_acute", "detectability_PCR_chronic",
+                "time_treatment_acute", "time_treatment_chronic",
+                "infectivity_acute", "infectivity_chronic")
+  project$epi_model_parameters[name_vec] <- mapply(force_list, project$epi_model_parameters[name_vec], SIMPLIFY = FALSE)
+  
+  # return
+  invisible(project)
 }
 
 #------------------------------------------------
-# perform checks on epi parameters
+# perform checks on epi model parameters
 #' @noRd
-check_epi_params <- function(x) {
+check_epi_model_params <- function(project) {
+  
+  # check project class
+  assert_custom_class(project, "simplegen_project")
+  
+  # check that epi model parameters exist
+  assert_non_null(project$epi_model_parameters, message = "no epi model parameters defined. See ?define_epi_model_parameters")
+  
+  # extract model parameters
+  x <- project$epi_model_parameters
   
   # perform checks
   assert_single_bounded(x$a, name = "a")
@@ -352,7 +359,7 @@ get_demography <- function(life_table) {
 }
 
 #------------------------------------------------
-#' @title Define how samples are taken from transmission model
+#' @title Define the outputs that are produced from the transmission model
 #'
 #' @description Loads a dataframe into the SIMPLEGEN project that specifies how
 #'   one or more samples are taken from the population. This is an important
@@ -379,37 +386,77 @@ get_demography <- function(life_table) {
 #'
 #' @export
 
-define_sampling_strategy <- function(project, df_sample) {
+define_epi_sampling_parameters <- function(project,
+                                           daily = NULL,
+                                           age_distributions = NULL,
+                                           surveys = NULL) {
   
-  # check inputs
+  # NB. This function is written so that only parameters specified by the user
+  # are updated. Any parameters that already have values within the project are
+  # left alone
+  
+  # basic checks on inputs (more thorough checks on parameter values will be
+  # carried out later)
   assert_custom_class(project, "simplegen_project")
-  assert_dataframe(df_sample)
-  assert_eq(names(df_sample), c("time", "deme", "case_detection", "diagnosis", "n"))
-  assert_pos_int(df_sample$time, zero_allowed = FALSE)
-  assert_increasing(df_sample$time)
-  assert_pos_int(df_sample$deme, zero_allowed = FALSE)
-  assert_in(df_sample$case_detection, c("active", "passive"))
-  assert_in(df_sample$diagnosis, c("microscopy", "PCR"))
-  assert_pos_int(df_sample$n, zero_allowed = FALSE)
+  
+  # if there are no defined parameters then create all parameters from
+  # scratch using default values where not specified by user
+  if (is.null(project$epi_sampling_parameters)) {
+    project$epi_sampling_parameters <- within(as.list(environment()), rm(project))
+  }
+  
+  # find which parameters are user-defined
+  userlist <- as.list(match.call())
+  userlist <- userlist[!(names(userlist) %in% c("", "project"))]
+  
+  # replace project parameters with user-defined
+  project$epi_sampling_parameters[names(userlist)] <- mapply(eval, userlist, SIMPLIFY = FALSE)
+  
+  # perform checks on final parameters
+  check_epi_sampling_params(project)
+  
+  # return
+  invisible(project)
+}
+
+#------------------------------------------------
+# perform checks on epi sampling parameters
+#' @noRd
+check_epi_sampling_params <- function(project) {
+  
+  # check project class
+  assert_custom_class(project, "simplegen_project")
+  
+  # check that epi sampling parameters exist
+  assert_non_null(project$epi_sampling_parameters, message = "no epi sampling parameters defined. See ?define_epi_sampling_parameters")
+  
+  # extract sampling parameters
+  x <- project$epi_sampling_parameters
+  
+  # TODO - checks
+  #assert_dataframe(df_sample)
+  #assert_eq(names(df_sample), c("time", "deme", "case_detection", "diagnosis", "n"))
+  #assert_pos_int(df_sample$time, zero_allowed = FALSE)
+  #assert_increasing(df_sample$time)
+  #assert_pos_int(df_sample$deme, zero_allowed = FALSE)
+  #assert_in(df_sample$case_detection, c("active", "passive"))
+  #assert_in(df_sample$diagnosis, c("microscopy", "PCR"))
+  #assert_pos_int(df_sample$n, zero_allowed = FALSE)
   
   # specify formats
-  df_sample$case_detection <- as.character(df_sample$case_detection)
-  df_sample$diagnosis <- as.character(df_sample$diagnosis)
+  #df_sample$case_detection <- as.character(df_sample$case_detection)
+  #df_sample$diagnosis <- as.character(df_sample$diagnosis)
   
-  # load into project
-  project$sampling_strategy <- df_sample
-  
-  invisible(project)
 }
 
 #------------------------------------------------
 #' @title Simulate from simple individual-based model
 #'
-#' @description Simulate from the inbuilt SIMPLEGEN transmission model.
-#'   Parameters are taken from the \code{epi_parameters} slot of the project,
-#'   and basic outputs are written to the \code{epi_output} slot. If a sampling
-#'   strategy has been defined then samples will also be obtained and saved in
-#'   the \code{sample_output} slot (see \code{?define_sampling_strategy()}).
+#' @description Simulate from the inbuilt SIMPLEGEN transmission model. Model
+#'   parameters are taken from the \code{epi_model_parameters} slot of the
+#'   project, and the sampling strategy is taken from the
+#'   \code{epi_sampling_parameters} slot. Outputs are written to the
+#'   \code{epi_output} slot.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
@@ -420,12 +467,6 @@ define_sampling_strategy <- function(project, df_sample) {
 #'   record will be written to.
 #' @param overwrite_transmission_record if \code{TRUE} the transmission record
 #'   will overwrite any existing file by the same name. \code{FALSE} by default.
-#' @param output_daily_counts whether to output daily counts of key quantities,
-#'   such as the number of infected hosts and the EIR.
-#' @param output_age_distributions whether to output complete age distributions
-#'   at certain times.
-#' @param output_age_times a vector of times at which complete age distributions
-#'   are output.
 #' @param pb_markdown whether to run progress bars in markdown mode, meaning
 #'   they are only updated when they reach 100% to avoid large amounts of output
 #'   being printed to markdown files.
@@ -439,9 +480,6 @@ sim_epi <- function(project,
                     save_transmission_record = FALSE,
                     transmission_record_location = "",
                     overwrite_transmission_record = FALSE,
-                    output_daily_counts = TRUE,
-                    output_age_distributions = TRUE,
-                    output_age_times = max_time,
                     pb_markdown = FALSE,
                     silent = FALSE) {
   
@@ -453,10 +491,6 @@ sim_epi <- function(project,
   assert_single_logical(save_transmission_record)
   assert_string(transmission_record_location)
   assert_single_logical(overwrite_transmission_record)
-  assert_single_logical(output_daily_counts)
-  assert_single_logical(output_age_distributions)
-  assert_vector_pos_int(output_age_times, zero_allowed = FALSE)
-  assert_leq(output_age_times, max_time)
   assert_single_logical(pb_markdown)
   assert_single_logical(silent)
   
@@ -467,56 +501,47 @@ sim_epi <- function(project,
     }
   }
   
-  # check for defined epi params
-  assert_non_null(project$epi_parameters, message = "no epi parameters defined. See ?define_epi_params")
+  # ensure that parameters are loaded and pass checks
+  check_epi_model_params(project)
+  check_epi_sampling_params(project)
   
-  # check that inputs are compatible with sampling strategy
-  if (!is.null(project$sampling_strategy)) {
-    ss <- project$sampling_strategy
-    
-    assert_greq(max_time, max(ss$time), message = "%s exceeded by sampling time (%s)")
-    assert_greq(nrow(project$epi_parameters$mig_mat), max(ss$deme), "number of demes defined in sampling strategy exceeds number defined in epi parameters")
-  }
   
-  # ---------- define argument lists ----------
+  # ---------- define arguments  ----------
   
-  # get project params into standardised format and perform checks
-  args <- process_epi_params(project$epi_parameters)
-  check_epi_params(args)
+  # create argument list by concatenating project parameters
+  args <- c(project$epi_model_parameters,
+            project$epi_sampling_parameters)
+  
+  # append function arguments
+  args <- c(args,
+            list(max_time = max_time,
+                 save_transmission_record = save_transmission_record,
+                 transmission_record_location = transmission_record_location,
+                 pb_markdown = pb_markdown,
+                 silent = silent))
   
   # get migration matrix into list
   args$mig_mat <- matrix_to_rcpp(args$mig_mat)
   
   # get complete demography from life table
-  demog <- get_demography(project$epi_parameters$life_table)
-  args <- c(args,
-            list(age_death = demog$age_death,
-                 age_stable = demog$age_stable))
+  demog <- get_demography(project$epi_model_parameters$life_table)
+  args <- c(args, list(age_death = demog$age_death,
+                       age_stable = demog$age_stable))
   
   # add sampling strategy info
-  if (is.null(project$sampling_strategy)) {
-    args <- c(args, obtain_samples = FALSE)
-  } else {
-    ss <- project$sampling_strategy
-    args <- c(args,
-              list(obtain_samples = TRUE,
-                   ss_time = ss$time,
-                   ss_deme = ss$deme - 1,  # NB, subtract 1 to go from R to C++ indexing
-                   ss_case_detection = ss$case_detection,
-                   ss_diagnosis = ss$diagnosis,
-                   ss_n = ss$n))
-  }
+  #if (is.null(project$sampling_strategy)) {
+  #  args <- c(args, obtain_samples = FALSE)
+  #} else {
+  #  ss <- project$sampling_strategy
+  #  args <- c(args,
+  #            list(obtain_samples = TRUE,
+  #                 ss_time = ss$time,
+  #                 ss_deme = ss$deme - 1,  # NB, subtract 1 to go from R to C++ indexing
+  #                 ss_case_detection = ss$case_detection,
+  #                 ss_diagnosis = ss$diagnosis,
+  #                 ss_n = ss$n))
+  #}
   
-  # append arguments to this function to the list of args that are passed forward
-  args <- c(args,
-            list(max_time = max_time,
-                 save_transmission_record = save_transmission_record,
-                 transmission_record_location = transmission_record_location,
-                 output_daily_counts = output_daily_counts,
-                 output_age_distributions = output_age_distributions,
-                 output_age_times = output_age_times,
-                 pb_markdown = pb_markdown,
-                 silent = silent))
   
   # functions
   args_functions <- list(update_progress = update_progress)
@@ -528,18 +553,11 @@ sim_epi <- function(project,
   
   # ---------- run simulation ----------
   
-  # internal flag, not visible to user. If TRUE then this function writes
-  # parameter lists to file and returns without running simulation. Parameters
-  # can then be read directly from file into Xcode.
-  #xcode_on <- FALSE
-  #if (xcode_on) {
-  #  write_xcode_params(args)
-  #  return()
   
   # run efficient C++ function
   output_raw <- indiv_sim_cpp(args, args_functions, args_progress)
   
-  
+  return(output_raw)
   # ---------- process output ----------
   
   # wrangle daily values into dataframe

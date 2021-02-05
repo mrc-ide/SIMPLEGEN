@@ -68,9 +68,6 @@ void Dispatcher::init(Parameters &params_) {
   Ah_detectable_PCR = vector<double>(params->n_demes);
   Ch_detectable_PCR = vector<double>(params->n_demes);
   
-  // number of active inoculations
-  n_inoc = vector<double>(params->n_demes);
-  
   // initialise single population of human hosts over all demes. This is
   // preferable to using separate vectors of hosts for each deme, as this would
   // mean moving hosts around due to migration. With a single population we can
@@ -92,15 +89,15 @@ void Dispatcher::init(Parameters &params_) {
   // initialise the host population
   for (int k = 0; k < params->n_demes; ++k) {
     for (int i = 0; i < H[k]; ++i) {
-      int this_host = host_index[k][i];
-      host_pop[this_host].init(*params,
-                               this_host, next_host_ID, k,
-                               host_index,
-                               host_infective_index,
-                               sampler_age_stable, sampler_age_death,
-                               sampler_duration_acute, sampler_duration_chronic,
-                               sampler_time_treatment_acute, sampler_time_treatment_chronic,
-                               sampler_duration_prophylactic);
+      int this_index = host_index[k][i];
+      host_pop[this_index].init(*params,
+                                this_index, next_host_ID, k,
+                                host_index,
+                                host_infective_index,
+                                sampler_age_stable, sampler_age_death,
+                                sampler_duration_acute, sampler_duration_chronic,
+                                sampler_time_treatment_acute, sampler_time_treatment_chronic,
+                                sampler_duration_prophylactic);
     }
   }
   
@@ -110,7 +107,7 @@ void Dispatcher::init(Parameters &params_) {
   Ev = vector<int>(params->n_demes);
   Iv = vector<int>(params->n_demes);
   
-  // objects for tracking mosquitoes that die in lag phase (described below)
+  // objects for tracking mosquitoes that die in lag phase (process described below)
   Ev_death = vector<vector<int>>(params->n_demes, vector<int>(params->v));
   
   // populations of mosquitoes at various stages
@@ -119,14 +116,16 @@ void Dispatcher::init(Parameters &params_) {
   
   // objects for storing results
   daily_values = vector<vector<vector<double>>>(params->n_demes, vector<vector<double>>(params->max_time));
+  
   // age distributions. Final level: 0 = Sh, 1 = Eh, 2 = Ah, 3 = Ch, 4 = Ph
-  age_distributions = vector<vector<vector<vector<double>>>>(params->n_output_age_times,
-                              vector<vector<vector<double>>>(params->n_demes,
-                                      vector<vector<double>>(params->n_life_table, vector<double>(12))));
+  //age_distributions = vector<vector<vector<vector<double>>>>(params->n_output_age_times,
+  //                            vector<vector<vector<double>>>(params->n_demes,
+  //                                    vector<vector<double>>(params->n_life_table, vector<double>(12))));
   
   // misc
   EIR = vector<double>(params->n_demes);
   prob_infectious_bite = vector<double>(params->n_demes);
+  /*
   inc_infection = vector<double>(params->n_demes);
   inc_acute = vector<double>(params->n_demes);
   inc_chronic = vector<double>(params->n_demes);
@@ -134,7 +133,7 @@ void Dispatcher::init(Parameters &params_) {
   detect_microscopy_chronic = vector<double>(params->n_demes);
   detect_PCR_acute = vector<double>(params->n_demes);
   detect_PCR_chronic = vector<double>(params->n_demes);
-  
+  */
 }
 
 //------------------------------------------------
@@ -154,7 +153,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
   int v_ringbuffer = 0;
   
   // loop through daily time steps
-  int index_obtain_samples = 0;
+  int index_survey = 0;
   int index_age_distributions = 0;
   for (int t = 0; t < params->max_time; ++t) {
     
@@ -171,13 +170,19 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
     }
     
     // update ring buffer index
-    v_ringbuffer = (v_ringbuffer == params->v - 1) ? 0 : v_ringbuffer + 1;
+    if (v_ringbuffer == (params->v - 1)) {
+      v_ringbuffer = 0;
+    } else {
+      v_ringbuffer++;
+    }
+    //v_ringbuffer = (v_ringbuffer == params->v - 1) ? 0 : v_ringbuffer + 1;
     
     // seed infections in first generation
     if (t == 0) {
       for (int k = 0; k < params->n_demes; ++k) {
         for (int i = 0; i < params->seed_infections[k]; ++i) {
-          host_pop[host_index[k][i]].denovo_infection(t, next_inoc_ID, transmission_record);
+          int this_host = host_index[k][i];
+          host_pop[this_host].denovo_infection(t, next_inoc_ID, transmission_record);
         }
       }
     }
@@ -190,6 +195,15 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
       int this_deme = host_pop[i].deme;
       int new_deme = sample1(params->mig_mat[this_deme], 1.0);
       host_pop[i].migrate(new_deme);
+      
+      // update host counts
+      H[this_deme]--;
+      H[new_deme]++;
+      
+      // check for errors
+      if ((H[this_deme] < 0) || (H[new_deme] < 0)) {
+        Rcpp::stop("H[k] less than zero");
+      }
     }
     
     
@@ -197,23 +211,24 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
     
     for (int k = 0; k < params->n_demes; ++k) {
       
+      
       //-------- NEW HUMAN EVENTS --------
       
       // get number of new infectious bites on humans
       EIR[k] = params->a * Iv[k] / double(H[k]);
-     
-      // probability of new infectious bite on host
+      
+      // probability that each host receives an infectious bite
       prob_infectious_bite[k] = 1 - exp(-EIR[k]);
       
       // one method of drawing infections in humans would be to draw the total
-      // number of infectious bites from Binomial(H[k], prob_infectious_bite),
-      // then loop through all of these and see which infections take hold by
-      // drawing from Bernoulli with probability given by the host-specific
-      // prob_infection. However, this is wasteful as a large number of
-      // infectious bites are rejected. On the other hand, if the
+      // number of infectious bites from a Binomial(H[k], prob_infectious_bite)
+      // distribution, then loop through all of these and see which infections
+      // take hold by drawing from a Bernoulli with the probability given by the
+      // host-specific prob_infection. However, this is wasteful as a large
+      // number of infectious bites are rejected. On the other hand, if the
       // prob_infection was constant then we could draw from Binomial(H[k],
-      // prob_infection*prob_infectious_bite), after which every bite would
-      // lead to infection, however, we cannot do this as prob_infection is
+      // prob_infection*prob_infectious_bite), after which every bite would lead
+      // to infection, however, we cannot do this as prob_infection is
       // host-specific and changes over inoculations. Therefore, as a
       // middleground, draw from Binomial(H[k],
       // max_prob_infection*prob_infectious_bite), where max_prob_infection is
@@ -231,14 +246,14 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
       for (int i = 0; i < host_query_infection; ++i) {
         
         // choose host at random
-        int rnd1 = sample2(0, H[k]-1);
+        int rnd1 = sample2(0, H[k] - 1);
         int this_host = host_index[k][rnd1];
         
         // determine whether infectious bite is successful
         if (rbernoulli1(host_pop[this_host].get_prob_infection() / params->max_prob_infection)) {
           
           // choose mosquito at random
-          int rnd1 = sample2(0, Iv[k]-1);
+          int rnd1 = sample2(0, Iv[k] - 1);
           
           // infect host
           host_pop[this_host].infection(t, next_inoc_ID, Iv_pop[k][rnd1], transmission_record);
@@ -246,6 +261,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
         }
         
       }  // end loop over query infectious bites
+      
       
       //-------- SCHEDULED MOSQUITO EVENTS --------
       
@@ -278,13 +294,13 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
       double relative_prob_bite_infective = rate_bite_infective / (rate_bite_infective + params->mu);
       int n_bite_infective = rbinom1(n_bite_infective_or_death, relative_prob_bite_infective);
       
-      // use the same method of drawing query infections as used when
-      // infecting human hosts (see above)
+      // use the same method of drawing query infections as used when infecting
+      // human hosts (see above), this time looping through mosquito infections
       int mosq_query_infection = rbinom1(n_bite_infective, params->max_infectivity);
       for (int i = 0; i < mosq_query_infection; ++i) {
         
         // choose host at random from infectives
-        int rnd1 = sample2(0, host_infective_index[k].size()-1);
+        int rnd1 = sample2(0, host_infective_index[k].size() - 1);
         int this_host = host_infective_index[k][rnd1];
         
         // get infectivity and draw whether infection takes hold in mosquito
@@ -322,7 +338,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
       Sv[k] += death_Iv;
       Iv[k] -= death_Iv;
       for (int i = 0; i < death_Iv; ++i) {
-        int rnd1 = sample2(0, Iv[k]-1);
+        int rnd1 = sample2(0, Iv[k] - 1);
         quick_erase(Iv_pop[k], rnd1);
       }
       
@@ -351,7 +367,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
     
     
     //-------- STORE RESULTS --------
-    
+    /*
     // update counts of each host status in each deme
     update_host_counts(t);
     
@@ -381,23 +397,25 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
     
     // sample inoc IDs
     if (params->obtain_samples) {
-      while (params->ss_time[index_obtain_samples] == t+1) {
+      while (params->ss_time[index_survey] == t+1) {
         
         // get sampling parameters
-        int this_deme = params->ss_deme[index_obtain_samples];
-        int this_n = params->ss_n[index_obtain_samples];
-        Diagnosis this_diagnosis = params->ss_diagnosis[index_obtain_samples];
+        int this_deme = params->ss_deme[index_survey];
+        int this_n = params->ss_n[index_survey];
+        Diagnosis this_diagnosis = params->ss_diagnosis[index_survey];
         
         // obtain samples
         get_sample_details(t, this_deme, this_n, this_diagnosis);
         
         // increment index
-        index_obtain_samples++;
+        index_survey++;
       }
     }
-    
+    */
     // line break at end of this time step
-    transmission_record << "\n";
+    if (params->save_transmission_record) {
+      transmission_record << "\n";
+    }
     
   }  // end loop through daily time steps
   
@@ -426,12 +444,12 @@ void Dispatcher::update_host_counts(int t) {
   fill(Ch_detectable_microscopy.begin(), Ch_detectable_microscopy.end(), 0.0);
   fill(Ah_detectable_PCR.begin(), Ah_detectable_PCR.end(), 0.0);
   fill(Ch_detectable_PCR.begin(), Ch_detectable_PCR.end(), 0.0);
-  fill(n_inoc.begin(),n_inoc.end(), 0.0);
+  //fill(n_inoc.begin(),n_inoc.end(), 0.0);
   
   // loop through all hosts, update counts in given deme
   for (unsigned int i = 0; i < host_pop.size(); ++i) {
     int this_deme = host_pop[i].deme;
-    n_inoc[this_deme] += host_pop[i].get_n_active_inoc();
+    //n_inoc[this_deme] += host_pop[i].get_n_active_inoc();
     
     switch(host_pop[i].get_host_status()) {
     case Host_Sh:
@@ -458,9 +476,12 @@ void Dispatcher::update_host_counts(int t) {
     }
   }
   
-  // get total H
+  // check total H consistent
   for (int k = 0; k < params->n_demes; ++k) {
-    H[k] = Sh[k] + Eh[k] + Ah[k] + Ch[k] + Ph[k];
+    int H_manual = Sh[k] + Eh[k] + Ah[k] + Ch[k] + Ph[k];
+    if (H[k] != H_manual) {
+      Rcpp::stop("H[k] not consistent with sum of individual elements");
+    }
   }
   
 }
@@ -550,7 +571,7 @@ void Dispatcher::get_sample_details(int t, int deme, int n, Diagnosis diag) {
     }
     
     // push to sample_details
-    sample_details.push_back(this_details);
+    //sample_details.push_back(this_details);
     
   }  // end i loop
   
@@ -559,7 +580,7 @@ void Dispatcher::get_sample_details(int t, int deme, int n, Diagnosis diag) {
 //------------------------------------------------
 // get age distribution matrix and store in x
 void Dispatcher::get_age_distribution(int t_index) {
-  
+  /*
   // get current time
   int t = params->output_age_times[t_index];
   
@@ -610,9 +631,7 @@ void Dispatcher::get_age_distribution(int t_index) {
     double  detectable_PCR_c = host_pop[i].get_detectability_PCR_chronic(t);
     age_distributions[t_index][this_deme][this_age][10] += detectable_PCR_a/double(H[this_deme])  ;
     age_distributions[t_index][this_deme][this_age][11] += detectable_PCR_c/double(H[this_deme])  ;
-
-
-
+    
   }  // end loop through hosts
-  
+  */
 }

@@ -17,7 +17,7 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List 
   // start timer
   chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
   
-  // define parameters object and load values
+  // define parameters object and load values from arguments
   Parameters params;
   params.load_params(args);
   
@@ -30,9 +30,10 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List 
   // end timer
   chrono_timer(t1);
   
-  return Rcpp::List::create(Rcpp::Named("daily_values") = dispatcher.daily_values,
-                            Rcpp::Named("age_distributions") = dispatcher.age_distributions,
-                            Rcpp::Named("sample_details") = dispatcher.sample_details);
+  return Rcpp::List::create(Rcpp::Named("daily_values") = dispatcher.daily_values);
+  //return Rcpp::List::create(Rcpp::Named("daily_values") = dispatcher.daily_values,
+  //                          Rcpp::Named("age_distributions") = dispatcher.age_distributions,
+  //                          Rcpp::Named("sample_details") = dispatcher.sample_details);
 }
 #endif
 
