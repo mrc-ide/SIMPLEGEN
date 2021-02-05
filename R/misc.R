@@ -52,7 +52,7 @@ interval_intersect <- function(x, y) {
 #-----------------------------
 #' @title Retrieve prevalence
 #' 
-#' @Description Function to add detection layer to estimated prevalence
+#' @description Function to add detection layer to estimated prevalence
 #'
 #' @param data Model output from SIMPLEGEN sim_epi() function epi_output$daily_values
 #' @param case_detection Method of case detection, "Active" or "Passive"

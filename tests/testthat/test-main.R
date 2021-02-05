@@ -4,7 +4,7 @@ test_that("sampling strategy fails with bad input", {
   
   # create project and load epi parameters
   p <- simplegen_project() %>%
-    define_epi_params()
+    define_epi_model_parameters()
   
   # define bad strategies
   df_sample <- data.frame(time = c(100, 10),
@@ -26,7 +26,7 @@ test_that("default epi model fails with bad input", {
   expect_error(sim_epi(p))
   
   # load epi parameters
-  p <- define_epi_params(p)
+  p <- define_epi_model_parameters(p)
   
   # run model with bad input
   expect_error(sim_epi(p, max_time = 100, output_age_times = c(0,100)))
@@ -59,7 +59,7 @@ test_that("default epi model runs and produces correct output", {
   expect_equal(names(p), expected_names)
   
   # load default epi parameters
-  p <- define_epi_params(p)
+  p <- define_epi_model_parameters(p)
   expect_equal(names(p), expected_names)
   
   # run model with minimal output

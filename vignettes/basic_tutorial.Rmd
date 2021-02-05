@@ -26,13 +26,13 @@ This tutorial goes through the basic process of creating a SIMPLEGEN project and
 
 ### Running a basic simulation
 
-SIMPLEGEN works with projects, which are essentially just lists that hold all inputs and outputs in a single convenient place. We start by creating a new project and specifying the parameters of the epidemiological model - see `?define_epi_params` for a complete list of model parameters and default values.
+SIMPLEGEN works with projects, which are essentially just lists that hold all inputs and outputs in a single convenient place. We start by creating a new project and specifying the parameters of the epidemiological model - see `?define_epi_model_parameters` for a complete list of model parameters and default values.
 
 ```{r}
 myproj <- simplegen_project()
-myproj <- define_epi_params(myproj,
-                            H = 1e3,
-                            M = 1e4)
+myproj <- define_epi_model_parameters(myproj,
+                                      H = 1e3,
+                                      M = 1e4)
 ```
 
 Alternatively, if you are familiar with the pipe operator `%>%` from the `dplyr` package then you can use this to chain together multiple commands:
@@ -40,7 +40,7 @@ Alternatively, if you are familiar with the pipe operator `%>%` from the `dplyr`
 ```{r eval=FALSE}
 library(dplyr)
 myproj <- simplegen_project() %>%
-  define_epi_params()
+  define_epi_model_parameters()
 ```
 
 Taking a quick look at our project we will see a summary of the current setup:
@@ -107,11 +107,11 @@ m <- 0.01
 mig_mat <- matrix(m / n_demes, n_demes, n_demes) + diag(1 - m, n_demes)
 
 # load new paramters into the model
-myproj <- define_epi_params(myproj,
-                            H = H,
-                            seed_infections = seed_infections,
-                            M = M,
-                            mig_mat = mig_mat)
+myproj <- define_epi_model_parameters(myproj,
+                                      H = H,
+                                      seed_infections = seed_infections,
+                                      M = M,
+                                      mig_mat = mig_mat)
 ```
 
 We then run the simulation as normal:
