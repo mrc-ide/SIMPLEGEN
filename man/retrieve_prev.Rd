@@ -30,5 +30,5 @@ retrieve_prev(
 returns named vector :  c("annual_EIR", "prevalence_true", "prevalence_detected")
 }
 \description{
-Retrieve prevalence
+Function to add detection layer to estimated prevalence
 }

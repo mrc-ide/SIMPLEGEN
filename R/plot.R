@@ -24,7 +24,7 @@ set_col_alpha <- function(col, alpha) {
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
 #' @param name the name of the distribution to be plotted, as it is found within
-#'   the \code{project$epi_parameters}
+#'   the \code{project$epi_model_parameters}
 #'
 #' @importFrom stats dbeta
 #' @export
@@ -40,7 +40,7 @@ plot_epi_distribution <- function(project, name = "duration_acute") {
                   "infectivity_chronic")
   
   # check inputs
-  assert_custom_class(project, "simplegen_project")
+  assert_class(project, "simplegen_project")
   assert_in(name, c(duration_dist, transition_prob, daily_prob))
   
   # switch between plotting functions for durations vs. transition probabilities
@@ -64,12 +64,11 @@ plot_epi_distribution_duration <- function(project, name, normalise = FALSE) {
   # required to remove notes
   x <- NULL
   
-  # standardise parameters (e.g. normalise distributions) and perform checks
-  params_processed <- process_epi_params(project$epi_parameters)
-  check_epi_params(params_processed)
+  # check epi model parameters
+  check_epi_model_params(project)
   
   # make plotting dataframe
-  y <- params_processed[[name]]
+  y <- project$epi_model_parameters[[name]]
   plot_df <- do.call(rbind, mapply(function(i) {
     ret <- data.frame(x = seq_along(y[[i]]), y = y[[i]], rep = i)
     if (normalise) {
@@ -104,8 +103,11 @@ plot_epi_distribution_transition <- function(project, name) {
   # required to remove notes
   x <- NULL
   
+  # check epi model parameters
+  check_epi_model_params(project)
+  
   # make plotting dataframe
-  y <- project$epi_parameters[[name]]
+  y <- project$epi_model_parameters[[name]]
   plot_df <- data.frame(x = seq_along(y), y = y)
   
   # produce plot
@@ -138,14 +140,14 @@ plot_epi_distribution_transition <- function(project, name) {
 plot_treatment_seeking <- function(project) {
   
   # check inputs
-  assert_custom_class(project, "simplegen_project")
+  assert_class(project, "simplegen_project")
   
-  # check epi parameters
-  check_epi_params(project$epi_parameters)
+  # check epi model parameters
+  check_epi_model_params(project)
   
   # extract treatment seeking parameters
-  mu <- project$epi_parameters$treatment_seeking_mean
-  sigma <- project$epi_parameters$treatment_seeking_sd
+  mu <- project$epi_model_parameters$treatment_seeking_mean
+  sigma <- project$epi_model_parameters$treatment_seeking_sd
   alpha <- mu^2*(1 - mu)/sigma^2 - mu
   beta <- mu*(1 - mu)^2/sigma^2 - (1 - mu)
   
@@ -171,61 +173,70 @@ plot_treatment_seeking <- function(project) {
 }
 
 #------------------------------------------------
-#' @title Plot daily counts of each host state
+#' @title Plot daily prevalence
 #'
-#' @description Plot the daily value in each state from transmission model
-#'   output. The actual states plotted are defined by the user, and default to
-#'   the main human host states.
+#' @description Plot the daily prevalence in a series of defined model states.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
-#' @param deme which deme to plot.
-#' @param states which states to plot. Can be any subset of the column headings
-#'   in daily counts.
+#' @param state,diagnostic,age_min,age_max,inoculations which rows of daily output to subset to.
 #'
 #' @importFrom grDevices grey
 #' @import tidyr
 #' @export
 
-plot_daily_states <- function(project, deme = 1, states = c("S", "E", "A", "C", "P")) {
+plot_daily_prevalence <- function(project,
+                                  state = c("S", "E", "A", "C", "P"),
+                                  diagnostic = "true",
+                                  age_min = 0,
+                                  age_max = 100,
+                                  inoculations = -1) {
   
   # needed to avoid error "no visible global variable"
-  state <- count <- NULL
+  #state <- count <- NULL
   
   # check inputs
-  assert_custom_class(project, "simplegen_project")
-  assert_dataframe(project$epi_output$daily_values)
-  assert_in(deme, project$epi_output$daily_values$deme)
-  assert_in(states, names(project$epi_output$daily_values))
+  assert_class(project, "simplegen_project")
+  assert_in(state, c("S", "E", "A", "C", "P"))
   
-  # subset to desired rows and columns
-  df_wide <- project$epi_output$daily_values[, c("time", "deme", states)]
-  df_wide <- df_wide[df_wide$deme == deme,]
+  # check that daily output exists
+  assert_non_null(project$epi_output$daily)
   
-  # get to long format
-  df_long <- df_wide
-  df_long <- tidyr::gather(df_wide, state, count, states, factor_key = TRUE)
+  # subset to prevalence in specified states
+  df_plot <- project$epi_output$daily
+  df_plot <- df_plot[(df_plot$measure == "prevalence") &
+                       (df_plot$state %in% state) &
+                       (df_plot$diagnostic == diagnostic) &
+                       (df_plot$age_min == age_min) &
+                       (df_plot$age_max == age_max) &
+                       (df_plot$inoculations == inoculations),]
+  
+  # error if nothing to plot
+  if (nrow(df_plot) == 0) {
+    stop("no daily prevalence values matching this combination")
+  }
   
   # choose x-axis scale
-  max_time <- max(df_wide$time)
+  max_time <- max(df_plot$time)
   if (max_time <= 30) {
-    x_breaks <- seq(0, max(df_wide$time))
+    x_breaks <- seq(0, max(df_plot$time))
     x_labels <-seq_along(x_breaks) - 1
     x_lab <- "time (days)"
   } else if (max_time <= 365) {
-    x_breaks <- seq(0, max(df_wide$time), 365/12)
+    x_breaks <- seq(0, max(df_plot$time), 365/12)
     x_labels <-seq_along(x_breaks) - 1
     x_lab <- "time (months)"
   } else {
-    x_breaks <- seq(0, max(df_wide$time), 365)
+    x_breaks <- seq(0, max(df_plot$time), 365)
     x_labels <-seq_along(x_breaks) - 1
     x_lab <- "time (years)"
   }
   
   # produce plot
-  ggplot2::ggplot(df_long) + ggplot2::theme_bw() +
-    ggplot2::geom_line(ggplot2::aes_(x = ~time, y = ~count, color = ~state)) +
-    ggplot2::scale_x_continuous(x_lab, breaks = x_breaks, labels = x_labels)
+  ggplot2::ggplot(df_plot) + ggplot2::theme_bw() +
+    ggplot2::geom_line(ggplot2::aes_(x = ~time, y = ~value, color = ~state)) +
+    ggplot2::scale_x_continuous(x_lab, breaks = x_breaks, labels = x_labels) +
+    ggplot2::facet_wrap(~deme)
   
 }
 

@@ -8,7 +8,7 @@ using namespace std;
 void Parameters::load_params(Rcpp::List args) {
   
   // load all parameter values
-  load_epi_params(args);
+  load_model_params(args);
   load_deme_params(args);
   load_migration_params(args);
   load_demog_params(args);
@@ -18,8 +18,8 @@ void Parameters::load_params(Rcpp::List args) {
 }
 
 //------------------------------------------------
-// load epi parameter values
-void Parameters::load_epi_params(Rcpp::List args) {
+// load epi model parameter values
+void Parameters::load_model_params(Rcpp::List args) {
   
   // scalar epi parameters
   a = rcpp_to_double(args["a"]);
@@ -121,43 +121,142 @@ void Parameters::load_demog_params(Rcpp::List args) {
 //------------------------------------------------
 // load sampling strategy parameter values
 void Parameters::load_sampling_params(Rcpp::List args) {
+  load_sampling_params_daily(args);
+  load_sampling_params_sweep(args);
+}
+
+//------------------------------------------------
+// load daily sampling strategy parameter values
+void Parameters::load_sampling_params_daily(Rcpp::List args) {
   
-  // whether samples are being obtained
-  obtain_samples = rcpp_to_bool(args["obtain_samples"]);
-  
-  // if so, load other parameters
-  if (obtain_samples) {
-    ss_time = rcpp_to_vector_int(args["ss_time"]);
-    ss_deme = rcpp_to_vector_int(args["ss_deme"]);
-    int n_row = int(ss_time.size());
-    
-    vector<string> ss_case_detection_string = rcpp_to_vector_string(args["ss_case_detection"]);
-    ss_case_detection = vector<Case_detection>(n_row);
-    for (unsigned int i = 0; i < ss_case_detection_string.size(); ++i) {
-      if (ss_case_detection_string[i] == "active") {
-        ss_case_detection[i] = active;
-      } else if (ss_case_detection_string[i] == "passive") {
-        ss_case_detection[i] = passive;
-      } else {
-        Rcpp::stop("error in Parameters::load_sampling_params(): case detection method not recognised");
-      }
-    }
-    
-    vector<string> ss_diagnosis_string = rcpp_to_vector_string(args["ss_diagnosis"]);
-    ss_diagnosis = vector<Diagnosis>(n_row);
-    for (unsigned int i = 0; i < ss_diagnosis_string.size(); ++i) {
-      if (ss_diagnosis_string[i] == "microscopy") {
-        ss_diagnosis[i] = microscopy;
-      } else if (ss_diagnosis_string[i] == "PCR") {
-        ss_diagnosis[i] = PCR;
-      } else {
-        Rcpp::stop("error in Parameters::load_sampling_params(): diagnosis method not recognised");
-      }
-    }
-    
-    ss_n = rcpp_to_vector_int(args["ss_n"]);
-    
+  // return if no daily outputs
+  any_daily_outputs = args["any_daily_outputs"];
+  if (!any_daily_outputs) {
+    n_daily_outputs = 0;
+    return;
   }
+  
+  // extract dataframe
+  Rcpp::List daily_df = args["daily"];
+  
+  // extract columns into vectors
+  daily_deme = Rcpp::as<vector<int>>(daily_df["deme"]);
+  n_daily_outputs = daily_deme.size();
+  
+  vector<int> daily_measure_int = Rcpp::as<vector<int>>(daily_df["measure"]);
+  daily_measure = std::vector<Measure>(daily_measure_int.size());
+  for (unsigned int i = 0; i < daily_measure_int.size(); ++i) {
+    daily_measure[i] = static_cast<Measure>(daily_measure_int[i]);
+  }
+  
+  vector<int> daily_state_int = Rcpp::as<vector<int>>(daily_df["state"]);
+  daily_state = std::vector<Model_state>(daily_state_int.size());
+  for (unsigned int i = 0; i < daily_state_int.size(); ++i) {
+    daily_state[i] = static_cast<Model_state>(daily_state_int[i]);
+  }
+  
+  vector<int> daily_diagnostic_int = Rcpp::as<vector<int>>(daily_df["diagnostic"]);
+  daily_diagnostic = std::vector<Diagnostic>(daily_diagnostic_int.size());
+  for (unsigned int i = 0; i < daily_diagnostic_int.size(); ++i) {
+    daily_diagnostic[i] = static_cast<Diagnostic>(daily_diagnostic_int[i]);
+  }
+  
+  daily_age_min = Rcpp::as<vector<int>>(daily_df["age_min"]);
+  daily_age_max = Rcpp::as<vector<int>>(daily_df["age_max"]);
+  daily_inoculations = Rcpp::as<vector<int>>(daily_df["inoculations"]);
+  
+  // create a map to assist in working out if a host is required to produce
+  // daily output. The key to the map is a deme-&-age combination (1-year age
+  // groups). The value associated with this key is a list of all output indices
+  // that apply to this group.
+  //
+  // For example, if output field 2 needs to be the prevalence in 0-5 year olds
+  // in deme 1, then the map at key {1,0} and {1,1} etc. up to {1,5} will all
+  // contain the value 2 (the output index), along with any other output indices
+  // that apply to this group.
+  //
+  // a simpler vector object also exists just for checking if a deme is required
+  // in any outputs. This avoids looping through hosts in demes that are not
+  // required in any output.
+  
+  daily_flag_deme = vector<bool>(n_demes, false);
+  for (int i = 0; i < n_daily_outputs; i++) {
+    if (daily_deme[i] == -1) {
+      for (int k = 0; k < n_demes; ++k) {
+        daily_flag_deme[k] = true;
+        for (int j = daily_age_min[i]; j < (daily_age_max[i] + 1); ++j) {
+          daily_map[make_pair(k, j)].push_back(i);
+        }
+      }
+    } else {
+      int this_deme = daily_deme[i];
+      daily_flag_deme[this_deme] = true;
+      for (int j = daily_age_min[i]; j < (daily_age_max[i] + 1); ++j) {
+        daily_map[make_pair(this_deme, j)].push_back(i);
+      }
+    }
+  }
+  
+  /*
+  // uncomment this block of code to print out the full daily map
+  print("DAILY MAP:");
+  for (auto it = daily_map.cbegin(); it != daily_map.cend(); ++it) {
+    pair<int, int> map_key = it->first;
+    cout << "deme" << map_key.first << " age" << map_key.second << ": ";
+    for (int i = 0; i < it->second.size(); ++i) {
+      cout << it->second[i] << " ";
+    }
+    cout << "\n";
+  }
+  print("DAILY DEME MAP:");
+  print_vector(daily_flag_deme);
+  Rcpp::stop("foobar");
+  */
+}
+
+//------------------------------------------------
+// load population sweep sampling strategy parameter values
+void Parameters::load_sampling_params_sweep(Rcpp::List args) {
+  
+  // return if no sweep outputs
+  any_sweep_outputs = args["any_sweep_outputs"];
+  if (!any_sweep_outputs) {
+    n_sweep_outputs = 0;
+    return;
+  }
+  
+  // extract dataframe
+  Rcpp::List sweep_df = args["sweeps"];
+  
+  // extract columns into vectors
+  sweep_time = Rcpp::as<vector<int>>(sweep_df["time"]);
+  n_sweep_outputs = sweep_time.size();
+  
+  sweep_time_ordered = Rcpp::as<vector<int>>(args["sweep_time_ordered"]);;
+  
+  sweep_deme = Rcpp::as<vector<int>>(sweep_df["deme"]);
+  
+  vector<int> sweep_measure_int = Rcpp::as<vector<int>>(sweep_df["measure"]);
+  sweep_measure = std::vector<Measure>(sweep_measure_int.size());
+  for (unsigned int i = 0; i < sweep_measure_int.size(); ++i) {
+    sweep_measure[i] = static_cast<Measure>(sweep_measure_int[i]);
+  }
+  
+  vector<int> sweep_state_int = Rcpp::as<vector<int>>(sweep_df["state"]);
+  sweep_state = std::vector<Model_state>(sweep_state_int.size());
+  for (unsigned int i = 0; i < sweep_state_int.size(); ++i) {
+    sweep_state[i] = static_cast<Model_state>(sweep_state_int[i]);
+  }
+  
+  vector<int> sweep_diagnostic_int = Rcpp::as<vector<int>>(sweep_df["diagnostic"]);
+  sweep_diagnostic = std::vector<Diagnostic>(sweep_diagnostic_int.size());
+  for (unsigned int i = 0; i < sweep_diagnostic_int.size(); ++i) {
+    sweep_diagnostic[i] = static_cast<Diagnostic>(sweep_diagnostic_int[i]);
+  }
+  
+  sweep_age_min = Rcpp::as<vector<int>>(sweep_df["age_min"]);
+  sweep_age_max = Rcpp::as<vector<int>>(sweep_df["age_max"]);
+  sweep_inoculations = Rcpp::as<vector<int>>(sweep_df["inoculations"]);
   
 }
 
@@ -167,12 +266,9 @@ void Parameters::load_run_params(Rcpp::List args) {
   
   // load values
   max_time = rcpp_to_int(args["max_time"]);
+  output_format = rcpp_to_int(args["output_format"]);
   save_transmission_record = rcpp_to_bool(args["save_transmission_record"]);
   transmission_record_location = rcpp_to_string(args["transmission_record_location"]);
-  output_daily_counts = rcpp_to_bool(args["output_daily_counts"]);
-  output_age_distributions = rcpp_to_bool(args["output_age_distributions"]);
-  output_age_times = rcpp_to_vector_int(args["output_age_times"]);
-  n_output_age_times = int(output_age_times.size());
   silent = rcpp_to_bool(args["silent"]);
   pb_markdown = rcpp_to_bool(args["pb_markdown"]);
   
@@ -243,13 +339,8 @@ void Parameters::summary() {
   print("max_time:", max_time);
   print("save_transmission_record:", save_transmission_record);
   print("transmission_record_location:", transmission_record_location);
-  print("output_daily_counts:", output_daily_counts);
-  print("output_age_distributions:", output_age_distributions);
   print("pb_markdown:", pb_markdown);
   print("silent:", silent);
   
-  // print run vectors
-  print("output_age_times:");
-  print_vector(output_age_times);
 }
 

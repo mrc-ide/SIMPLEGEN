@@ -11,7 +11,7 @@ plot_epi_distribution(project, name = "duration_acute")
 \code{simplegen_project()} function.}
 
 \item{name}{the name of the distribution to be plotted, as it is found within
-the \code{project$epi_parameters}}
+the \code{project$epi_model_parameters}}
 }
 \description{
 Many distributions within the inbuilt SIMPLEGEN transmission

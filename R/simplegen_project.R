@@ -11,10 +11,9 @@
 simplegen_project <- function() {
   
   # create empty project
-  project <- list(epi_parameters = NULL,
-                  sampling_strategy = NULL,
+  project <- list(epi_model_parameters = NULL,
+                  epi_sampling_parameters = NULL,
                   epi_output = NULL,
-                  sample_output = NULL,
                   genetic_parameters = NULL,
                   relatedness = NULL,
                   true_genotypes = NULL,
@@ -52,37 +51,37 @@ summary.simplegen_project <- function(object, ...) {
     invisible(object)
   }
   
-  # print epi parameters
-  if (!is.null(p$epi_parameters)) {
+  # print epi model parameters
+  if (!is.null(p$epi_model_parameters)) {
     message("Epidemiological model:")
-    n_demes <- length(p$epi_parameters$H)
+    n_demes <- length(p$epi_model_parameters$H)
     message(sprintf("  demes: %s", n_demes))
-    message(sprintf("  H:\t %s", paste(p$epi_parameters$H, collapse = ", ")))
-    message(sprintf("  M:\t %s", paste(p$epi_parameters$M, collapse = ", ")))
-    message(sprintf("  seed infections: %s", paste(p$epi_parameters$seed_infections, collapse = ", ")))
+    message(sprintf("  H:\t %s", paste(p$epi_model_parameters$H, collapse = ", ")))
+    message(sprintf("  M:\t %s", paste(p$epi_model_parameters$M, collapse = ", ")))
+    message(sprintf("  seed infections: %s", paste(p$epi_model_parameters$seed_infections, collapse = ", ")))
   }
   
-  # print sampling strategy
-  if (!is.null(p$sampling_strategy)) {
-    message("Sampling strategy:")
-    n_time <- unique(p$sampling_strategy$time)
-    n_samp_time <- mapply(sum, split(p$sampling_strategy$n, f = p$sampling_strategy$time))
-    if (length(n_time) <= 5) {
-      message(sprintf("  time: %s", paste(n_time, collapse = ", ")))
-      message(sprintf("  n: %s", paste(n_samp_time, collapse = ", ")))
-    } else {
-      message("  time: (more than 5)")
-      message("  n: (more than 5)")
-    }
-  }
+  # print epi sampling parameters
+  #if (!is.null(p$epi_sampling_parameters)) {
+  #  message("Sampling strategy:")
+  #  n_time <- unique(p$epi_sampling_parameters$time)
+  #  n_samp_time <- mapply(sum, split(p$epi_sampling_parameters$n, f = p$epi_sampling_parameters$time))
+  #  if (length(n_time) <= 5) {
+  #    message(sprintf("  time: %s", paste(n_time, collapse = ", ")))
+  #    message(sprintf("  n: %s", paste(n_samp_time, collapse = ", ")))
+  #  } else {
+  #    message("  time: (more than 5)")
+  #    message("  n: (more than 5)")
+  #  }
+  #}
   
-  # print sample output
-  if (!is.null(p$sample_output)) {
-    message("Sample output:")
-    N <- nrow(p$sample_output)
-    n_pos <- sum(p$sample_output$positive)
-    message(sprintf("  prevalence: %s/%s (%s%%)", n_pos, N, signif(n_pos/N*100, digits = 2)))
-  }
+  # print summary of epi output
+  #if (!is.null(p$sample_output)) {
+  #  message("Sample output:")
+  #  N <- nrow(p$sample_output)
+  #  n_pos <- sum(p$sample_output$positive)
+  #  message(sprintf("  prevalence: %s/%s (%s%%)", n_pos, N, signif(n_pos/N*100, digits = 2)))
+  #}
   
   # print genetic parameters
   if (!is.null(p$genetic_parameters)) {
