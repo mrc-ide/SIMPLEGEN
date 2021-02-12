@@ -371,18 +371,9 @@ get_demography <- function(life_table) {
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
-#' @param df_sample a dataframe containing all of the following columns:
-#'   \itemize{
-#'     \item time: the time (in days) at which samples are taken.
-#'     \item deme: the deme from which samples are taken.
-#'     \item case_detection: the method by which cases are identified. Either
-#'     "active" or "passive".
-#'     \item diagnosis: the method by which infected individuals are diagnosed.
-#'     Either "microscopy" or "PCR".
-#'     \item n: the number of individuals screened. Note that the actual number
-#'     of infected individuals (and hence the number of genotypes) may be lower
-#'     than this number.
-#'   }
+#' @param daily a dataframe of daily outputs.
+#' @param sweeps a dataframe of outputs at specific time points.
+#' @param surveys a dataframe specifying random surveys.
 #'
 #' @export
 
@@ -443,6 +434,9 @@ check_epi_sampling_params <- function(project) {
 #' @noRd
 check_epi_sampling_params_daily <- function(x) {
   
+  # avoid "no visible binding" warning
+  measure <- NULL
+  
   # return if null
   if (is.null(x)) {
     return()
@@ -501,6 +495,9 @@ check_epi_sampling_params_daily <- function(x) {
 # perform checks on population sweep sampling parameters
 #' @noRd
 check_epi_sampling_params_sweeps <- function(x) {
+  
+  # avoid "no visible binding" warning
+  time <- NULL
   
   # return if null
   if (is.null(x)) {
@@ -562,6 +559,9 @@ sim_epi <- function(project,
                     pb_markdown = FALSE,
                     silent = FALSE) {
   
+  
+  # avoid "no visible binding" warning
+  numer <- denom <- NULL
   
   # ---------- check inputs ----------
   
@@ -750,6 +750,9 @@ prune_transmission_record <- function(project,
   assert_single_logical(overwrite_pruned_record)
   assert_single_logical(silent)
   
+  # check that project contains survey output
+  assert_non_null(project$epi_output$surveys, message = "no survey output detected")
+  
   # check transmission record exists
   if (!file.exists(transmission_record_location)) {
     stop(sprintf("could not find file at %s", transmission_record_location))
@@ -763,9 +766,9 @@ prune_transmission_record <- function(project,
   }
   
   # subset sample details to a vector of inoc_IDs
-  inoc_IDs <- unlist(project$sample_output$inoc_IDs)
+  inoc_IDs <- unlist(project$epi_output$surveys$inoc_IDs)
   if (length(inoc_IDs) == 0) {
-    stop("no malaria positive hosts in sample")
+    stop("no malaria positive hosts in survey")
   }
   
   # define argument list

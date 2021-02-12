@@ -107,7 +107,7 @@ All flexible distributions can be visualised using the function `plot_epi_distri
 
 ```{r, fig.width=5, fig.height=3}
 simplegen_project() %>%
-  define_epi_params() %>%
+  define_epi_model_parameters() %>%
   plot_epi_distribution(name = "duration_acute")
 ```
 
@@ -115,8 +115,8 @@ In the case of list inputs, all distributions are plotted together:
 
 ```{r, fig.width=8, fig.height=3}
 simplegen_project() %>%
-  define_epi_params(duration_acute = list(dgeom(0:30, 0.2),
-                                          dgeom(0:30, 0.1))) %>%
+  define_epi_model_parameters(duration_acute = list(dgeom(0:30, 0.2),
+                                                    dgeom(0:30, 0.1))) %>%
   plot_epi_distribution(name = "duration_acute")
 ```
 
@@ -131,7 +131,8 @@ For example, imagine we want to model a population that has good access to healt
 
 ```{r, fig.width=5, fig.height=3}
 simplegen_project() %>%
-  define_epi_params(treatment_seeking_mean = 0.7, treatment_seeking_sd = 0.2) %>%
+  define_epi_model_parameters(treatment_seeking_mean = 0.7,
+                              treatment_seeking_sd = 0.2) %>%
   plot_treatment_seeking()
 ```
 

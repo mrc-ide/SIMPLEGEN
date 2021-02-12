@@ -15,18 +15,11 @@ define_epi_sampling_parameters(
 \item{project}{a SIMPLEGEN project, as produced by the
 \code{simplegen_project()} function.}
 
-\item{df_sample}{a dataframe containing all of the following columns:
-\itemize{
-  \item time: the time (in days) at which samples are taken.
-  \item deme: the deme from which samples are taken.
-  \item case_detection: the method by which cases are identified. Either
-  "active" or "passive".
-  \item diagnosis: the method by which infected individuals are diagnosed.
-  Either "microscopy" or "PCR".
-  \item n: the number of individuals screened. Note that the actual number
-  of infected individuals (and hence the number of genotypes) may be lower
-  than this number.
-}}
+\item{daily}{a dataframe of daily outputs.}
+
+\item{sweeps}{a dataframe of outputs at specific time points.}
+
+\item{surveys}{a dataframe specifying random surveys.}
 }
 \description{
 Loads a dataframe into the SIMPLEGEN project that specifies how

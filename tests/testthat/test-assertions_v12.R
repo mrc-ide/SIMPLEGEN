@@ -645,7 +645,7 @@ test_that("assert_noduplicates working correctly", {
 
 #------------------------------------------------
 test_that("assert_file_exists working correctly", {
-  DESCRIPTION_location <- system.file("DESCRIPTION", package = 'versioncontrol', mustWork = TRUE)
+  DESCRIPTION_location <- system.file("DESCRIPTION", package = 'SIMPLEGEN', mustWork = TRUE)
   expect_true(assert_file_exists(DESCRIPTION_location))
   
   expect_error(assert_file_exists(NULL))
