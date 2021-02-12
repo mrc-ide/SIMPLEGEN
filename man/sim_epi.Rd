@@ -7,12 +7,10 @@
 sim_epi(
   project,
   max_time = 365,
+  output_format = 1,
   save_transmission_record = FALSE,
   transmission_record_location = "",
   overwrite_transmission_record = FALSE,
-  output_daily_counts = TRUE,
-  output_age_distributions = TRUE,
-  output_age_times = max_time,
   pb_markdown = FALSE,
   silent = FALSE
 )
@@ -23,6 +21,13 @@ sim_epi(
 
 \item{max_time}{run simulation for this many days.}
 
+\item{output_format}{several options exist for the output format:
+\itemize{
+  \item 1 (default) = return final values only
+  \item 2 = also return numerator and denominator of prevalence and
+  incidence calculations.
+}}
+
 \item{save_transmission_record}{whether to write the transmission record to
 file.}
 
@@ -32,15 +37,6 @@ record will be written to.}
 \item{overwrite_transmission_record}{if \code{TRUE} the transmission record
 will overwrite any existing file by the same name. \code{FALSE} by default.}
 
-\item{output_daily_counts}{whether to output daily counts of key quantities,
-such as the number of infected hosts and the EIR.}
-
-\item{output_age_distributions}{whether to output complete age distributions
-at certain times.}
-
-\item{output_age_times}{a vector of times at which complete age distributions
-are output.}
-
 \item{pb_markdown}{whether to run progress bars in markdown mode, meaning
 they are only updated when they reach 100% to avoid large amounts of output
 being printed to markdown files.}
@@ -48,9 +44,9 @@ being printed to markdown files.}
 \item{silent}{whether to suppress written messages to the console.}
 }
 \description{
-Simulate from the inbuilt SIMPLEGEN transmission model.
-  Parameters are taken from the \code{epi_model_parameters} slot of the project,
-  and basic outputs are written to the \code{epi_output} slot. If a sampling
-  strategy has been defined then samples will also be obtained and saved in
-  the \code{sample_output} slot (see \code{?define_sampling_strategy()}).
+Simulate from the inbuilt SIMPLEGEN transmission model. Model
+  parameters are taken from the \code{epi_model_parameters} slot of the
+  project, and the sampling strategy is taken from the
+  \code{epi_sampling_parameters} slot. Outputs are written to the
+  \code{epi_output} slot.
 }

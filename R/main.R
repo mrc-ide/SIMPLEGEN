@@ -196,7 +196,7 @@ define_epi_model_parameters <- function(project,
   
   # basic checks on inputs (more thorough checks on parameter values will be
   # carried out later)
-  assert_custom_class(project, "simplegen_project")
+  assert_class(project, "simplegen_project")
   
   # if there are no defined parameters then create all parameters from
   # scratch using default values where not specified by user
@@ -252,7 +252,7 @@ process_epi_model_params <- function(project) {
 check_epi_model_params <- function(project) {
   
   # check project class
-  assert_custom_class(project, "simplegen_project")
+  assert_class(project, "simplegen_project")
   
   # check that epi model parameters exist
   assert_non_null(project$epi_model_parameters, message = "no epi model parameters defined. See ?define_epi_model_parameters")
@@ -388,7 +388,7 @@ get_demography <- function(life_table) {
 
 define_epi_sampling_parameters <- function(project,
                                            daily = NULL,
-                                           age_distributions = NULL,
+                                           sweeps = NULL,
                                            surveys = NULL) {
   
   # NB. This function is written so that only parameters specified by the user
@@ -397,7 +397,7 @@ define_epi_sampling_parameters <- function(project,
   
   # basic checks on inputs (more thorough checks on parameter values will be
   # carried out later)
-  assert_custom_class(project, "simplegen_project")
+  assert_class(project, "simplegen_project")
   
   # if there are no defined parameters then create all parameters from
   # scratch using default values where not specified by user
@@ -425,27 +425,99 @@ define_epi_sampling_parameters <- function(project,
 check_epi_sampling_params <- function(project) {
   
   # check project class
-  assert_custom_class(project, "simplegen_project")
+  assert_class(project, "simplegen_project")
+  
+  # model parameters must be defined before sampling parameters
+  assert_non_null(project$epi_model_parameters, message = "model parameters must be defined before sampling parameters. See ?define_epi_model_parameters")
   
   # check that epi sampling parameters exist
   assert_non_null(project$epi_sampling_parameters, message = "no epi sampling parameters defined. See ?define_epi_sampling_parameters")
   
-  # extract sampling parameters
-  x <- project$epi_sampling_parameters
+  # check individual elements
+  check_epi_sampling_params_daily(project$epi_sampling_parameters$daily)
+  check_epi_sampling_params_sweeps(project$epi_sampling_parameters$sweeps)
+}
+
+#------------------------------------------------
+# perform checks on daily sampling parameters
+#' @noRd
+check_epi_sampling_params_daily <- function(x) {
   
-  # TODO - checks
-  #assert_dataframe(df_sample)
-  #assert_eq(names(df_sample), c("time", "deme", "case_detection", "diagnosis", "n"))
-  #assert_pos_int(df_sample$time, zero_allowed = FALSE)
-  #assert_increasing(df_sample$time)
-  #assert_pos_int(df_sample$deme, zero_allowed = FALSE)
-  #assert_in(df_sample$case_detection, c("active", "passive"))
-  #assert_in(df_sample$diagnosis, c("microscopy", "PCR"))
-  #assert_pos_int(df_sample$n, zero_allowed = FALSE)
+  # return if null
+  if (is.null(x)) {
+    return()
+  }
   
-  # specify formats
-  #df_sample$case_detection <- as.character(df_sample$case_detection)
-  #df_sample$diagnosis <- as.character(df_sample$diagnosis)
+  # check dataframe column names
+  assert_dataframe(x, message = "daily sampling parameters must be a dataframe")
+  col_titles <- c("deme", "measure", "state", "diagnostic", "age_min", "age_max", "inoculations")
+  assert_in(col_titles, names(x), message = sprintf("daily sampling parameters dataframe must contain the following columns: {%s}",
+                                                    paste0(col_titles, collapse = ", ") ))
+  
+  # check deme and measure formats
+  deme_mssg <- "deme must be a positive integer or -1"
+  assert_vector_int(x$deme, message = deme_mssg)
+  assert_greq(x$deme, -1, message = deme_mssg)
+  assert_greq(x$deme[x$deme != -1], 1, message = deme_mssg)
+  
+  x$measure <- as.character(x$measure)
+  measure_levels <- c("count", "prevalence", "incidence", "EIR")
+  assert_in(x$measure, measure_levels, message = sprintf("measure must be one of: {%s}", paste0(measure_levels, collapse = ", ") ))
+  
+  # split into sub-dataframes based on measure, and check state and diagnostic columns
+  if (any(x$measure == "EIR")) {
+    
+    df_EIR <- subset(x, measure == "EIR")
+    
+    # check state and detection columns
+    assert_NA(df_EIR$state, message = "state must be NA when measure is EIR")
+    assert_NA(df_EIR$diagnostic, message = "diagnostic must be NA when measure is EIR")
+    
+  }
+  if (any(x$measure != "EIR")) {
+    
+    df_main = subset(x, measure != "EIR")
+    
+    # check state and diagnostic columns
+    state_levels <- c("S", "E", "A", "C", "P", "H", "Sv", "Ev", "Iv", "M")
+    assert_in(df_main$state, state_levels, message = sprintf("state must be one of {%s}", paste0(state_levels, collapse = ", ")))
+    diagnostic_levels <- c("true", "microscopy", "PCR")
+    assert_in(df_main$diagnostic, diagnostic_levels, message = sprintf("diagnostic must be one of {%s}", paste0(diagnostic_levels, collapse = ", ")))
+    
+  }
+  
+  # check age_min, age_max and inoculations columns
+  assert_pos_int(x$age_min, zero_allowed = TRUE, message = "age_min must be a positive integer or zero")
+  assert_pos_int(x$age_max, zero_allowed = TRUE, message = "age_max must be a positive integer or zero")
+  assert_greq(x$age_max, x$age_min, message = "age_max must be greater than or equal to age_min")
+  
+  inoc_mssg <- "inoculations must be a positive integer or -1 to indicate any number of inoculations"
+  assert_vector_int(x$inoculations, message = inoc_mssg)
+  assert_greq(x$inoculations, -1, message = inoc_mssg)
+  
+}
+
+#------------------------------------------------
+# perform checks on population sweep sampling parameters
+#' @noRd
+check_epi_sampling_params_sweeps <- function(x) {
+  
+  # return if null
+  if (is.null(x)) {
+    return()
+  }
+  
+  # check dataframe column names
+  assert_dataframe(x, message = "sweep sampling parameters must be a dataframe")
+  col_titles <- c("time", "deme", "measure", "state", "diagnostic", "age_min", "age_max", "inoculations")
+  assert_in(col_titles, names(x), message = sprintf("sweep sampling parameters dataframe must contain the following columns: {%s}",
+                                                    paste0(col_titles, collapse = ", ") ))
+  
+  # check time format
+  assert_vector_pos_int(x$time, zero_allowed = FALSE, message = "time must be a positive integer")
+  
+  # remaining columns should have identical format to daily dataframe
+  check_epi_sampling_params_daily(subset(x, select = -time))
   
 }
 
@@ -461,6 +533,12 @@ check_epi_sampling_params <- function(project) {
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
 #' @param max_time run simulation for this many days.
+#' @param output_format several options exist for the output format:
+#'   \itemize{
+#'     \item 1 (default) = return final values only
+#'     \item 2 = also return numerator and denominator of prevalence and
+#'     incidence calculations.
+#'   }
 #' @param save_transmission_record whether to write the transmission record to
 #'   file.
 #' @param transmission_record_location the file path that the transmission
@@ -477,6 +555,7 @@ check_epi_sampling_params <- function(project) {
 
 sim_epi <- function(project,
                     max_time = 365,
+                    output_format = 1,
                     save_transmission_record = FALSE,
                     transmission_record_location = "",
                     overwrite_transmission_record = FALSE,
@@ -486,8 +565,9 @@ sim_epi <- function(project,
   
   # ---------- check inputs ----------
   
-  assert_custom_class(project, "simplegen_project")
+  assert_class(project, "simplegen_project")
   assert_single_pos_int(max_time, zero_allowed = FALSE)
+  assert_in(output_format, c(1,2))
   assert_single_logical(save_transmission_record)
   assert_string(transmission_record_location)
   assert_single_logical(overwrite_transmission_record)
@@ -515,6 +595,7 @@ sim_epi <- function(project,
   # append function arguments
   args <- c(args,
             list(max_time = max_time,
+                 output_format = output_format,
                  save_transmission_record = save_transmission_record,
                  transmission_record_location = transmission_record_location,
                  pb_markdown = pb_markdown,
@@ -528,20 +609,28 @@ sim_epi <- function(project,
   args <- c(args, list(age_death = demog$age_death,
                        age_stable = demog$age_stable))
   
-  # add sampling strategy info
-  #if (is.null(project$sampling_strategy)) {
-  #  args <- c(args, obtain_samples = FALSE)
-  #} else {
-  #  ss <- project$sampling_strategy
-  #  args <- c(args,
-  #            list(obtain_samples = TRUE,
-  #                 ss_time = ss$time,
-  #                 ss_deme = ss$deme - 1,  # NB, subtract 1 to go from R to C++ indexing
-  #                 ss_case_detection = ss$case_detection,
-  #                 ss_diagnosis = ss$diagnosis,
-  #                 ss_n = ss$n))
-  #}
+  # establish which outputs are required
+  args$any_daily_outputs <- !is.null(args$daily)
+  args$any_sweep_outputs <- !is.null(args$sweep)
   
+  # get sampling strategy indices into 0-indexed (C++) format
+  sampling_to_cpp_format <- function(x) {
+    w <- which(x$deme != -1)
+    x$deme[w] <- x$deme[w] - 1
+    x$measure <- match(x$measure, c("count", "prevalence", "incidence", "EIR")) - 1
+    x$state <- match(x$state, c("S", "E", "A", "C", "P", "H", "Sv", "Ev", "Iv", "M")) - 1
+    x$diagnostic <- match(x$diagnostic, c("true", "microscopy", "PCR")) - 1
+    return(x)
+  }
+  if (args$any_daily_outputs) {
+    args$daily <- sampling_to_cpp_format(args$daily)
+  }
+  if (args$any_sweep_outputs) {
+    args$sweeps <- sampling_to_cpp_format(args$sweeps)
+  }
+  
+  # unique times at which sweeps happen
+  args$sweep_time_ordered <- sort(unique(args$sweeps$time))
   
   # functions
   args_functions <- list(update_progress = update_progress)
@@ -553,56 +642,78 @@ sim_epi <- function(project,
   
   # ---------- run simulation ----------
   
-  
   # run efficient C++ function
   output_raw <- indiv_sim_cpp(args, args_functions, args_progress)
   
-  return(output_raw)
+  
   # ---------- process output ----------
   
-  # wrangle daily values into dataframe
-  daily_values <- NULL
-  if (output_daily_counts) {
-    daily_values <- do.call(rbind, mapply(function(i) {
-      ret <- rcpp_to_matrix(output_raw$daily_values[[i]])
-      ret <- as.data.frame(cbind(seq_len(nrow(ret)), i, ret))
-      names(ret) <- c("time", "deme", "H", "S", "E", "A", "C", "P",
-                      "Sv", "Ev", "Iv",
-                      "EIR", "inc_infection", "inc_acute", "inc_chronic",
-                      "A_detectable_microscopy", "C_detectable_microscopy",
-                      "A_detectable_PCR", "C_detectable_PCR","n_inoc")
-      return(ret)
-    }, seq_along(output_raw$daily_values), SIMPLIFY = FALSE))
+  # wrangle daily output
+  daily_output <- NULL
+  daily_sampling <- project$epi_sampling_parameters$daily
+  if (!is.null(daily_sampling)) {
+    
+    # calculate final values from numerator and denominator
+    daily_numer <- unlist(output_raw$daily_numer)
+    daily_denom <- unlist(output_raw$daily_denom)
+    daily_values <- daily_numer / daily_denom
+    
+    # make output dataframe with raw values
+    daily_output <- cbind(time = rep(seq_len(max_time), each = nrow(daily_sampling)),
+                          daily_sampling,
+                          value = daily_values,
+                          numer = daily_numer,
+                          denom = daily_denom,
+                          row.names = NULL)
+    
+    # insert NAs as needed
+    w <- which(!(daily_output$measure %in% c("prevalence", "incidence")))
+    daily_output$value[w] <- daily_output$numer[w]
+    daily_output$numer[w] <- daily_output$denom[w] <- NA
+    
+    # format dataframe
+    if (output_format == 1) {
+      daily_output <- subset(daily_output, select = -c(numer, denom))
+    }
   }
   
-  # wrangle age distributions into dataframe
-  age_distributions <- NULL
-  if (output_age_distributions) {
-    age_distributions <- do.call(rbind, mapply(function(j) {
-      ret <- do.call(rbind, mapply(function(i) {
-        ret <- do.call(rbind, output_raw$age_distributions[[j]][[i]])
-        colnames(ret) <- c("S", "E", "A", "C", "P", "inc_infection", "inc_acute", "inc_chronic","detect_microscopy_acute","detect_microscopy_chronic", "detect_PCR_acute", "detect_PCR_chronic" )
-        data.frame(cbind(deme = i, age = seq_len(nrow(ret)) - 1, ret))
-      }, seq_along(output_raw$age_distributions[[j]]), SIMPLIFY = FALSE))
-      cbind(sample_time = output_age_times[j], ret)
-    }, seq_along(output_raw$age_distributions), SIMPLIFY = FALSE))
+  # wrangle sweep output
+  sweeps_output <- NULL
+  sweeps_sampling <- project$epi_sampling_parameters$sweeps
+  if (!is.null(sweeps_sampling)) {
+    
+    # calculate final values from numerator and denominator
+    sweep_numer <- unlist(output_raw$sweep_numer)
+    sweep_denom <- unlist(output_raw$sweep_denom)
+    sweep_values <- sweep_numer / sweep_denom
+    
+    # make output dataframe with raw values
+    sweeps_output <- cbind(sweeps_sampling,
+                           value = sweep_values,
+                           numer = sweep_numer,
+                           denom = sweep_denom,
+                           row.names = NULL)
+    
+    # insert NAs as needed
+    w <- which(!(sweeps_output$measure %in% c("prevalence", "incidence")))
+    sweeps_output$value[w] <- sweeps_output$numer[w]
+    sweeps_output$numer[w] <- sweeps_output$denom[w] <- NA
+    
+    # format dataframe
+    if (output_format == 1) {
+      sweeps_output <- subset(sweeps_output, select = -c(numer, denom))
+    }
   }
   
-  # wrangle sample details into dataframe
-  sample_output_list <- mapply(function(x) {
-    ret <- data.frame(time = x[1], deme = x[2], host_ID = x[3], positive = x[4])
-    ret$inoc_IDs <- list(x[-(1:4)])
-    return(ret)
-  }, output_raw$sample_details, SIMPLIFY = FALSE)
-  sample_output <- do.call(rbind, sample_output_list)
+  # wrangle surveys output
+  surveys_output <- NULL
   
   # append to project
-  project$epi_output <- list(daily_values = daily_values,
-                             age_distributions = age_distributions)
-  if (!is.null(sample_output)) {
-    project$sample_output <- sample_output
-  }
+  project$epi_output <- list(daily = daily_output,
+                             sweeps = sweeps_output,
+                             surveys = surveys_output)
   
+  # return
   invisible(project)
 }
 
@@ -633,7 +744,7 @@ prune_transmission_record <- function(project,
                                       silent = FALSE) {
   
   # check inputs
-  assert_custom_class(project, "simplegen_project")
+  assert_class(project, "simplegen_project")
   assert_string(transmission_record_location)
   assert_string(pruned_record_location)
   assert_single_logical(overwrite_pruned_record)
@@ -712,7 +823,7 @@ define_genetic_params <- function(project,
   
   # basic checks on inputs (more thorough checks on parameter values will be
   # carried out later)
-  assert_custom_class(project, "simplegen_project")
+  assert_class(project, "simplegen_project")
   
   # if there are no defined genetic parameters then create all parameters from
   # scratch using default values where not specified by user
@@ -781,7 +892,7 @@ sim_relatedness <- function(project,
                             silent = FALSE) {
   
   # check inputs
-  assert_custom_class(project, "simplegen_project")
+  assert_class(project, "simplegen_project")
   assert_string(pruned_record_location)
   assert_neq(pruned_record_location, "", message = "pruned_record_location cannot be empty")
   assert_single_logical(silent)
@@ -857,7 +968,7 @@ get_coalescent_times <- function(project,
   
   
   # check inputs
-  assert_custom_class(project, "simplegen_project")
+  assert_class(project, "simplegen_project")
   assert_vector_int(lineage_IDs)
   assert_length(lineage_IDs, 2)
   assert_single_pos_int(max_reps, zero_allowed = FALSE)

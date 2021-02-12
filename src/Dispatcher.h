@@ -72,20 +72,14 @@ public:
   std::vector<std::vector<Mosquito>> Iv_pop;
   
   // objects for storing results
-  std::vector<std::vector<std::vector<double>>> daily_values;
-  //std::vector<std::vector<std::vector<std::vector<double>>>> age_distributions;
-  //std::vector<std::vector<int>> sample_details;
+  std::vector<std::vector<double>> daily_numer;
+  std::vector<std::vector<double>> daily_denom;
+  std::vector<double> sweep_numer;
+  std::vector<double> sweep_denom;
   
   // misc
-  std::vector<double> EIR;
+  std::vector<double> daily_EIR;
   std::vector<double> prob_infectious_bite;
-  std::vector<double> inc_infection;
-  std::vector<double> inc_acute;
-  std::vector<double> inc_chronic;
-  std::vector<double> detect_microscopy_acute ;
-  std::vector<double> detect_microscopy_chronic ;
-  std::vector<double> detect_PCR_acute;
-  std::vector<double> detect_PCR_chronic;
 
   
   // PUBLIC FUNCTIONS
@@ -96,9 +90,7 @@ public:
   // methods
   void init(Parameters &params);
   void run_simulation(Rcpp::List &args_functions, Rcpp::List &args_progress);
-  void update_host_counts(int t);
-  void update_incidence(int t);
-  void get_sample_details(int t, int deme, int n, Diagnosis diag);
+  void get_sample_details(int t, int deme, int n, Diagnostic diag);
   void get_age_distribution(int t_index);
   
 };

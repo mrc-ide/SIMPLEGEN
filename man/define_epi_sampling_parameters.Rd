@@ -7,7 +7,7 @@
 define_epi_sampling_parameters(
   project,
   daily = NULL,
-  age_distributions = NULL,
+  sweeps = NULL,
   surveys = NULL
 )
 }
