@@ -163,7 +163,15 @@ public:
   int get_age(int t);
   
   // outputs
-  void update_output(Measure measure, Model_state state, Diagnostic diagnostic, int t, double &numer, double &denom);
+  void update_output(Measure measure,
+                     Model_state state,
+                     Diagnostic diagnostic,
+                     int age_min,
+                     int age_max,
+                     int inoculations,
+                     int t,
+                     double &numer,
+                     double &denom);
   
   // diagnostics and checks
   void print_inoc_events();
