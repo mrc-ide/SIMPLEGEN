@@ -116,7 +116,7 @@ bool is_in_vector(TYPE x, const std::vector<TYPE> &v) {
 template<class TYPE>
 std::vector<TYPE> unique(const std::vector<TYPE> &v) {
   std::vector<TYPE> ret;
-  for (unsigned int i = 0; i < v.size(); ++i) {
+  for (int i = 0; i < int(v.size()); ++i) {
     if (find(ret.begin(), ret.end(), v[i]) == ret.end()) {
       ret.push_back(v[i]);
     }
@@ -191,7 +191,7 @@ void print_vector(const TYPE &x) {
 // helper function for printing contents of a matrix
 template<class TYPE>
 void print_matrix(const std::vector<std::vector<TYPE>> &x) {
-  for (unsigned int i = 0; i < x.size(); ++i) {
+  for (int i = 0; i < x.size(); ++i) {
     print_vector(x[i]);
   }
 #ifdef RCPP_ACTIVE
@@ -337,3 +337,11 @@ std::vector<std::vector<double>> file_to_matrix_double(std::string file_path);
 //------------------------------------------------
 // calculate Cholesky decomposition of positive definite matrix sigma
 void cholesky(std::vector<std::vector<double>> &chol, const std::vector<std::vector<double>> &sigma);
+
+//------------------------------------------------
+// given [x,y] coordinates of points, and a series of values x_pred at which to
+// return, calculate cubic spline interpolation between coordinates and save
+// result into y_pred vector. Both x and x_pred must be increasing, and all
+// values in x_pred must be inside (or equal to) x.
+void cubic_spline(std::vector<double> &x, std::vector<double> &y,
+                  std::vector<double> &x_pred, std::vector<double> &y_pred);

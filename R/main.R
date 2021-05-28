@@ -211,43 +211,19 @@ define_epi_model_parameters <- function(project,
   # replace project parameters with user-defined
   project$epi_model_parameters[names(userlist)] <- mapply(eval, userlist, SIMPLIFY = FALSE)
   
+  # perform checks on parameters
+  check_epi_model_params(project)
+  
   # standardise and process parameters
   project <- process_epi_model_params(project)
   
-  # perform checks on final parameters
-  check_epi_model_params(project)
-  
   # return
   invisible(project)
 }
 
 #------------------------------------------------
-# convert epi model parameters to standardised types
-#' @noRd
-process_epi_model_params <- function(project) {
-  
-  # function that forces objects that can be defined as list or vector to list
-  force_list <- function(x) {
-    if (!is.list(x)) {
-      x <- list(x)
-    }
-    return(x)
-  }
-  
-  # force parameters to list
-  name_vec <- c("duration_acute", "duration_chronic",
-                "detectability_microscopy_acute", "detectability_microscopy_chronic",
-                "detectability_PCR_acute", "detectability_PCR_chronic",
-                "time_treatment_acute", "time_treatment_chronic",
-                "infectivity_acute", "infectivity_chronic")
-  project$epi_model_parameters[name_vec] <- mapply(force_list, project$epi_model_parameters[name_vec], SIMPLIFY = FALSE)
-  
-  # return
-  invisible(project)
-}
-
-#------------------------------------------------
-# perform checks on epi model parameters
+# perform checks on epi model parameters. NB.
+# check_epi_model_params() is run before process_epi_model_params()
 #' @noRd
 check_epi_model_params <- function(project) {
   
@@ -260,28 +236,42 @@ check_epi_model_params <- function(project) {
   # extract model parameters
   x <- project$epi_model_parameters
   
-  # perform checks
+  # check basic parameter formats and ranges
   assert_single_bounded(x$a, name = "a")
   assert_single_bounded(x$p, name = "p")
   assert_single_pos(x$mu, name = "mu")
   
+  # check delay parameter formats and ranges
   assert_single_pos_int(x$u, zero_allowed = FALSE, name = "u")
   assert_single_pos_int(x$v, zero_allowed = FALSE, name = "v")
   assert_single_pos_int(x$g, zero_allowed = FALSE, name = "g")
   
-  assert_bounded(x$prob_infection, name = "prob_infection")
-  assert_bounded(x$prob_acute, name = "prob_acute")
-  assert_bounded(x$prob_AC, name = "prob_AC")
+  # check transition probability formats and ranges
+  assert_vector_bounded(x$prob_infection, name = "prob_infection")
+  assert_vector_bounded(x$prob_acute, name = "prob_acute")
+  assert_vector_bounded(x$prob_AC, name = "prob_AC")
   
+  # check duration distribution formats and ranges. NB. these mapply() calls
+  # work irrespective of whether distributions are defined as vectors or lists
+  # over vectors
   mapply(assert_pos, x$duration_acute, name = "duration_acute")
   mapply(assert_pos, x$duration_chronic, name = "duration_chronic")
-  mapply(assert_pos, x$detectability_microscopy_acute, name = "detectability_microscopy_acute")
-  mapply(assert_pos, x$detectability_microscopy_chronic, name = "detectability_microscopy_chronic")
-  mapply(assert_pos, x$detectability_PCR_acute, name = "detectability_PCR_acute")
-  mapply(assert_pos, x$detectability_PCR_chronic, name = "detectability_PCR_chronic")
-  mapply(assert_bounded, x$time_treatment_acute, name = "time_treatment_acute")
-  mapply(assert_bounded, x$time_treatment_chronic, name = "time_treatment_chronic")
+  mapply(assert_pos, x$time_treatment_acute, name = "time_treatment_acute")
+  mapply(assert_pos, x$time_treatment_chronic, name = "time_treatment_chronic")
+  mapply(assert_pos, x$duration_prophylactic, name = "duration_prophylactic")
   
+  # check daily probabilities formats and ranges. NB. these mapply() calls
+  # work irrespective of whether distributions are defined as vectors or lists
+  # over vectors
+  mapply(assert_bounded, x$detectability_microscopy_acute, name = "detectability_microscopy_acute")
+  mapply(assert_bounded, x$detectability_microscopy_chronic, name = "detectability_microscopy_chronic")
+  mapply(assert_bounded, x$detectability_PCR_acute, name = "detectability_PCR_acute")
+  mapply(assert_bounded, x$detectability_PCR_chronic, name = "detectability_PCR_chronic")
+  mapply(assert_bounded, x$infectivity_acute, name = "infectivity_acute")
+  mapply(assert_bounded, x$infectivity_chronic, name = "infectivity_chronic")
+  
+  # check treatment seekeing parameters, including check that mean and standard
+  # deviation are possible given constraints of Beta distribution
   assert_single_bounded(x$treatment_seeking_mean, name = "treatment_seeking_mean")
   assert_single_pos(x$treatment_seeking_sd, zero_allowed = TRUE, name = "treatment_seeking_sd")
   if (x$treatment_seeking_mean > 0 & x$treatment_seeking_mean < 1) {
@@ -292,24 +282,80 @@ check_epi_model_params <- function(project) {
     assert_le(x$treatment_seeking_sd, sd_max, message = error_message)
   }
   
-  assert_pos(x$duration_prophylactic, name = "duration_prophylactic")
-  mapply(assert_bounded, x$infectivity_acute, name = "infectivity_acute")
-  mapply(assert_bounded, x$infectivity_chronic, name = "infectivity_chronic")
-  
-  assert_single_pos_int(x$max_inoculations, zero_allowed = FALSE, name = "max_inoculations")
-  assert_pos_int(x$H, name = "H")
-  assert_pos_int(x$seed_infections, name = "seed_infections")
-  assert_pos_int(x$M, name = "M")
-  assert_same_length_multiple(x$H, x$seed_infections, x$M)
-  assert_leq(x$seed_infections, x$H, name_x = "seed_infections", name_y = "H")
-  
+  # check migration matrix formats and ranges
   assert_square_matrix(x$mig_mat, name = "mig_mat")
-  assert_nrow(x$mig_mat, length(x$H), name = "mig_mat")
   assert_bounded(x$mig_mat, name = "mig_mat")
   
-  assert_bounded(x$life_table, name = "life_table")
-  assert_eq(x$life_table[length(x$life_table)], 1, message = "the final value in the life table must be 1, representing a 100%% chance of dying, to ensure a closed population")
+  # check that deme vectors are either length 1 (in which case duplicate over
+  # all demes) or length equals migration matrix dimensions
+  n_demes <- nrow(x$mig_mat)
+  msg <- sprintf(paste0("H, M, and seed_infections",
+                        " must be vectors with length equal to the number of rows",
+                        " in the migration matrix (%s), or alternatively vectors of",
+                        " length 1 in which case the same values are used over all demes"), n_demes)
+  if (length(x$H) != 1) {
+    assert_length(x$H, n_demes, message = msg)
+  }
+  if (length(x$M) != 1) {
+    assert_length(x$M, n_demes, message = msg)
+  }
+  if (length(x$seed_infections) != 1) {
+    assert_length(x$seed_infections, n_demes, message = msg)
+  }
   
+  # check deme properties formats and ranges
+  assert_vector_pos_int(x$H, name = "H")
+  assert_vector_pos_int(x$seed_infections, name = "seed_infections")
+  assert_vector_pos_int(x$M, name = "M")
+  mapply(assert_leq, x$seed_infections, x$H, name_x = "seed_infections", name_y = "H")
+  
+  # check life table formats and ranges
+  assert_bounded(x$life_table, name = "life_table")
+  assert_eq(x$life_table[length(x$life_table)], 1, message = "the final value in the life table must be 1 representing a 100%% chance of dying that year to ensure a closed population")
+  
+  # check misc formats and ranges
+  assert_single_pos_int(x$max_inoculations, zero_allowed = FALSE, name = "max_inoculations")
+}
+
+#------------------------------------------------
+# convert epi model parameters to standardised types. NB.
+# check_epi_model_params() is run before process_epi_model_params()
+#' @noRd
+process_epi_model_params <- function(project) {
+  
+  # function that forces objects that can be defined as list or vector to list
+  force_list <- function(x) {
+    if (!is.list(x)) {
+      x <- list(x)
+    }
+    return(x)
+  }
+  
+  # force duration distributions and daily probabilities to list
+  name_vec <- c("duration_acute", "duration_chronic",
+                "time_treatment_acute", "time_treatment_chronic",
+                "duration_prophylactic",
+                "detectability_microscopy_acute", "detectability_microscopy_chronic",
+                "detectability_PCR_acute", "detectability_PCR_chronic",
+                "infectivity_acute", "infectivity_chronic")
+  project$epi_model_parameters[name_vec] <- mapply(force_list, project$epi_model_parameters[name_vec], SIMPLIFY = FALSE)
+  
+  # function that forces vectors to a given length by replicating scalar values
+  force_veclength <- function(x, n) {
+    if (length(x) == 1) {
+      x <- rep(x, n)
+    }
+    return(x)
+  }
+  
+  # force deme properties to vectors over demes
+  name_vec <- c("H", "M", "seed_infections")
+  n_demes <- nrow(project$epi_model_parameters$mig_mat)
+  project$epi_model_parameters[name_vec] <- mapply(force_veclength, project$epi_model_parameters[name_vec],
+                                                   MoreArgs = list(n = n_demes), SIMPLIFY = FALSE)
+  
+  # return
+  invisible(project)
 }
 
 #------------------------------------------------

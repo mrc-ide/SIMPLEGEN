@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "misc_v9.h"
+#include "misc_v10.h"
 
 #include <list>
 
@@ -53,7 +53,7 @@ public:
   int n_time_treatment_acute;
   std::vector<std::vector<double>> time_treatment_chronic;
   int n_time_treatment_chronic;
-  std::vector<double> duration_prophylactic;
+  std::vector<std::vector<double>> duration_prophylactic;
   int n_duration_prophylactic;
   
   // onward infectivity

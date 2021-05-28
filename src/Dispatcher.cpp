@@ -1,6 +1,6 @@
 
 #include "Dispatcher.h"
-#include "probability_v10.h"
+#include "probability_v11.h"
 
 #include <fstream>
 
@@ -52,7 +52,10 @@ void Dispatcher::init(Parameters &params_) {
   for (int i = 0; i < params->n_time_treatment_chronic; ++i) {
     sampler_time_treatment_chronic[i] = Sampler(params->time_treatment_chronic[i], sampler_draws);
   }
-  sampler_duration_prophylactic = Sampler(params->duration_prophylactic, sampler_draws);
+  sampler_duration_prophylactic = vector<Sampler>(params->n_duration_prophylactic);
+  for (int i = 0; i < params->n_duration_prophylactic; ++i) {
+    sampler_duration_prophylactic[i] = Sampler(params->duration_prophylactic[i], sampler_draws);
+  }
   
   // counts of host types
   H = params->H_init;

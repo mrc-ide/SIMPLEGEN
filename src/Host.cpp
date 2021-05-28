@@ -1,7 +1,7 @@
 
 #include "Host.h"
-#include "misc_v9.h"
-#include "probability_v10.h"
+#include "misc_v10.h"
+#include "probability_v11.h"
 
 using namespace std;
 
@@ -24,7 +24,7 @@ void Host::init(Parameters &params_,
                 vector<Sampler> &sampler_duration_chronic,
                 vector<Sampler> &sampler_time_treatment_acute,
                 vector<Sampler> &sampler_time_treatment_chronic,
-                Sampler &sampler_duration_prophylatic) {
+                vector<Sampler> &sampler_duration_prophylatic) {
   
   // store pointer to parameters
   params = &params_;
@@ -983,7 +983,8 @@ int Host::draw_time_treatment_chronic() {
 //------------------------------------------------
 // draw duration of prophylaxis
 int Host::draw_duration_prophylaxis() {
-  return (*sampler_duration_prophylatic_ptr).draw();
+  int tmp = (cumul_inoculations < params->n_duration_prophylactic) ? cumul_inoculations : params->n_duration_prophylactic - 1;
+  return (*sampler_duration_prophylatic_ptr)[tmp].draw();
 }
 
 //------------------------------------------------
