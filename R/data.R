@@ -10,7 +10,7 @@
 #'
 #' @usage data(EIRprev_beier1999)
 #'
-#' @format A data frame of x rows and two columns. Column one, "annual_EIR" is
+#' @format A data frame of 28 rows and two columns. Column one, "annual_EIR" is
 #'   the annual Entomological Inoculation Rate calculated for Plasmodium
 #'   falciparum and column 2, "prevalence" is the parasite prevalence of
 #'   plasmodium falciparum measured at the same site
@@ -39,7 +39,7 @@
 #------------------------------------------------
 #' Measures of annual EIR and prevalence within the same site
 #'
-#' Data from Hay et al. (2005) of measures of the prevalence  and annual Entomological
+#' Data from Hay et al. (2005) of measures of the prevalence and annual Entomological
 #' Innoculation Rate (APfEIR) of P. falciparum in Africa between 1984 and 2004 . Data were read from Supplement S2.
 #' APfEIR was defined as falciparum infected bites per adult per night indoors, using human biting rates that were averaged over 
 #' one year and standardized to human bait catch equivalents on adults.
@@ -75,26 +75,75 @@
 #------------------------------------------------
 #' Measures of prevalence by PCR and Microscopy 
 #'
-#' Data from preprint by Whittaker et al. (BioRxiv, 2020). 
-#' Data were obtained from [https://github.com/cwhittaker1000/Sub_Patent_Malaria_Analysis/]
+#' Data on Plasmodium falciparum prevalence by microscopy vs. by PCR.
+#' Taken from the systematic review by Whittaker et al. (Lancet Microbe, 2021),
+#' downloaded from the associated
+#' \href{https://github.com/cwhittaker1000/Sub_Patent_Malaria_Analysis/}{GitHub
+#' repository}. This dataset contains prevalence in \emph{all ages} - see
+#' \code{?PCRmicro_age_whittaker2021} for values broken down by age. Note, the
+#' original repository contains more information about where these values come
+#' from, and also more columns that were not considered relevant for our purposes.
 #' 
 #' @docType data
 #'
-#' @usage data(PCRMicro)
+#' @usage data(PCRmicro_full_whittaker2021)
+#'
+#' @format A data frame of 387 rows and 19 columns. Columns give the name and
+#'   year of the study, the study location at multiple geographic levels,
+#'   measures of historical and current transmission intensity in terms of
+#'   regional prevalence, the numerator, denominator and resulting prevalence by
+#'   both PCR and microscopy, details of the PCR and microscopy methods, and
+#'   finally the sampling season. Some fields are given in terms of "Raw" values
+#'   in addition to processed values. Raw values have more flexibility and are
+#'   closer to the description in the original papers, while processed values
+#'   are simplified to a smaller number of possible levels.
 #'
 #' @keywords datasets
 #'
-#' @references Global & Temporal Patterns of Submicroscopic Plasmodium falciparum Malaria Infection
-#' Charles Whittaker, Hannah Slater, Teun Bousema, Chris Drakeley, Azra Ghani, Lucy Okell
-#' bioRxiv 554311; doi: https://doi.org/10.1101/554311
-#' https://doi.org/10.1101/554311
-#'   (\href{https://www.ncbi.nlm.nih.gov/pubmed/15608702}{PubMed}
+#' @references Charles Whittaker, Hannah Slater, Rebecca Nash, Teun Bousema,
+#'   Chris Drakeley, Azra C. Ghani, and Lucy C. Okell. Global patterns of
+#'   submicroscopic Plasmodium falciparum malaria infection: insights from a
+#'   systematic review and meta-analysis of population surveys. Lancet Microbe
+#'   (2021) https://doi.org/10.1016/S2666-5247(21)00055-0
+#'   (\href{https://www.sciencedirect.com/science/article/pii/S2666524721000550}{ScienceDirect})
 #'
-#' @source \href{https://github.com/cwhittaker1000/Sub_Patent_Malaria_Analysis/blob/master/Data/SI_Systematic_Review_Results_R_Import.csv}{Systematic Review Results}
+#' @source \href{https://github.com/cwhittaker1000/submicroscopic_malaria/blob/master/Data/SI_Systematic_Review_Results_R_Import.csv}{Systematic Review Results}
 #' 
 #' 
-"PCRMicro"
+"PCRmicro_full_whittaker2021"
 
+#------------------------------------------------
+#' Measures of prevalence by PCR and Microscopy, broken down by age
+#'
+#' Age-dissagregated data on Plasmodium falciparum prevalence by microscopy vs.
+#' by PCR. Taken from the systematic review by Whittaker et al. (Lancet Microbe,
+#' 2021), downloaded from the associated
+#' \href{https://github.com/cwhittaker1000/Sub_Patent_Malaria_Analysis/}{GitHub
+#' repository}. See \code{?PCRmicro_full_whittaker2021} for more information
+#' about this and related datasets.
+#' 
+#' @docType data
+#'
+#' @usage data(PCRmicro_age_whittaker2021)
+#'
+#' @format A data frame of 164 rows and 21 columns. Columns are identical to the
+#'   \code{PCRmicro_full_whittaker2021} dataset, with the addition of two
+#'   columns giving the raw and processed age groups corresponding to each
+#'   prevalence estimate.
+#'
+#' @keywords datasets
+#'
+#' @references Charles Whittaker, Hannah Slater, Rebecca Nash, Teun Bousema,
+#'   Chris Drakeley, Azra C. Ghani, and Lucy C. Okell. Global patterns of
+#'   submicroscopic Plasmodium falciparum malaria infection: insights from a
+#'   systematic review and meta-analysis of population surveys. Lancet Microbe
+#'   (2021) https://doi.org/10.1016/S2666-5247(21)00055-0
+#'   (\href{https://www.sciencedirect.com/science/article/pii/S2666524721000550}{ScienceDirect})
+#'
+#' @source \href{https://github.com/cwhittaker1000/submicroscopic_malaria/blob/master/Data/SI_Systematic_Review_Results_R_Import.csv}{Systematic Review Results}
+#' 
+#' 
+"PCRmicro_age_whittaker2021"
 
 #------------------------------------------------
 #' Details of data from Griffin et al 2014 refit

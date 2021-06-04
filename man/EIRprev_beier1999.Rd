@@ -5,7 +5,7 @@
 \alias{EIRprev_beier1999}
 \title{Measures of annual EIR and prevalence (Beier et al.,1999)}
 \format{
-A data frame of x rows and two columns. Column one, "annual_EIR" is
+A data frame of 28 rows and two columns. Column one, "annual_EIR" is
   the annual Entomological Inoculation Rate calculated for Plasmodium
   falciparum and column 2, "prevalence" is the parasite prevalence of
   plasmodium falciparum measured at the same site

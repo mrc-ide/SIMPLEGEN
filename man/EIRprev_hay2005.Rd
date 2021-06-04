@@ -17,7 +17,7 @@ A data frame of 130 rows and two columns. Column one, "annual_EIR" is
 data(EIRprev_hay2005)
 }
 \description{
-Data from Hay et al. (2005) of measures of the prevalence  and annual Entomological
+Data from Hay et al. (2005) of measures of the prevalence and annual Entomological
 Innoculation Rate (APfEIR) of P. falciparum in Africa between 1984 and 2004 . Data were read from Supplement S2.
 APfEIR was defined as falciparum infected bites per adult per night indoors, using human biting rates that were averaged over 
 one year and standardized to human bait catch equivalents on adults.
