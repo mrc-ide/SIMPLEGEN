@@ -26,13 +26,13 @@ This tutorial goes through the basic process of creating a SIMPLEGEN project and
 
 ### Running a basic simulation
 
-SIMPLEGEN works with projects, which are essentially just lists that hold all inputs and outputs in a single convenient place. We start by creating a new project and specifying the parameters of the epidemiological model - see `?define_epi_params` for a complete list of model parameters and default values.
+SIMPLEGEN works with projects, which are essentially just lists that hold all inputs and outputs in a single convenient place. We start by creating a new project and specifying the parameters of the epidemiological model - see `?define_epi_model_parameters` for a complete list of model parameters and default values.
 
 ```{r}
 myproj <- simplegen_project()
-myproj <- define_epi_params(myproj,
-                            H = 1e3,
-                            M = 1e4)
+myproj <- define_epi_model_parameters(myproj,
+                                      H = 1e3,
+                                      M = 1e4)
 ```
 
 Alternatively, if you are familiar with the pipe operator `%>%` from the `dplyr` package then you can use this to chain together multiple commands:
@@ -40,7 +40,7 @@ Alternatively, if you are familiar with the pipe operator `%>%` from the `dplyr`
 ```{r eval=FALSE}
 library(dplyr)
 myproj <- simplegen_project() %>%
-  define_epi_params()
+  define_epi_model_parameters()
 ```
 
 Taking a quick look at our project we will see a summary of the current setup:
@@ -49,13 +49,33 @@ Taking a quick look at our project we will see a summary of the current setup:
 myproj
 ```
 
-A good way of sanity-checking our model before running simulations is to use some of the inbuilt plotting functions to explore our assumed distributions. For example, we can look at the assumed distribution of time in the acute state as follows:
+A good way of sanity-checking our model before running simulations is to use the inbuilt plotting functions to explore our assumed distributions. For example, we can look at the assumed distribution of time in the acute state as follows:
 
 ```{r}
 plot_epi_distribution(myproj, name = "duration_acute")
 ```
 
-Once we are happy with our assumptions we are ready to run the epidemiological simulation. Note that the argument `pb_markdown = TRUE` is used here just to avoid cluttering this tutorial with too much output, but you should run the model without this argument.
+The next step is to define the outputs that we expect from the model. There are three possible types of output:
+
+1. `daily` output contains values for each day of simulation. This can be useful for visualising trends over time.
+2. `sweeps` give the same values as `daily` output, but evaluated at specific points in time. This can be useful for getting a more detailed snap-shot of the population without overloading the daily output.
+3. `surveys` represent samples taken from the population according to some predefined sampling strategy. Surveys are the most important type of output from the genetic perspective, as genetic data will only be generated for individuals in this sample.
+
+TODO
+
+```{r}
+daily_dataframe <- rbind.data.frame(list(deme = 1, measure = "prevalence", state = "A", diagnostic = "microscopy", age_min = 0, age_max = 100, inoculations = -1),
+                                    list(deme = 1, measure = "prevalence", state = "C", diagnostic = "microscopy", age_min = 0, age_max = 100, inoculations = -1),
+                                    list(deme = 1, measure = "incidence", state = "C", diagnostic = "microscopy", age_min = 2, age_max = 10, inoculations = -1))
+
+print(daily_dataframe)
+```
+```{r}
+myproj <- define_epi_sampling_parameters(project = myproj,
+                                         daily = daily_dataframe)
+```
+
+Once we have model and sampling parameters loaded we are ready to run the epidemiological simulation. Note that the argument `pb_markdown = TRUE` is used here just to avoid cluttering this tutorial with too much output, but you should run the model without this argument.
 
 ```{r}
 myproj <- sim_epi(myproj, pb_markdown = TRUE)
@@ -67,7 +87,7 @@ Looking at the project again we now see that we have some results:
 myproj
 ```
 
-There are custom functions within SIMPLEGEN for exploring model output (see below), or we can dig into the output manually using the `$` symbol, for example `myproj$epi_output$daily_values`.
+There are custom functions within SIMPLEGEN for exploring model output (see below), or we can dig into the output manually using the `$` symbol, for example `myproj$epi_output$daily`.
 
 
 ### Plotting results
@@ -75,19 +95,19 @@ There are custom functions within SIMPLEGEN for exploring model output (see belo
 One of the most basic plots that we might be interested in is the daily number of hosts in each state. We can specify the states that we want to plot as an input vector:
 
 ```{r}
-plot_daily_states(myproj, states = c("A", "C", "P"))
+plot_daily_prevalence(myproj, state = c("A", "C"), diagnostic = "microscopy")
 ```
 
 This is also true of mosquito states, which are suffixed with "v":
 
 ```{r}
-plot_daily_states(myproj, states = c("Ev", "Iv"))
+#plot_daily_states(myproj, states = c("Ev", "Iv"))
 ```
 
 In addition to storing daily counts in each state, the `sim_epi()` function takes a slice of the population at various times, allowing us to plot age-distributions at these points in time. The sampling times are specified by the argument `output_age_times`, which defaults to the final timepoint only. Hence, we can plot:
 
 ```{r}
-plot_age_states(myproj, state = "C")
+#plot_age_states(myproj, state = "C")
 ```
 
 
@@ -107,11 +127,17 @@ m <- 0.01
 mig_mat <- matrix(m / n_demes, n_demes, n_demes) + diag(1 - m, n_demes)
 
 # load new paramters into the model
-myproj <- define_epi_params(myproj,
-                            H = H,
-                            seed_infections = seed_infections,
-                            M = M,
-                            mig_mat = mig_mat)
+myproj <- define_epi_model_parameters(myproj,
+                                      H = H,
+                                      seed_infections = seed_infections,
+                                      M = M,
+                                      mig_mat = mig_mat)
+```
+
+Then define sampling parameters
+
+```{r}
+myproj <- define_epi_sampling_parameters(myproj)
 ```
 
 We then run the simulation as normal:
@@ -123,9 +149,9 @@ myproj <- sim_epi(myproj, pb_markdown = TRUE)
 Now when plotting results we can use the `deme` argument to specify which deme to plot:
 
 ```{r}
-plot_daily_states(myproj, states = c("A", "C", "P"), deme = 1)
-plot_daily_states(myproj, states = c("A", "C", "P"), deme = 2)
-plot_daily_states(myproj, states = c("A", "C", "P"), deme = 3)
+#plot_daily_states(myproj, states = c("A", "C", "P"), deme = 1)
+#plot_daily_states(myproj, states = c("A", "C", "P"), deme = 2)
+#plot_daily_states(myproj, states = c("A", "C", "P"), deme = 3)
 ```
 
 In the example above there are three demes, with only the first containing infected hosts initially. As time progresses we  see infections seed into the other two demes via migration.

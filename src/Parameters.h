@@ -7,8 +7,10 @@
 
 //------------------------------------------------
 // enumerate sampling strategy methods
-enum Case_detection {active, passive};
-enum Diagnosis {microscopy, PCR};
+enum Measure {Measure_count, Measure_prevalence, Measure_incidence, Measure_EIR};
+enum Model_state {Model_S, Model_E, Model_A, Model_C, Model_P, Model_H, Model_Sv, Model_Ev, Model_Iv, Model_M};
+enum Diagnostic {Diagnostic_true, Diagnostic_microscopy, Diagnostic_PCR};
+enum Case_detection {Case_active, Case_passive};
 
 //------------------------------------------------
 // class defining all model parameters
@@ -54,12 +56,15 @@ public:
   std::vector<double> duration_prophylactic;
   int n_duration_prophylactic;
   
-  // infectivity
+  // onward infectivity
   std::vector<std::vector<double>> infectivity_acute;
   int n_infectivity_acute;
   std::vector<std::vector<double>> infectivity_chronic;
   int n_infectivity_chronic;
   double max_infectivity;
+  
+  // misc epi parameters
+  double prob_mosq_death;  // daily probability of mosquito death
   
   // deme parameters
   std::vector<int> H_init;
@@ -76,28 +81,38 @@ public:
   std::vector<double> age_death;
   std::vector<double> age_stable;
   
-  // sampling strategy parameters
-  bool obtain_samples;
-  std::vector<int> ss_time;
-  std::vector<int> ss_deme;
-  std::vector<Case_detection> ss_case_detection;
-  std::vector<Diagnosis> ss_diagnosis;
-  std::vector<int> ss_n;
+  // sampling parameters
+  std::map<std::pair<int, int>, std::vector<int>> daily_map;
+  std::vector<bool> daily_flag_deme;
+  std::vector<int> daily_deme;
+  std::vector<Measure> daily_measure;
+  std::vector<Model_state> daily_state;
+  std::vector<Diagnostic> daily_diagnostic;
+  std::vector<int> daily_age_min;
+  std::vector<int> daily_age_max;
+  std::vector<int> daily_inoculations;
+  int n_daily_outputs;
+  bool any_daily_outputs;
+  
+  std::vector<int> sweep_time;
+  std::vector<int> sweep_time_ordered;
+  std::vector<int> sweep_deme;
+  std::vector<Measure> sweep_measure;
+  std::vector<Model_state> sweep_state;
+  std::vector<Diagnostic> sweep_diagnostic;
+  std::vector<int> sweep_age_min;
+  std::vector<int> sweep_age_max;
+  std::vector<int> sweep_inoculations;
+  int n_sweep_outputs;
+  bool any_sweep_outputs;
   
   // run parameters
   int max_time;
+  int output_format;
   bool save_transmission_record;
   std::string transmission_record_location;
-  bool output_daily_counts;
-  bool output_age_distributions;
-  std::vector<int> output_age_times;
-  int n_output_age_times;
   bool pb_markdown;
   bool silent;
-  
-  // misc parameters
-  double prob_mosq_death;  // daily probability of mosquito death
-  
   
   // PUBLIC FUNCTIONS
   
@@ -106,11 +121,13 @@ public:
   
   // methods
   void load_params(Rcpp::List args);
-  void load_epi_params(Rcpp::List args);
+  void load_model_params(Rcpp::List args);
   void load_deme_params(Rcpp::List args);
   void load_migration_params(Rcpp::List args);
   void load_demog_params(Rcpp::List args);
   void load_sampling_params(Rcpp::List args);
+  void load_sampling_params_daily(Rcpp::List args);
+  void load_sampling_params_sweep(Rcpp::List args);
   void load_run_params(Rcpp::List args);
   
   void summary();

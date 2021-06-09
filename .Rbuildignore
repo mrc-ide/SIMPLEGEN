@@ -9,3 +9,4 @@
 ^R_ignore$
 ^src/SIMPLEGEN_Xcode$
 ^index.md$
+^\.github$
