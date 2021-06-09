@@ -3,7 +3,7 @@
 \docType{data}
 \name{study_data_2014}
 \alias{study_data_2014}
-\title{Details of data from Griffin et al 2014 refit}
+\title{Data on prevalence and incidence broken down by age, used in Griffin et al. 2014 model fit}
 \format{
 An object of class \code{data.frame} with 262 rows and 18 columns.
 }
@@ -11,11 +11,13 @@ An object of class \code{data.frame} with 262 rows and 18 columns.
 study_data_2014
 }
 \description{
+TODO - more description
+}
+\details{
 @docType data
  
  @usage data(study_data_2014)
-}
-\details{
-@keywords datasets
+
+ @keywords datasets
 }
 \keyword{datasets}

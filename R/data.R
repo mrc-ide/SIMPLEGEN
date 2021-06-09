@@ -146,7 +146,9 @@
 "PCRmicro_age_whittaker2021"
 
 #------------------------------------------------
-#' Details of data from Griffin et al 2014 refit
+#' Data on prevalence and incidence broken down by age, used in Griffin et al. 2014 model fit
+#' 
+#' TODO - more description
 #' 
 #'  @docType data
 #'  
