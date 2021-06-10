@@ -59,7 +59,7 @@ void Parameters::load_model_params(Rcpp::List args) {
   n_time_treatment_acute = int(time_treatment_acute.size());
   time_treatment_chronic = rcpp_to_matrix_double(args["time_treatment_chronic"]);
   n_time_treatment_chronic = int(time_treatment_chronic.size());
-  duration_prophylactic = rcpp_to_vector_double(args["duration_prophylactic"]);
+  duration_prophylactic = rcpp_to_matrix_double(args["duration_prophylactic"]);
   n_duration_prophylactic = int(duration_prophylactic.size());
   
   // infectivity
@@ -313,7 +313,7 @@ void Parameters::summary() {
   print("time_treatment_chronic:");
   print_matrix(time_treatment_chronic);
   print("duration_prophylactic:");
-  print_vector(duration_prophylactic);
+  print_matrix(duration_prophylactic);
   print("infectivity_acute:");
   print_matrix(infectivity_acute);
   print("infectivity_chronic:");

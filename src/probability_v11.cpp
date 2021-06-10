@@ -1,6 +1,6 @@
 
-#include "probability_v10.h"
-#include "misc_v9.h"
+#include "probability_v11.h"
+#include "misc_v10.h"
 
 using namespace std;
 
@@ -51,12 +51,6 @@ bool rbernoulli1(double p) {
 // draw from binomial(N,p) distribution
 #ifdef RCPP_ACTIVE
 int rbinom1(int N, double p) {
-  if (N < 0) {
-    Rcpp::stop("error in rbinom1: N less than 0");
-  }
-  if (p < 0.0 || p > 1.0) {
-    Rcpp::stop("error in rbinom1: p outside range [0,1]");
-  }
   return R::rbinom(N, p);
 }
 #else
@@ -68,9 +62,9 @@ int rbinom1(int N, double p) {
 
 //------------------------------------------------
 // draw from multinomial(N,p) distribution, where p sums to p_sum
-vector<int> rmultinom1(int N, const vector<double> &p, double p_sum) {
+std::vector<int> rmultinom1(int N, const std::vector<double> &p, double p_sum) {
   int k = int(p.size());
-  vector<int> ret(k);
+  std::vector<int> ret(k);
   for (int i = 0; i < (k-1); ++i) {
     ret[i] = rbinom1(N, p[i]/p_sum);
     N -= ret[i];
@@ -82,6 +76,22 @@ vector<int> rmultinom1(int N, const vector<double> &p, double p_sum) {
   ret[k-1] = N;
   return ret;
 }
+
+//------------------------------------------------
+// get density of multinomial(x,p) distribution, where x sums to x_sum and p
+// sums to p_sum
+#ifdef RCPP_ACTIVE
+double dmultinom1(const std::vector<int> &x, int x_sum, const std::vector<double> &p, double p_sum) {
+  int k = int(p.size());
+  double ret = 0;
+  for (int i = 0; i < (k-1); ++i) {
+    ret += R::dbinom(x[i], x_sum, p[i]/p_sum, true);
+    x_sum -= x[i];
+    p_sum -= p[i];
+  }
+  return ret;
+}
+#endif
 
 //------------------------------------------------
 // draw from univariate normal distribution
@@ -99,10 +109,10 @@ double rnorm1(double mean, double sd) {
 //------------------------------------------------
 // draw from univariate normal distribution and reflect to interval (a,b)
 double rnorm1_interval(double mean, double sd, double a, double b) {
-  
+
   // draw raw value relative to a
   double ret = rnorm1(mean, sd) - a;
-  
+
   // reflect off boundries at 0 and (b-a)
   if (ret < 0 || ret > (b-a)) {
     // use multiple reflections to bring into range [-(b-a), 2(b-a)]
@@ -112,7 +122,7 @@ double rnorm1_interval(double mean, double sd, double a, double b) {
     while (ret > 2*(b-a)) {
       ret -= 2*(b-a);
     }
-    
+
     // use one more reflection to bring into range [0, (b-a)]
     if (ret < 0) {
       ret = -ret;
@@ -121,17 +131,17 @@ double rnorm1_interval(double mean, double sd, double a, double b) {
       ret = 2*(b-a) - ret;
     }
   }
-  
+
   // no longer relative to a
   ret += a;
-  
+
   // don't let ret equal exactly a or b
   if (ret == a) {
     ret += UNDERFLO_DOUBLE;
   } else if (ret == b) {
     ret -= UNDERFLO_DOUBLE;
   }
-  
+
   return(ret);
 }
 
@@ -140,9 +150,9 @@ double rnorm1_interval(double mean, double sd, double a, double b) {
 // variance/covariance matrix sigma*scale^2. The inputs consist of mu,
 // sigma_chol, and scale, where sigma_chol is the Cholesky decomposition of
 // sigma. Output values are stored in x.
-void rmnorm1(vector<double> &x, const vector<double> &mu,
-             const vector<vector<double>> &sigma_chol, double scale) {
-  
+void rmnorm1(std::vector<double> &x, const std::vector<double> &mu,
+             const std::vector<std::vector<double>> &sigma_chol, double scale) {
+
   int d = int(mu.size());
   x = mu;
   double z;
@@ -163,10 +173,10 @@ void rmnorm1(vector<double> &x, const vector<double> &mu,
 // sample single value from given probability vector (that sums to p_sum).
 // Starting in probability_v10 the first value returned from this vector is 0
 // rather than 1 (i.e. moving to C++-style zero-based indexing)
-int sample1(const vector<double> &p, double p_sum) {
+int sample1(const std::vector<double> &p, double p_sum) {
   double rand = p_sum*runif_0_1();
   double z = 0;
-  for (unsigned int i = 0; i < p.size(); i++) {
+  for (int i=0; i<int(p.size()); i++) {
     z += p[i];
     if (rand < z) {
       return i;
@@ -179,10 +189,10 @@ int sample1(const vector<double> &p, double p_sum) {
 #endif
   return 0;
 }
-int sample1(const vector<int> &p, int p_sum) {
+int sample1(const std::vector<int> &p, int p_sum) {
   int rand = sample2(1,p_sum);
   int z = 0;
-  for (unsigned int i = 0; i < p.size(); i++) {
+  for (int i=0; i<int(p.size()); i++) {
     z += p[i];
     if (rand <= z) {
       return i;
@@ -208,10 +218,10 @@ int sample2(int a, int b) {
 // sums to p_sum. Results are stored in ret (passed in by reference), and the
 // number of draws is dictated by the length of this vector. Option to return
 // vector in shuffled order
-void sample3(vector<int> &ret, const vector<double> &p, double p_sum, bool return_shuffled) {
+void sample3(std::vector<int> &ret, const std::vector<double> &p, double p_sum, bool return_shuffled) {
   int n = int(ret.size());
   int j = 0;
-  for (unsigned int i = 0; i < p.size(); ++i) {
+  for (int i = 0; i < int(p.size()); ++i) {
     int n_i = rbinom1(n, p[i]/p_sum);
     if (n_i > 0) {
       fill(ret.begin()+j, ret.begin()+j+n_i, i);
@@ -230,8 +240,8 @@ void sample3(vector<int> &ret, const vector<double> &p, double p_sum, bool retur
 
 //------------------------------------------------
 // equivalent to sample2, but draws n values without replacement
-vector<int> sample4(int n, int a, int b) {
-  vector<int> ret(n);
+std::vector<int> sample4(int n, int a, int b) {
+  std::vector<int> ret(n);
   int t = 0, m = 0;
   int N = b - a + 1;
   if (n > N) {
@@ -260,7 +270,7 @@ double rgamma1(double shape, double rate) {
 double rgamma1(double shape, double rate) {
   gamma_distribution<double> rgamma(shape, 1.0/rate);
   double x = rgamma(generator);
-  
+
   // check for zero or infinite values (catches bug present in Visual Studio 2010)
   if (x == 0) {
     x = UNDERFLO_DOUBLE;
@@ -268,7 +278,7 @@ double rgamma1(double shape, double rate) {
   if ((1.0/x) == 0) {
     x = 1.0/UNDERFLO_DOUBLE;
   }
-  
+
   return x;
 }
 #endif
@@ -333,8 +343,8 @@ double dpois1(int n, double lambda, bool return_log) {
 
 //------------------------------------------------
 // draw from symmetric dichlet(alpha) distribution of length n
-vector<double> rdirichlet1(double alpha, int n) {
-  vector<double> ret(n);
+std::vector<double> rdirichlet1(double alpha, int n) {
+  std::vector<double> ret(n);
   double retSum = 0;
   for (int i=0; i<n; i++) {
     ret[i] = rgamma1(alpha,1.0);

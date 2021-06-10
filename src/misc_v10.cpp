@@ -1,5 +1,5 @@
 
-#include "misc_v9.h"
+#include "misc_v10.h"
 
 #include <math.h>
 #include <fstream>
@@ -35,7 +35,7 @@ double log_sum(double logA, double logB) {
 // sum boolean values and return integer
 int sum_bool(const vector<bool> &x_vec) {
   int ret = 0;
-  for (unsigned int i = 0; i < x_vec.size(); ++i) {
+  for (int i = 0; i < int(x_vec.size()); ++i) {
     ret += x_vec[i];
   }
   return ret;
@@ -457,7 +457,7 @@ vector<vector<double>> file_to_matrix_double(string file_path) {
 // calculate Cholesky decomposition of positive definite matrix sigma
 void cholesky(vector<vector<double>> &chol, const vector<vector<double>> &sigma) {
   
-  for (unsigned int i = 0; i < sigma.size(); ++i) {
+  for (int i = 0; i < int(sigma.size()); ++i) {
     for (int j = 0; j < (i+1); ++j) {
       chol[i][j] = sigma[i][j];
       if (i == j) {
@@ -478,4 +478,58 @@ void cholesky(vector<vector<double>> &chol, const vector<vector<double>> &sigma)
     }
   }
   
+}
+
+//------------------------------------------------
+// given [x,y] coordinates of points, and a series of values x_pred at which to
+// return, calculate cubic spline interpolation between coordinates and save
+// result into y_pred vector. Both x and x_pred must be increasing, and all
+// values in x_pred must be inside (or equal to) x.
+void cubic_spline(vector<double> &x, vector<double> &y,
+                  vector<double> &x_pred, vector<double> &y_pred) {
+  
+  // get vector sizes
+  int n = x.size();
+  int n_pred = x_pred.size();
+  
+  // define objects for storing spline coefficients
+  vector<double> c(n+1);
+  vector<double> l(n+1);
+  vector<double> mu(n+1);
+  vector<double> z(n+1);
+  vector<double> h(n);
+  vector<double> b(n);
+  vector<double> d(n);
+  vector<double> alpha(n);
+  
+  // compute coefficients
+  for (int i = 0; i < n; ++i) {
+    h[i] = x[i+1] - x[i];
+  }
+  for (int i = 1; i < n; ++i) {
+    alpha[i] = (3.0 / h[i])*(y[i+1] - y[i]) - (3.0 / h[i-1])*(y[i] - y[i-1]);
+  }
+  l[0] = 1;
+  for (int i = 1; i < n; ++i) {
+    l[i] = 2*(x[i+1] - x[i-1]) - h[i-1]*mu[i-1];
+    mu[i] = h[i] / l[i];
+    z[i] = (alpha[i] - h[i-1]*z[i-1]) / l[i];
+  }
+  l[n] = 1;
+  for (int i = (n-1); i >= 0; --i) {
+    c[i] = z[i] - mu[i]*c[i+1];
+    b[i] = (y[i+1] - y[i])/h[i] - h[i]*(c[i+1] + 2*c[i])/3.0;
+    d[i] = (c[i+1] - c[i]) / (3.0*h[i]);
+  }
+  
+  // save spline y-values into y_pred
+  int j = 0;
+  for (int i = 0; i < n_pred; ++i) {
+    if (x_pred[i] > x[j+1]) {
+      j++;
+    }
+    y_pred[i] = y[j] + b[j]*(x_pred[i] - x[j]) + c[j]*pow(x_pred[i] - x[j], 2) + d[j]*pow(x_pred[i] - x[j], 3);
+  }
+  
+  return;
 }

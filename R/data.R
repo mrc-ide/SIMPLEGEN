@@ -8,9 +8,9 @@
 #'
 #' @docType data
 #'
-#' @usage data(EIRprev_beier1999)
+#' @usage data(EIR_prev_beier1999)
 #'
-#' @format A data frame of x rows and two columns. Column one, "annual_EIR" is
+#' @format A data frame of 28 rows and two columns. Column one, "annual_EIR" is
 #'   the annual Entomological Inoculation Rate calculated for Plasmodium
 #'   falciparum and column 2, "prevalence" is the parasite prevalence of
 #'   plasmodium falciparum measured at the same site
@@ -27,26 +27,26 @@
 #'   Gate} \href{https://github.com/ankitrohatgi/WebPlotDigitizer}{Data extractor hhg}
 #' 
 #' @examples
-#' data(EIRprev_beier1999)
-#' plot( EIRprev_beier1999$annual_EIR, EIRprev_beier1999$prevalence,
+#' data(EIR_prev_beier1999)
+#' plot( EIR_prev_beier1999$annual_EIR, EIR_prev_beier1999$prevalence,
 #' xlab = "Annual EIR (Pf)",
 #' ylab = "Parasite prevalence (Pf)",
 #' main = "Annual EIR vs Prevalence, Beier et al., 1999")
 #' 
-"EIRprev_beier1999"
+"EIR_prev_beier1999"
 
 
 #------------------------------------------------
 #' Measures of annual EIR and prevalence within the same site
 #'
-#' Data from Hay et al. (2005) of measures of the prevalence  and annual Entomological
+#' Data from Hay et al. (2005) of measures of the prevalence and annual Entomological
 #' Innoculation Rate (APfEIR) of P. falciparum in Africa between 1984 and 2004 . Data were read from Supplement S2.
 #' APfEIR was defined as falciparum infected bites per adult per night indoors, using human biting rates that were averaged over 
 #' one year and standardized to human bait catch equivalents on adults.
 #'
 #' @docType data
 #'
-#' @usage data(EIRprev_hay2005)
+#' @usage data(EIR_prev_hay2005)
 #'
 #' @format A data frame of 130 rows and two columns. Column one, "annual_EIR" is
 #'   the annual Entomological Inoculation Rate calculated for Plasmodium
@@ -63,79 +63,129 @@
 #' @source \href{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3130901/bin/NIHMS35895-supplement-S2.pdf}{Supplement S2}
 #'
 #' @examples
-#' data(EIRprev_hay2005)
-#' plot( EIRprev_hay2005$annual_EIR, EIRprev_hay2005$prevalence,
+#' data(EIR_prev_hay2005)
+#' plot( EIR_prev_hay2005$annual_EIR, EIR_prev_hay2005$prevalence,
 #' xlab = "Annual EIR (Pf)",
 #' ylab = "Parasite prevalence (Pf)",
 #' main = "Annual EIR vs Prevalence, Hay et al., 2005")
 #' 
 #' 
-"EIRprev_hay2005"
+"EIR_prev_hay2005"
 
 #------------------------------------------------
 #' Measures of prevalence by PCR and Microscopy 
 #'
-#' Data from preprint by Whittaker et al. (BioRxiv, 2020). 
-#' Data were obtained from [https://github.com/cwhittaker1000/Sub_Patent_Malaria_Analysis/]
+#' Data on Plasmodium falciparum prevalence by microscopy vs. by PCR.
+#' Taken from the systematic review by Whittaker et al. (Lancet Microbe, 2021),
+#' downloaded from the associated
+#' \href{https://github.com/cwhittaker1000/Sub_Patent_Malaria_Analysis/}{GitHub
+#' repository}. This dataset contains prevalence in \emph{all ages} - see
+#' \code{?PCR_micro_age_whittaker2021} for values broken down by age. Note, the
+#' original repository contains more information about where these values come
+#' from, and also more columns that were not considered relevant for our purposes.
 #' 
 #' @docType data
 #'
-#' @usage data(PCRMicro)
+#' @usage data(PCR_micro_full_whittaker2021)
+#'
+#' @format A data frame of 387 rows and 19 columns. Columns give the name and
+#'   year of the study, the study location at multiple geographic levels,
+#'   measures of historical and current transmission intensity in terms of
+#'   regional prevalence, the numerator, denominator and resulting prevalence by
+#'   both PCR and microscopy, details of the PCR and microscopy methods, and
+#'   finally the sampling season. Some fields are given in terms of "Raw" values
+#'   in addition to processed values. Raw values have more flexibility and are
+#'   closer to the description in the original papers, while processed values
+#'   are simplified to a smaller number of possible levels.
 #'
 #' @keywords datasets
 #'
-#' @references Global & Temporal Patterns of Submicroscopic Plasmodium falciparum Malaria Infection
-#' Charles Whittaker, Hannah Slater, Teun Bousema, Chris Drakeley, Azra Ghani, Lucy Okell
-#' bioRxiv 554311; doi: https://doi.org/10.1101/554311
-#' https://doi.org/10.1101/554311
-#'   (\href{https://www.ncbi.nlm.nih.gov/pubmed/15608702}{PubMed}
+#' @references Charles Whittaker, Hannah Slater, Rebecca Nash, Teun Bousema,
+#'   Chris Drakeley, Azra C. Ghani, and Lucy C. Okell. Global patterns of
+#'   submicroscopic Plasmodium falciparum malaria infection: insights from a
+#'   systematic review and meta-analysis of population surveys. Lancet Microbe
+#'   (2021) https://doi.org/10.1016/S2666-5247(21)00055-0
+#'   (\href{https://www.sciencedirect.com/science/article/pii/S2666524721000550}{ScienceDirect})
 #'
-#' @source \href{https://github.com/cwhittaker1000/Sub_Patent_Malaria_Analysis/blob/master/Data/SI_Systematic_Review_Results_R_Import.csv}{Systematic Review Results}
+#' @source \href{https://github.com/cwhittaker1000/submicroscopic_malaria/blob/master/Data/SI_Systematic_Review_Results_R_Import.csv}{Systematic Review Results}
 #' 
 #' 
-"PCRMicro"
-
+"PCR_micro_full_whittaker2021"
 
 #------------------------------------------------
-#' Details of data from Griffin et al 2014 refit
+#' Measures of prevalence by PCR and Microscopy, broken down by age
+#'
+#' Age-dissagregated data on Plasmodium falciparum prevalence by microscopy vs.
+#' by PCR. Taken from the systematic review by Whittaker et al. (Lancet Microbe,
+#' 2021), downloaded from the associated
+#' \href{https://github.com/cwhittaker1000/Sub_Patent_Malaria_Analysis/}{GitHub
+#' repository}. See \code{?PCR_micro_full_whittaker2021} for more information
+#' about this and related datasets.
+#' 
+#' @docType data
+#'
+#' @usage data(PCR_micro_age_whittaker2021)
+#'
+#' @format A data frame of 164 rows and 21 columns. Columns are identical to the
+#'   \code{PCR_micro_full_whittaker2021} dataset, with the addition of two
+#'   columns giving the raw and processed age groups corresponding to each
+#'   prevalence estimate.
+#'
+#' @keywords datasets
+#'
+#' @references Charles Whittaker, Hannah Slater, Rebecca Nash, Teun Bousema,
+#'   Chris Drakeley, Azra C. Ghani, and Lucy C. Okell. Global patterns of
+#'   submicroscopic Plasmodium falciparum malaria infection: insights from a
+#'   systematic review and meta-analysis of population surveys. Lancet Microbe
+#'   (2021) https://doi.org/10.1016/S2666-5247(21)00055-0
+#'   (\href{https://www.sciencedirect.com/science/article/pii/S2666524721000550}{ScienceDirect})
+#'
+#' @source \href{https://github.com/cwhittaker1000/submicroscopic_malaria/blob/master/Data/SI_Systematic_Review_Results_R_Import.csv}{Systematic Review Results}
+#' 
+#' 
+"PCR_micro_age_whittaker2021"
+
+#------------------------------------------------
+#' Data on prevalence and incidence broken down by age, used in Griffin et al. 2014 model fit
+#' 
+#' Data used to fit the model described in Griffin et al. (2010) and Griffin et
+#' al. (2014). Data consists of multiple prevalence and incidence estimates,
+#' broken down by age and study site. Alongside observation counts (i.e.
+#' numerator and denominator values) data contains estimated distributions of
+#' EIR and treatment rates that can be used to define priors in model fitting.
 #' 
 #'  @docType data
 #'  
-#'  @usage data(study_data_2014)
+#'  @usage data(prev_inc_griffin2014)
+#'
+#' @format A dataframe of 262 rows and 15 columns. Columns are defined as follows:
+#'   \itemize{
+#'     \item \code{country}: country in which study was conducted.
+#'     \item \code{reference}: the original reference for this data. All references can be found in Griffin et al. (2010) and Griffin et al. (2014).
+#'     \item \code{site_name}: name of the study site.
+#'     \item \code{site_index}: a unique numerical index given to each site (sites are contained within studies).
+#'     \item \code{age0}, \code{age1}: lower and upper ends of this age group. Brackets are open on the right, for example if \code{age0 = 1} and \code{age1 = 2} then this corresponds to individuals of one year of age (rather than one and two year olds).
+#'     \item \code{type}: whether incidence or prevalence estimate.
+#'     \item \code{numer}, \code{denom}: numerator and denominator values. If prevalence data then denominator is total population size, if incidence data then denominator is total time at risk.
+#'     \item \code{case_detection}: method of case detection, for example active case detection (ACD) vs. passive case detection (PCD).
+#'     \item \code{meanEIR}, \code{sd_hi}, \code{sd_low}: estimate of the EIR in the region. Estimates are given in terms of a mean estimate and a lower and upper 95% interval. These values case be used to define a prior distribution on the EIR.
+#'     \item \code{alpha(prop treated)}, \code{beta(prop treated)}: shape parameters of a Beta prior on treatment rates in the population. These can be used as a prior in model fitting, or the value \code{alpha / (alpha + beta)} can be used as a point estimate of the proportion of cases receiving treatment.
+#'   }
 #'
 #'  @keywords datasets
 #' 
-# \describe{
-#   \item{country_name}{Country name (metadata not used in fitting)}
-#   \item{site_name}{Site name (metadata not used in fitting)}
-#   \item{reference}{Citation (metadata not used in fitting)}
-#   \item{study_index}{Unique numerical index for each study, used for study-level random effects}
-#   \item{site_index}{Unique numerical index for each site, used for site-level random effects}
-#   \item{numer}{Data numerator. This will either be number +ve by microscopy or number of cases}
-#   \item{denom}{Data denominator. This will either be number tested or person-years}
-#   \item{type}{Data type:
-#     \itemize{
-#       \item{1}{ Incidence data}
-#       \item{2}{ Prevalence data}
-#     }}
-#   \item{age0}{Lower end of age group}
-#   \item{age1}{Upper end of age group}
-#   \item{case_detection}{Code for case detection method:
-#     \itemize{
-#       \item{1}{ Daily active case detection (ACD)}
-#       \item{2}{ Weekly ACD}
-#       \item{3}{ Passive case detection (PCD)}
-#     }
-#   }
-#   \item{age_bracket}{Age bracket:  used to calculated age-group random effects. Where the index
-#   indicated that the mid point of the study age group falls in
-#     \itemize{
-#       \item{1}{ 0 - 2 years old}
-#       \item{2}{ 2 - 5 years old}
-#       \item{3}{ 5 - 15 years old}
-#       \item{4}{ 15+  years old}
-#     }
-#   }
-# }
+#' @references Jamie T. Griffin, Deirdra Hollingsworth, Lucy C. Okell, Thomas S.
+#'   Churcher, Michael White, Wes Hinsley, Teun Bousema, Chris J. Drakeley, Neil
+#'   M. Ferguson, Maria-Gloria Basanes and Azra C. Ghani. Reducing Plasmodium
+#'   falciparum Malaria Transmission in Africa: A Model-Based Evaluation of
+#'   Intervention Strategies. PLoS Medicine (2010)
+#'   doi:10.1371/journal.pmed.1000324
+#'   (\href{https://pubmed.ncbi.nlm.nih.gov/20711482/}{PubMed})
+#'   
+#'   Jamie T. Griffin, Neil M. Ferguson and Azra C. Ghani. Estimates of the
+#'   changing age-burden of Plasmodium falciparum malaria disease in sub-Saharan
+#'   Africa. Nature Communications (2014) DOI: 10.1038/ncomms4136
+#'   (\href{https://pubmed.ncbi.nlm.nih.gov/24518518/}{PubMed})
 #' 
-"study_data_2014"
+#' 
+"prev_inc_griffin2014"
