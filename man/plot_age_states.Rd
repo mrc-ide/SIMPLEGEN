@@ -20,4 +20,6 @@ plot_age_states(project, sample_time = NULL, deme = 1, state = "S")
 If project contains age distributions in the output from running
   the transmission model, then this function can be used to produce a simple
   barplot for a specified state.
+  
+  TODO - this function is now depricated.
 }

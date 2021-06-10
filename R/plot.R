@@ -246,6 +246,8 @@ plot_daily_prevalence <- function(project,
 #' @description If project contains age distributions in the output from running
 #'   the transmission model, then this function can be used to produce a simple
 #'   barplot for a specified state.
+#'   
+#'   TODO - this function is now depricated.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
