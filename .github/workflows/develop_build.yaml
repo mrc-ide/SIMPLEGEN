@@ -3,14 +3,12 @@
 on:
   push:
     branches:
-      - master
       - develop
   pull_request:
     branches:
-      - master
       - develop
 
-name: foobar
+name: develop_build
 
 jobs:
   R-CMD-check:
