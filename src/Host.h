@@ -3,7 +3,7 @@
 
 #include "Mosquito.h"
 #include "Parameters.h"
-#include "Sampler_v3.h"
+#include "Sampler_v4.h"
 
 #include <vector>
 #include <set>
@@ -55,7 +55,7 @@ public:
   std::vector<Sampler>* sampler_duration_chronic_ptr;
   std::vector<Sampler>* sampler_time_treatment_acute_ptr;
   std::vector<Sampler>* sampler_time_treatment_chronic_ptr;
-  Sampler* sampler_duration_prophylatic_ptr;
+  std::vector<Sampler>* sampler_duration_prophylatic_ptr;
   
   // cumulative count of how many times this host has been bitten by infective
   // mosquito (cumul_infections) and how many times an infection has taken hold
@@ -108,7 +108,7 @@ public:
             std::vector<Sampler> &sampler_duration_chronic,
             std::vector<Sampler> &sampler_time_treatment_acute,
             std::vector<Sampler> &sampler_time_treatment_chronic,
-            Sampler &sampler_duration_prophylactic);
+            std::vector<Sampler> &sampler_duration_prophylactic);
   void draw_starting_age();
   void draw_treatment_seeking();
   
@@ -163,7 +163,15 @@ public:
   int get_age(int t);
   
   // outputs
-  void update_output(Measure measure, Model_state state, Diagnostic diagnostic, int t, double &numer, double &denom);
+  void update_output(Measure measure,
+                     Model_state state,
+                     Diagnostic diagnostic,
+                     int age_min,
+                     int age_max,
+                     int inoculations,
+                     int t,
+                     double &numer,
+                     double &denom);
   
   // diagnostics and checks
   void print_inoc_events();

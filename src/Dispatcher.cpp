@@ -1,6 +1,6 @@
 
 #include "Dispatcher.h"
-#include "probability_v10.h"
+#include "probability_v11.h"
 
 #include <fstream>
 
@@ -52,7 +52,10 @@ void Dispatcher::init(Parameters &params_) {
   for (int i = 0; i < params->n_time_treatment_chronic; ++i) {
     sampler_time_treatment_chronic[i] = Sampler(params->time_treatment_chronic[i], sampler_draws);
   }
-  sampler_duration_prophylactic = Sampler(params->duration_prophylactic, sampler_draws);
+  sampler_duration_prophylactic = vector<Sampler>(params->n_duration_prophylactic);
+  for (int i = 0; i < params->n_duration_prophylactic; ++i) {
+    sampler_duration_prophylactic[i] = Sampler(params->duration_prophylactic[i], sampler_draws);
+  }
   
   // counts of host types
   H = params->H_init;
@@ -385,7 +388,12 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
               host_pop[this_host].update_output(params->daily_measure[this_out[j]],
                                                 params->daily_state[this_out[j]],
                                                 params->daily_diagnostic[this_out[j]],
-                                                t, daily_numer_today[this_out[j]], daily_denom_today[this_out[j]]);
+                                                params->daily_age_min[this_out[j]],
+                                                params->daily_age_max[this_out[j]],
+                                                params->daily_inoculations[this_out[j]],
+                                                t,
+                                                daily_numer_today[this_out[j]],
+                                                daily_denom_today[this_out[j]]);
             }
             
           }
@@ -432,7 +440,12 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
                   host_pop[j].update_output(params->sweep_measure[i],
                                             params->sweep_state[i],
                                             params->sweep_diagnostic[i],
-                                            t, sweep_numer_today, sweep_denom_today);
+                                            params->sweep_age_min[i],
+                                            params->sweep_age_max[i],
+                                            params->sweep_inoculations[i],
+                                            t, 
+                                            sweep_numer_today, 
+                                            sweep_denom_today);
                 }
               }
             } else {
@@ -443,7 +456,12 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
                   host_pop[this_host].update_output(params->sweep_measure[i],
                                                     params->sweep_state[i],
                                                     params->sweep_diagnostic[i],
-                                                    t, sweep_numer_today, sweep_denom_today);
+                                                    params->sweep_age_min[i],
+                                                    params->sweep_age_max[i],
+                                                    params->sweep_inoculations[i],
+                                                    t, 
+                                                    sweep_numer_today, 
+                                                    sweep_denom_today);
                 }
               }
             }

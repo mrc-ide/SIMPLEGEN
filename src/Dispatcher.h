@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include "misc_v9.h"
+#include "misc_v10.h"
 #include "Parameters.h"
-#include "Sampler_v3.h"
+#include "Sampler_v4.h"
 #include "Host.h"
 #include "Mosquito.h"
 
@@ -34,7 +34,7 @@ public:
   std::vector<Sampler> sampler_duration_chronic;
   std::vector<Sampler> sampler_time_treatment_acute;
   std::vector<Sampler> sampler_time_treatment_chronic;
-  Sampler sampler_duration_prophylactic;
+  std::vector<Sampler> sampler_duration_prophylactic;
   
   // counts of host types
   std::vector<int> H;

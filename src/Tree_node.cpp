@@ -1,7 +1,7 @@
 
 #include "Tree_node.h"
-#include "misc_v9.h"
-#include "probability_v10.h"
+#include "misc_v10.h"
+#include "probability_v11.h"
 
 using namespace std;
 
