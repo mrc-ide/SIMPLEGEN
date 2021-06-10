@@ -1,5 +1,4 @@
-[![Travis build status](https://travis-ci.org/mrc-ide/SIMPLEGEN.svg?branch=develop)](https://travis-ci.org/mrc-ide/SIMPLEGEN)
-[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/mrc-ide/SIMPLEGEN?branch=develop&svg=true)](https://ci.appveyor.com/project/mrc-ide/SIMPLEGEN)
+
 [![Coverage status](https://codecov.io/gh/mrc-ide/SIMPLEGEN/branch/develop/graph/badge.svg)](https://codecov.io/github/mrc-ide/SIMPLEGEN?branch=develop)
 
 <img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/simplegenlogo.png" height="123px" width="533px" />
