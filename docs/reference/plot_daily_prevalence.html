@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Plot age distribution of states — plot_age_states • SIMPLEGEN</title>
+<title>Plot daily prevalence — plot_daily_prevalence • SIMPLEGEN</title>
 
 
 <!-- jquery -->
@@ -39,11 +39,8 @@
 
 
 
-<meta property="og:title" content="Plot age distribution of states — plot_age_states" />
-<meta property="og:description" content="If project contains age distributions in the output from running
-  the transmission model, then this function can be used to produce a simple
-  barplot for a specified state.  
-TODO - this function is now depricated." />
+<meta property="og:title" content="Plot daily prevalence — plot_daily_prevalence" />
+<meta property="og:description" content="Plot the daily prevalence in a series of defined model states." />
 
 
 
@@ -130,19 +127,23 @@ TODO - this function is now depricated." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Plot age distribution of states</h1>
+    <h1>Plot daily prevalence</h1>
     <small class="dont-index">Source: <a href='https://github.com/mrc-ide/SIMPLEGEN/blob/master/R/plot.R'><code>R/plot.R</code></a></small>
-    <div class="hidden name"><code>plot_age_states.Rd</code></div>
+    <div class="hidden name"><code>plot_daily_prevalence.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>If project contains age distributions in the output from running
-  the transmission model, then this function can be used to produce a simple
-  barplot for a specified state.</p>  
-<p>TODO - this function is now depricated.</p>
+    <p>Plot the daily prevalence in a series of defined model states.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>plot_age_states</span><span class='op'>(</span><span class='va'>project</span>, sample_time <span class='op'>=</span> <span class='cn'>NULL</span>, deme <span class='op'>=</span> <span class='fl'>1</span>, state <span class='op'>=</span> <span class='st'>"S"</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>plot_daily_prevalence</span><span class='op'>(</span>
+  <span class='va'>project</span>,
+  state <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"S"</span>, <span class='st'>"E"</span>, <span class='st'>"A"</span>, <span class='st'>"C"</span>, <span class='st'>"P"</span><span class='op'>)</span>,
+  diagnostic <span class='op'>=</span> <span class='st'>"true"</span>,
+  age_min <span class='op'>=</span> <span class='fl'>0</span>,
+  age_max <span class='op'>=</span> <span class='fl'>100</span>,
+  inoculations <span class='op'>=</span> <span class='op'>-</span><span class='fl'>1</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -153,16 +154,8 @@ TODO - this function is now depricated." />
 <code><a href='simplegen_project.html'>simplegen_project()</a></code> function.</p></td>
     </tr>
     <tr>
-      <th>sample_time</th>
-      <td><p>which time-orderd sample to plot.</p></td>
-    </tr>
-    <tr>
-      <th>deme</th>
-      <td><p>which deme to plot.</p></td>
-    </tr>
-    <tr>
-      <th>state</th>
-      <td><p>which host state to plot on the y-axis.</p></td>
+      <th>state, diagnostic, age_min, age_max, inoculations</th>
+      <td><p>which rows of daily output to subset to.</p></td>
     </tr>
     </table>
 

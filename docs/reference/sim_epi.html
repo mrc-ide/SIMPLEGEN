@@ -40,11 +40,11 @@
 
 
 <meta property="og:title" content="Simulate from simple individual-based model — sim_epi" />
-<meta property="og:description" content="Simulate from the inbuilt SIMPLEGEN transmission model.
-  Parameters are taken from the epi_parameters slot of the project,
-  and basic outputs are written to the epi_output slot. If a sampling
-  strategy has been defined then samples will also be obtained and saved in
-  the sample_output slot (see ?define_sampling_strategy())." />
+<meta property="og:description" content="Simulate from the inbuilt SIMPLEGEN transmission model. Model
+  parameters are taken from the epi_model_parameters slot of the
+  project, and the sampling strategy is taken from the
+  epi_sampling_parameters slot. Outputs are written to the
+  epi_output slot." />
 
 
 
@@ -97,10 +97,10 @@
     </li>
     <li class="divider"></li>
     <li>
-      <a href="../articles/model_description.html">The inbuilt epidemiological model</a>
+      <a href="../articles/model_description.html">Epidemiological model details</a>
     </li>
     <li>
-      <a href="../articles/transmission_record.html">The transmission record</a>
+      <a href="../articles/transmission_record.html">Pruning the transmission record</a>
     </li>
     <li>
       <a href="../articles/simulating_relatedness.html">Simulating relatedness</a>
@@ -137,22 +137,20 @@
     </div>
 
     <div class="ref-description">
-    <p>Simulate from the inbuilt SIMPLEGEN transmission model.
-  Parameters are taken from the <code>epi_parameters</code> slot of the project,
-  and basic outputs are written to the <code>epi_output</code> slot. If a sampling
-  strategy has been defined then samples will also be obtained and saved in
-  the <code>sample_output</code> slot (see <code>?define_sampling_strategy()</code>).</p>
+    <p>Simulate from the inbuilt SIMPLEGEN transmission model. Model
+  parameters are taken from the <code>epi_model_parameters</code> slot of the
+  project, and the sampling strategy is taken from the
+  <code>epi_sampling_parameters</code> slot. Outputs are written to the
+  <code>epi_output</code> slot.</p>
     </div>
 
     <pre class="usage"><span class='fu'>sim_epi</span><span class='op'>(</span>
   <span class='va'>project</span>,
   max_time <span class='op'>=</span> <span class='fl'>365</span>,
+  output_format <span class='op'>=</span> <span class='fl'>1</span>,
   save_transmission_record <span class='op'>=</span> <span class='cn'>FALSE</span>,
   transmission_record_location <span class='op'>=</span> <span class='st'>""</span>,
   overwrite_transmission_record <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  output_daily_counts <span class='op'>=</span> <span class='cn'>TRUE</span>,
-  output_age_distributions <span class='op'>=</span> <span class='cn'>TRUE</span>,
-  output_age_times <span class='op'>=</span> <span class='va'>max_time</span>,
   pb_markdown <span class='op'>=</span> <span class='cn'>FALSE</span>,
   silent <span class='op'>=</span> <span class='cn'>FALSE</span>
 <span class='op'>)</span></pre>
@@ -170,6 +168,14 @@
       <td><p>run simulation for this many days.</p></td>
     </tr>
     <tr>
+      <th>output_format</th>
+      <td><p>several options exist for the output format:</p><ul>
+<li><p>1 (default) = return final values only</p></li>
+<li><p>2 = also return numerator and denominator of prevalence and
+  incidence calculations.</p></li>
+</ul></td>
+    </tr>
+    <tr>
       <th>save_transmission_record</th>
       <td><p>whether to write the transmission record to
 file.</p></td>
@@ -183,21 +189,6 @@ record will be written to.</p></td>
       <th>overwrite_transmission_record</th>
       <td><p>if <code>TRUE</code> the transmission record
 will overwrite any existing file by the same name. <code>FALSE</code> by default.</p></td>
-    </tr>
-    <tr>
-      <th>output_daily_counts</th>
-      <td><p>whether to output daily counts of key quantities,
-such as the number of infected hosts and the EIR.</p></td>
-    </tr>
-    <tr>
-      <th>output_age_distributions</th>
-      <td><p>whether to output complete age distributions
-at certain times.</p></td>
-    </tr>
-    <tr>
-      <th>output_age_times</th>
-      <td><p>a vector of times at which complete age distributions
-are output.</p></td>
     </tr>
     <tr>
       <th>pb_markdown</th>

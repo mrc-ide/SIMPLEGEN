@@ -10,11 +10,27 @@ plot_epi_distribution(project, name = "duration_acute")
 \item{project}{a SIMPLEGEN project, as produced by the
 \code{simplegen_project()} function.}
 
-\item{name}{the name of the distribution to be plotted, as it is found within
-the \code{project$epi_model_parameters}}
+\item{name}{the name of the distribution to be plotted, which must be one of:
+\itemize{
+  \item \code{"duration_acute"}
+  \item \code{"duration_chronic"}
+  \item \code{"time_treatment_acute"}
+  \item \code{"time_treatment_chronic"}
+  \item \code{"duration_prophylactic"}
+  \item \code{"prob_infection"}
+  \item \code{"prob_acute"}
+  \item \code{"prob_AC"}
+  \item \code{"detectability_microscopy_acute"}
+  \item \code{"detectability_microscopy_chronic"}
+  \item \code{"detectability_PCR_acute"}
+  \item \code{"detectability_PCR_chronic"}
+  \item \code{"infectivity_acute"}
+  \item \code{"infectivity_chronic"}
+}}
 }
 \description{
 Many distributions within the inbuilt SIMPLEGEN transmission
-  model can be defined flexibly, as either a vector or a list of vectors.
-  This function facilitates quick visualisation of these distributions.
+  model can be defined flexibly as either a vector or a list of vectors. This
+  function produces simple plots of these distributions, which can be useful
+  in sanity checking model parameters.
 }

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Plot age distribution of states — plot_age_states • SIMPLEGEN</title>
+<title>Data on prevalence and incidence broken down by age, used in Griffin et al. 2014 model fit — prev_inc_griffin2014 • SIMPLEGEN</title>
 
 
 <!-- jquery -->
@@ -39,11 +39,12 @@
 
 
 
-<meta property="og:title" content="Plot age distribution of states — plot_age_states" />
-<meta property="og:description" content="If project contains age distributions in the output from running
-  the transmission model, then this function can be used to produce a simple
-  barplot for a specified state.  
-TODO - this function is now depricated." />
+<meta property="og:title" content="Data on prevalence and incidence broken down by age, used in Griffin et al. 2014 model fit — prev_inc_griffin2014" />
+<meta property="og:description" content="Data used to fit the model described in Griffin et al. (2010) and Griffin et
+al. (2014). Data consists of multiple prevalence and incidence estimates,
+broken down by age and study site. Alongside observation counts (i.e.
+numerator and denominator values) data contains estimated distributions of
+EIR and treatment rates that can be used to define priors in model fitting." />
 
 
 
@@ -130,42 +131,55 @@ TODO - this function is now depricated." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Plot age distribution of states</h1>
-    <small class="dont-index">Source: <a href='https://github.com/mrc-ide/SIMPLEGEN/blob/master/R/plot.R'><code>R/plot.R</code></a></small>
-    <div class="hidden name"><code>plot_age_states.Rd</code></div>
+    <h1>Data on prevalence and incidence broken down by age, used in Griffin et al. 2014 model fit</h1>
+    <small class="dont-index">Source: <a href='https://github.com/mrc-ide/SIMPLEGEN/blob/master/R/data.R'><code>R/data.R</code></a></small>
+    <div class="hidden name"><code>prev_inc_griffin2014.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>If project contains age distributions in the output from running
-  the transmission model, then this function can be used to produce a simple
-  barplot for a specified state.</p>  
-<p>TODO - this function is now depricated.</p>
+    <p>Data used to fit the model described in Griffin et al. (2010) and Griffin et
+al. (2014). Data consists of multiple prevalence and incidence estimates,
+broken down by age and study site. Alongside observation counts (i.e.
+numerator and denominator values) data contains estimated distributions of
+EIR and treatment rates that can be used to define priors in model fitting.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>plot_age_states</span><span class='op'>(</span><span class='va'>project</span>, sample_time <span class='op'>=</span> <span class='cn'>NULL</span>, deme <span class='op'>=</span> <span class='fl'>1</span>, state <span class='op'>=</span> <span class='st'>"S"</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='va'>prev_inc_griffin2014</span></pre>
 
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>project</th>
-      <td><p>a SIMPLEGEN project, as produced by the
-<code><a href='simplegen_project.html'>simplegen_project()</a></code> function.</p></td>
-    </tr>
-    <tr>
-      <th>sample_time</th>
-      <td><p>which time-orderd sample to plot.</p></td>
-    </tr>
-    <tr>
-      <th>deme</th>
-      <td><p>which deme to plot.</p></td>
-    </tr>
-    <tr>
-      <th>state</th>
-      <td><p>which host state to plot on the y-axis.</p></td>
-    </tr>
-    </table>
 
+    <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
+
+    <p>A dataframe of 262 rows and 15 columns. Columns are defined as follows:</p><ul>
+<li><p><code>country</code>: country in which study was conducted.</p></li>
+<li><p><code>reference</code>: the original reference for this data. All references can be found in Griffin et al. (2010) and Griffin et al. (2014).</p></li>
+<li><p><code>site_name</code>: name of the study site.</p></li>
+<li><p><code>site_index</code>: a unique numerical index given to each site (sites are contained within studies).</p></li>
+<li><p><code>age0</code>, <code>age1</code>: lower and upper ends of this age group. Brackets are open on the right, for example if <code>age0 = 1</code> and <code>age1 = 2</code> then this corresponds to individuals of one year of age (rather than one and two year olds).</p></li>
+<li><p><code>type</code>: whether incidence or prevalence estimate.</p></li>
+<li><p><code>numer</code>, <code>denom</code>: numerator and denominator values. If prevalence data then denominator is total population size, if incidence data then denominator is total time at risk.</p></li>
+<li><p><code>case_detection</code>: method of case detection, for example active case detection (ACD) vs. passive case detection (PCD).</p></li>
+<li><p><code>meanEIR</code>, <code>sd_hi</code>, <code>sd_low</code>: estimate of the EIR in the region. Estimates are given in terms of a mean estimate and a lower and upper 95<!-- % interval. These values case be used to define a prior distribution on the EIR. --></p></li>
+<li><p><code>alpha(prop treated)</code>, <code>beta(prop treated)</code>: shape parameters of a Beta prior on treatment rates in the population. These can be used as a prior in model fitting, or the value <code>alpha / (alpha + beta)</code> can be used as a point estimate of the proportion of cases receiving treatment.</p></li>
+</ul>
+
+<p>@keywords datasets</p>
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>@docType data</p> 
+<p>@usage data(prev_inc_griffin2014)</p>
+    <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
+
+    <p>Jamie T. Griffin, Deirdra Hollingsworth, Lucy C. Okell, Thomas S.
+  Churcher, Michael White, Wes Hinsley, Teun Bousema, Chris J. Drakeley, Neil
+  M. Ferguson, Maria-Gloria Basanes and Azra C. Ghani. Reducing Plasmodium
+  falciparum Malaria Transmission in Africa: A Model-Based Evaluation of
+  Intervention Strategies. PLoS Medicine (2010)
+  doi:10.1371/journal.pmed.1000324
+  (<a href='https://pubmed.ncbi.nlm.nih.gov/20711482/'>PubMed</a>)</p>  
+<p>Jamie T. Griffin, Neil M. Ferguson and Azra C. Ghani. Estimates of the
+  changing age-burden of Plasmodium falciparum malaria disease in sub-Saharan
+  Africa. Nature Communications (2014) DOI: 10.1038/ncomms4136
+  (<a href='https://pubmed.ncbi.nlm.nih.gov/24518518/'>PubMed</a>)</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

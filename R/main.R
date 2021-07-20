@@ -198,18 +198,22 @@ define_epi_model_parameters <- function(project,
   # carried out later)
   assert_class(project, "simplegen_project")
   
+  # get list of all input values, including those set by default
+  all_args <- within(as.list(environment()), rm(project))
+  
+  # get list of only input values defined by user
+  user_arg_names <- names(as.list(match.call()))
+  user_arg_names <- setdiff(user_arg_names, c("", "project"))
+  user_args <- all_args[user_arg_names]
+  
   # if there are no defined parameters then create all parameters from
-  # scratch using default values where not specified by user
+  # scratch using default values
   if (is.null(project$epi_model_parameters)) {
-    project$epi_model_parameters <- within(as.list(environment()), rm(project))
+    project$epi_model_parameters <- all_args
   }
   
-  # find which parameters are user-defined
-  userlist <- as.list(match.call())
-  userlist <- userlist[!(names(userlist) %in% c("", "project"))]
-  
-  # replace project parameters with user-defined
-  project$epi_model_parameters[names(userlist)] <- mapply(eval, userlist, SIMPLIFY = FALSE)
+  # otherwise overwrite parameters defined by user
+  project$epi_model_parameters[user_arg_names] <- user_args
   
   # perform checks on parameters
   check_epi_model_params(project)
@@ -405,21 +409,17 @@ get_demography <- function(life_table) {
 }
 
 #------------------------------------------------
-#' @title Define the outputs that are produced from the transmission model
+#' @title Define outputs produced from the transmission model
 #'
-#' @description Loads a dataframe into the SIMPLEGEN project that specifies how
-#'   one or more samples are taken from the population. This is an important
-#'   step in the SIMPLEGEN pipeline, as ultimately genotypes are only
-#'   constructed for these sampled individuals. The user can specify details of
-#'   the sampling scheme, including the type of sampling and the
-#'   locations/timepoints. Probabilities of detection are taken into account
-#'   when producing the final sample.
+#' @description Loads one or more dataframes into the SIMPLEGEN project that
+#'   specify which outputs will be returned from the epidemiological model.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
 #' @param daily a dataframe of daily outputs.
 #' @param sweeps a dataframe of outputs at specific time points.
-#' @param surveys a dataframe specifying random surveys.
+#' @param surveys a dataframe specifying surveys to be conducted on the
+#'   population.
 #'
 #' @export
 
@@ -436,18 +436,22 @@ define_epi_sampling_parameters <- function(project,
   # carried out later)
   assert_class(project, "simplegen_project")
   
+  # get list of all input values, including those set by default
+  all_args <- within(as.list(environment()), rm(project))
+  
+  # get list of only input values defined by user
+  user_arg_names <- names(as.list(match.call()))
+  user_arg_names <- setdiff(user_arg_names, c("", "project"))
+  user_args <- all_args[user_arg_names]
+  
   # if there are no defined parameters then create all parameters from
-  # scratch using default values where not specified by user
+  # scratch using default values
   if (is.null(project$epi_sampling_parameters)) {
-    project$epi_sampling_parameters <- within(as.list(environment()), rm(project))
+    project$epi_sampling_parameters <- all_args
   }
   
-  # find which parameters are user-defined
-  userlist <- as.list(match.call())
-  userlist <- userlist[!(names(userlist) %in% c("", "project"))]
-  
-  # replace project parameters with user-defined
-  project$epi_sampling_parameters[names(userlist)] <- mapply(eval, userlist, SIMPLIFY = FALSE)
+  # otherwise overwrite parameters defined by user
+  project$epi_sampling_parameters[user_arg_names] <- user_args
   
   # perform checks on final parameters
   check_epi_sampling_params(project)
@@ -470,9 +474,11 @@ check_epi_sampling_params <- function(project) {
   # check that epi sampling parameters exist
   assert_non_null(project$epi_sampling_parameters, message = "no epi sampling parameters defined. See ?define_epi_sampling_parameters")
   
-  # check individual elements
+  # check individual elements of sampling output
   check_epi_sampling_params_daily(project$epi_sampling_parameters$daily)
   check_epi_sampling_params_sweeps(project$epi_sampling_parameters$sweeps)
+  check_epi_sampling_params_surveys(project$epi_sampling_parameters$surveys)
+  
 }
 
 #------------------------------------------------
@@ -563,6 +569,37 @@ check_epi_sampling_params_sweeps <- function(x) {
 }
 
 #------------------------------------------------
+# perform checks on survey sampling parameters
+#' @noRd
+check_epi_sampling_params_surveys <- function(x) {
+  
+  # return if null
+  if (is.null(x)) {
+    return()
+  }
+  
+  # TODO - fill in this function
+  
+}
+
+#------------------------------------------------
+# check that at least one of daily, sweeps or survey output is specified
+#' @noRd
+check_epi_sampling_params_present <- function(project) {
+  
+  # check that epi sampling parameters contain correct elements
+  assert_eq(names(project$epi_sampling_parameters), c("daily", "sweeps", "surveys"))
+  
+  # check that at least one element is non-null
+  if (is.null(project$epi_sampling_parameters$daily) &
+      is.null(project$epi_sampling_parameters$sweeps) &
+      is.null(project$epi_sampling_parameters$surveys)) {
+    stop("at least one output from the epidemiological model must be specified. See ?define_epi_sampling_parameters")
+  }
+  
+}
+
+#------------------------------------------------
 #' @title Simulate from simple individual-based model
 #'
 #' @description Simulate from the inbuilt SIMPLEGEN transmission model. Model
@@ -629,6 +666,8 @@ sim_epi <- function(project,
   check_epi_model_params(project)
   check_epi_sampling_params(project)
   
+  # check that at least one sampling output has been specified
+  check_epi_sampling_params_present(project)
   
   # ---------- define arguments  ----------
   

@@ -24,9 +24,9 @@ library(SIMPLEGEN)
 
 This tutorial goes through the basic process of creating a SIMPLEGEN project and running the inbuilt epidemiological simulator. 
 
-### Running a basic simulation
+### Setting up the model
 
-SIMPLEGEN works with projects, which are essentially just lists that hold all inputs and outputs in a single convenient place. We start by creating a new project and specifying the parameters of the epidemiological model - see `?define_epi_model_parameters` for a complete list of model parameters and default values.
+SIMPLEGEN works with projects, which are essentially just lists that hold all inputs and outputs in a single convenient place. We start by creating a new project and specifying the parameters of the epidemiological model:
 
 ```{r}
 myproj <- simplegen_project()
@@ -35,10 +35,13 @@ myproj <- define_epi_model_parameters(myproj,
                                       M = 1e4)
 ```
 
-Alternatively, if you are familiar with the pipe operator `%>%` from the `dplyr` package then you can use this to chain together multiple commands:
+Here we've just specified the human and mosquito population sizes and left all other parameters at their defaults. A complete list of model parameters and their default values can be found in the help for this function (`?define_epi_model_parameters`).
+
+If you are familiar with the pipe operator `%>%` from the `dplyr` package then you can also use this to chain together multiple commands:
 
 ```{r eval=FALSE}
 library(dplyr)
+
 myproj <- simplegen_project() %>%
   define_epi_model_parameters()
 ```
@@ -49,45 +52,88 @@ Taking a quick look at our project we will see a summary of the current setup:
 myproj
 ```
 
-A good way of sanity-checking our model before running simulations is to use the inbuilt plotting functions to explore our assumed distributions. For example, we can look at the assumed distribution of time in the acute state as follows:
+A good way of sanity-checking our model before running simulations is to use the inbuilt plotting functions to explore our assumed distributions. For example, we can look at the assumed distribution of time spent in the acute state:
 
 ```{r}
 plot_epi_distribution(myproj, name = "duration_acute")
 ```
 
-The next step is to define the outputs that we expect from the model. There are three types of output:
+Many distributions can be explored in this way, and `?plot_epi_distribution` gives a complete list.
+
+The next step is to define the outputs that we expect from the model. There are three types of output that we can produce:
 
 1. `daily` output contains values for each day of simulation. This can be useful for visualising trends over time.
-2. `sweeps` are the same as `daily` output, but evaluated at specific points in time. This can be useful for getting a more detailed snap-shot of the population without overloading the daily output.
-3. `surveys` represent samples taken from the population according to some predefined sampling strategy. Surveys are the most important type of output from the genetic perspective, as genetic data will only be generated for individuals in this sample.
+2. `sweeps` are the same as `daily` output, but evaluated at specific points in time. This can be useful for getting a more detailed snap-shot of the population without overloading the daily output. For example, we might use a sweep to return the prevalence in 5-year age bands at a given point in time.
+3. `surveys` represent samples taken from the population according to a predefined sampling strategy. Surveys are the most important type of output from the genetic perspective, as genetic data will only be generated from individuals in the sample.
 
-TODO
+We specify the daily outputs we want using a dataframe. **Table 1** gives the columns of this dataframe along with all possible combinations of values. This table should be read from left to right, moving into any box not separated by a horizontal line - for example, `state = "A", measure = "count"` is a viable combination, but `state = "A", measure = "EIR"` is not.
+
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/sampling_params_table.png"/>
+<font size="2">
+<figcaption> **Table 1** All possible options for daily outputs. Human outputs are shaded in red and mosquito outputs in green.</figcaption>
+</font>
+
+Extra columns are allowed, for example it can be useful to have a `name` column giving a short description of what each  field contains. We can use any standard method to produce this dataframe - for example the code below uses the `rbind()` method:
 
 ```{r}
-daily_dataframe <- rbind.data.frame(list(name = "foo", deme = 1, state = "A", measure = "prevalence", diagnostic = "microscopy", age_min = 0, age_max = 100),
-                                    list(deme = 1, measure = "prevalence", state = "C", diagnostic = "microscopy", age_min = 0, age_max = 100),
-                                    list(deme = 1, measure = "incidence", state = "C", diagnostic = "microscopy", age_min = 2, age_max = 10))
+daily_dataframe <- rbind(data.frame(name = "acute_prev", deme = 1, state = "A", measure = "prevalence", diagnostic = "microscopy", age_min = 0, age_max = 5),
+                         data.frame(name = "chronic_prev", deme = 1, state = "C", measure = "prevalence", diagnostic = "microscopy", age_min = 0, age_max = 5),
+                         data.frame(name = "acute_inc", deme = 1, state = "A", measure = "incidence", diagnostic = "PCR", age_min = 2, age_max = 10),
+                         make.row.names = FALSE)
 
 print(daily_dataframe)
 ```
+Once we're happy with this dataframe we can load it into the project using the `define_epi_sampling_parameters()` function:
+
 ```{r}
 myproj <- define_epi_sampling_parameters(project = myproj,
                                          daily = daily_dataframe)
 ```
 
-Once we have model and sampling parameters loaded we are ready to run the epidemiological simulation. Note that the argument `pb_markdown = TRUE` is used here just to avoid cluttering this tutorial with too much output, but you should run the model without this argument.
+The second type of output we might want is sweeps. These are defined using a dataframe identical to our daily output, but this time with an added `time` column. The following example returns acute prevalence and incidence in 5-year age bands at 365 days from start of simulation:
 
 ```{r}
-myproj <- sim_epi(myproj, pb_markdown = TRUE)
+sweep_dataframe <- rbind(data.frame(name = "prev_acute", time = 365, deme = 1, measure = "prevalence", state = "A", diagnostic = "true", age_min = seq(0, 100, 5), age_max = seq(0, 100, 5) + 4),
+                         data.frame(name = "inc_acute", time = 365, deme = 1, measure = "incidence",  state = "A", diagnostic = "true", age_min = seq(0, 100, 5), age_max = seq(0, 100, 5) + 4))
+
+print(sweep_dataframe)
+```
+Again, this needs to be loaded into the project:
+
+```{r}
+myproj <- define_epi_sampling_parameters(project = myproj,
+                                         sweeps = sweep_dataframe)
 ```
 
-Looking at the project again we now see that we have some results:
+The final type of output - surveys - will be explored in a later section.
+
+
+### Running the model and exploring results
+
+Once we have model and sampling parameters loaded we are ready to run the epidemiological simulation using the `sim_epi()` function. Note that the argument `pb_markdown = TRUE` is used here just to avoid cluttering this tutorial with too much output, but you should run the model without this argument.
+
+```{r}
+myproj <- sim_epi(myproj,
+                  max_time = 365,
+                  pb_markdown = TRUE)
+```
+
+Glancing at the project again we now see that we have some results:
 
 ```{r}
 myproj
 ```
 
-There are custom functions within SIMPLEGEN for exploring model output (see below), or we can dig into the output manually using the `$` symbol, for example `myproj$epi_output$daily`.
+All output from the epidemiological model is stored within the `epi_outputs` element of the project. For example, we can look at the first few daily output values as follows:
+
+```{r}
+head(myproj$epi_output$daily)
+```
+Notice that the output format is identical to the `daily_dataframe` that we loaded into the project, but now replicated over all `time` points and with an added `value` column. We see a very similar thing when we look at the sweep output:
+
+```{r}
+head(myproj$epi_output$sweeps)
+```
 
 
 ### Plotting results
@@ -95,7 +141,7 @@ There are custom functions within SIMPLEGEN for exploring model output (see belo
 One of the most basic plots that we might be interested in is the daily number of hosts in each state. We can specify the states that we want to plot as an input vector:
 
 ```{r}
-plot_daily_prevalence(myproj, state = c("A", "C"), diagnostic = "microscopy")
+#plot_daily_prevalence(myproj, state = c("A", "C"), diagnostic = "microscopy")
 ```
 
 This is also true of mosquito states, which are suffixed with "v":
@@ -113,7 +159,7 @@ In addition to storing daily counts in each state, the `sim_epi()` function take
 
 ### Multiple demes and migration
 
-SIMPLEGEN allows for multiple sub-populations (demes), which can be perfectly isolated or connected by migration. First, we specify the human and mosquito population sizes in each deme by using a vector of values for `H`, `M`, and `seed_infections`. Second, we specify a migration matrix giving the daily probability of each human moving from the source deme (rows) to the destination deme (columns).
+SIMPLEGEN allows for multiple sub-populations (also called demes), which can be perfectly isolated or connected by migration. First, we specify the human and mosquito population sizes in each deme by using a vector of values for `H`, `M`, and `seed_infections`. Second, we specify a migration matrix giving the daily probability of each human moving from the source deme (rows) to the destination deme (columns).
 
 ```{r}
 # define parameters over multiple demes
@@ -132,6 +178,8 @@ myproj <- define_epi_model_parameters(myproj,
                                       seed_infections = seed_infections,
                                       M = M,
                                       mig_mat = mig_mat)
+
+myproj
 ```
 
 Then define sampling parameters

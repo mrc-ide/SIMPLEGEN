@@ -1,6 +1,6 @@
 
 #------------------------------------------------
-test_that("default epi model fails with bad input", {
+test_that("default epi model fails with empty input", {
   
   # create empty project
   p <- simplegen_project()
@@ -17,6 +17,13 @@ test_that("default epi model fails with bad input", {
   # define empty sampling parameters
   p <- define_epi_sampling_parameters(p)
   
+  # should fail without at least one output specified
+  expect_error(sim_epi(p))
+  
+  # load a simple daily output dataframe
+  daily_df <- data.frame(deme = 1, state = "S", measure = "prevalence", diagnostic = "true", age_min = 0, age_max = 100)
+  p <- define_epi_sampling_parameters(p, daily = daily_df)
+  
   # should now run without errors or warnings
   expect_error(sim_epi(p), regexp = NA)
   expect_warning(sim_epi(p), regexp = NA)
@@ -24,22 +31,23 @@ test_that("default epi model fails with bad input", {
 })
 
 #------------------------------------------------
-test_that("default epi model runs and produces correct output", {
-  
-  # define expected project slot names
-  expected_names <- c("epi_model_parameters", "epi_sampling_parameters", "epi_output", 
-                      "genetic_parameters", "relatedness", "true_genotypes", "observed_genotypes")
+test_that("default epi model runs and produces output", {
   
   # create basic project
   p <- simplegen_project()
+  
+  # check for expected project slot names
+  expected_names <- c("epi_model_parameters", "epi_sampling_parameters", "epi_output", 
+                      "genetic_parameters", "relatedness", "true_genotypes", "observed_genotypes")
   expect_equal(names(p), expected_names)
   
   # load default epi parameters
   p <- define_epi_model_parameters(p)
   expect_equal(names(p), expected_names)
   
-  # define NULL sampling parameters
-  p <- define_epi_sampling_parameters(p)
+  # load a simple daily output dataframe
+  daily_df <- data.frame(deme = 1, state = "S", measure = "prevalence", diagnostic = "true", age_min = 0, age_max = 100)
+  p <- define_epi_sampling_parameters(project = p, daily = daily_df)
   
   # run model
   p <- sim_epi(p)
@@ -49,7 +57,6 @@ test_that("default epi model runs and produces correct output", {
   expect_equal(names(p$epi_output), c("daily", "sweeps", "surveys"))
   
   # check that return objects are null if they were not requested to be output
-  expect_null(p$epi_output$daily)
   expect_null(p$epi_output$sweeps)
   expect_null(p$epi_output$surveys)
   
