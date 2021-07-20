@@ -490,7 +490,7 @@ check_epi_sampling_params_daily <- function(x) {
   
   # check dataframe column names
   assert_dataframe(x, message = "daily sampling parameters must be a dataframe")
-  col_titles <- c("deme", "measure", "state", "diagnostic", "age_min", "age_max", "inoculations")
+  col_titles <- c("deme", "state", "measure", "diagnostic", "age_min", "age_max")
   assert_in(col_titles, names(x), message = sprintf("daily sampling parameters dataframe must contain the following columns: {%s}",
                                                     paste0(col_titles, collapse = ", ") ))
   
@@ -509,9 +509,11 @@ check_epi_sampling_params_daily <- function(x) {
     
     df_EIR <- subset(x, measure == "EIR")
     
-    # check state and detection columns
+    # check NA columns
     assert_NA(df_EIR$state, message = "state must be NA when measure is EIR")
     assert_NA(df_EIR$diagnostic, message = "diagnostic must be NA when measure is EIR")
+    assert_NA(df_EIR$age_min, message = "age_min must be NA when measure is EIR")
+    assert_NA(df_EIR$age_max, message = "age_max must be NA when measure is EIR")
     
   }
   if (any(x$measure != "EIR")) {
@@ -524,16 +526,12 @@ check_epi_sampling_params_daily <- function(x) {
     diagnostic_levels <- c("true", "microscopy", "PCR")
     assert_in(df_main$diagnostic, diagnostic_levels, message = sprintf("diagnostic must be one of {%s}", paste0(diagnostic_levels, collapse = ", ")))
     
+    # check age_min and age_max columns
+    assert_pos_int(df_main$age_min, zero_allowed = TRUE, message = "age_min must be a positive integer or zero")
+    assert_pos_int(df_main$age_max, zero_allowed = TRUE, message = "age_max must be a positive integer or zero")
+    assert_greq(df_main$age_max, df_main$age_min, message = "age_max must be greater than or equal to age_min")
+    
   }
-  
-  # check age_min, age_max and inoculations columns
-  assert_pos_int(x$age_min, zero_allowed = TRUE, message = "age_min must be a positive integer or zero")
-  assert_pos_int(x$age_max, zero_allowed = TRUE, message = "age_max must be a positive integer or zero")
-  assert_greq(x$age_max, x$age_min, message = "age_max must be greater than or equal to age_min")
-  
-  inoc_mssg <- "inoculations must be a positive integer or -1 to indicate any number of inoculations"
-  assert_vector_int(x$inoculations, message = inoc_mssg)
-  assert_greq(x$inoculations, -1, message = inoc_mssg)
   
 }
 
@@ -552,7 +550,7 @@ check_epi_sampling_params_sweeps <- function(x) {
   
   # check dataframe column names
   assert_dataframe(x, message = "sweep sampling parameters must be a dataframe")
-  col_titles <- c("time", "deme", "measure", "state", "diagnostic", "age_min", "age_max", "inoculations")
+  col_titles <- c("time", "deme", "state", "measure", "diagnostic", "age_min", "age_max")
   assert_in(col_titles, names(x), message = sprintf("sweep sampling parameters dataframe must contain the following columns: {%s}",
                                                     paste0(col_titles, collapse = ", ") ))
   

@@ -55,18 +55,18 @@ A good way of sanity-checking our model before running simulations is to use the
 plot_epi_distribution(myproj, name = "duration_acute")
 ```
 
-The next step is to define the outputs that we expect from the model. There are three possible types of output:
+The next step is to define the outputs that we expect from the model. There are three types of output:
 
 1. `daily` output contains values for each day of simulation. This can be useful for visualising trends over time.
-2. `sweeps` give the same values as `daily` output, but evaluated at specific points in time. This can be useful for getting a more detailed snap-shot of the population without overloading the daily output.
+2. `sweeps` are the same as `daily` output, but evaluated at specific points in time. This can be useful for getting a more detailed snap-shot of the population without overloading the daily output.
 3. `surveys` represent samples taken from the population according to some predefined sampling strategy. Surveys are the most important type of output from the genetic perspective, as genetic data will only be generated for individuals in this sample.
 
 TODO
 
 ```{r}
-daily_dataframe <- rbind.data.frame(list(deme = 1, measure = "prevalence", state = "A", diagnostic = "microscopy", age_min = 0, age_max = 100, inoculations = -1),
-                                    list(deme = 1, measure = "prevalence", state = "C", diagnostic = "microscopy", age_min = 0, age_max = 100, inoculations = -1),
-                                    list(deme = 1, measure = "incidence", state = "C", diagnostic = "microscopy", age_min = 2, age_max = 10, inoculations = -1))
+daily_dataframe <- rbind.data.frame(list(name = "foo", deme = 1, state = "A", measure = "prevalence", diagnostic = "microscopy", age_min = 0, age_max = 100),
+                                    list(deme = 1, measure = "prevalence", state = "C", diagnostic = "microscopy", age_min = 0, age_max = 100),
+                                    list(deme = 1, measure = "incidence", state = "C", diagnostic = "microscopy", age_min = 2, age_max = 10))
 
 print(daily_dataframe)
 ```

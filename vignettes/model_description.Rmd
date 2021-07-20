@@ -45,7 +45,7 @@ Inoculations can pass through all four stages in order, or they can skip over th
 
 The state of a host is defined using the decision tree in **Figure 1**.
 
-<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/host_decision_tree.png" width="200" height = "300"/>
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/host_decision_tree.png" width="80" height = "150"/>
 <font size="2">
 <figcaption> **Figure 1** Decision tree showing how the state of a host is decided.</figcaption>
 </font>

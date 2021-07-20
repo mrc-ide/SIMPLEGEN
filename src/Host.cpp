@@ -1145,19 +1145,13 @@ void Host::update_output(Measure measure,
                          Diagnostic diagnostic,
                          int age_min,
                          int age_max,
-                         int inoculations,
                          int t, 
                          double &numer, 
                          double &denom) {
   
-  // return if outside age or inoculations ranges
+  // return if outside age range
   if ((get_age(t) < age_min) || (get_age(t) > age_max)) {
     return;
-  }
-  if (inoculations != -1) {
-    if (get_n_active_inoc() != inoculations) {
-      return;
-    }
   }
   
   // counts or prevalence
