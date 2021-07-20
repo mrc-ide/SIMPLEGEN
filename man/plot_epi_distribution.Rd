@@ -31,6 +31,5 @@ plot_epi_distribution(project, name = "duration_acute")
 \description{
 Many distributions within the inbuilt SIMPLEGEN transmission
   model can be defined flexibly as either a vector or a list of vectors. This
-  function produces simple plots of these distributions, which can be useful
-  in sanity checking model parameters.
+  function produces simple visualisations of these distributions.
 }
