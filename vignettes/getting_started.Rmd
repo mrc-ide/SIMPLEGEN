@@ -1,5 +1,5 @@
 ---
-title: "Getting started:\nsimulating epidemiological data"
+title: "Getting started: simulating epidemiological data"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Getting started: simulating epidemiological data}

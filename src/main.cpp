@@ -26,7 +26,6 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List 
   dispatcher.init(params);
   dispatcher.run_simulation(args_functions, args_progress);
   
-  
   // end timer
   chrono_timer(t1);
   

@@ -489,7 +489,7 @@ check_epi_sampling_params <- function(project) {
 check_epi_sampling_params_daily <- function(x) {
   
   # avoid "no visible binding" warning
-  measure <- NULL
+  measure <- state <- NULL
   
   # return if null
   if (is.null(x)) {
@@ -707,7 +707,7 @@ sim_epi <- function(project,
   
   
   # avoid "no visible binding" warning
-  numer <- denom <- NULL
+  numer <- denom <- measure <- NULL
   
   # ---------- check inputs ----------
   
@@ -730,9 +730,6 @@ sim_epi <- function(project,
   # ensure that parameters are loaded and pass checks
   check_epi_model_params(project)
   check_epi_sampling_params(project)
-  
-  # check that at least one sampling output has been specified
-  check_epi_sampling_params_present(project)
   
   # ---------- define arguments  ----------
   
@@ -760,6 +757,10 @@ sim_epi <- function(project,
   # establish which outputs are required
   args$any_daily_outputs <- !is.null(args$daily)
   args$any_sweep_outputs <- !is.null(args$sweep)
+  
+  # replace proportion with prevalence, as this is the same calculation
+  args$daily <- args$daily %>%
+    dplyr::mutate(measure = replace(measure, measure == "proportion", "prevalence"))
   
   # get sampling strategy indices into 0-indexed (C++) format
   sampling_to_cpp_format <- function(x) {
