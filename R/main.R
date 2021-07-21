@@ -489,7 +489,7 @@ check_epi_sampling_params <- function(project) {
 check_epi_sampling_params_daily <- function(x) {
   
   # avoid "no visible binding" warning
-  measure <- NULL
+  measure <- state <- NULL
   
   # return if null
   if (is.null(x)) {
@@ -707,7 +707,7 @@ sim_epi <- function(project,
   
   
   # avoid "no visible binding" warning
-  numer <- denom <- NULL
+  numer <- denom <- measure <- NULL
   
   # ---------- check inputs ----------
   
