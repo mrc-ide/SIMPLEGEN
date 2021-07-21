@@ -731,9 +731,6 @@ sim_epi <- function(project,
   check_epi_model_params(project)
   check_epi_sampling_params(project)
   
-  # check that at least one sampling output has been specified
-  check_epi_sampling_params_present(project)
-  
   # ---------- define arguments  ----------
   
   # create argument list by concatenating project parameters
@@ -760,6 +757,10 @@ sim_epi <- function(project,
   # establish which outputs are required
   args$any_daily_outputs <- !is.null(args$daily)
   args$any_sweep_outputs <- !is.null(args$sweep)
+  
+  # replace proportion with prevalence, as this is the same calculation
+  args$daily <- args$daily %>%
+    dplyr::mutate(measure = replace(measure, measure == "proportion", "prevalence"))
   
   # get sampling strategy indices into 0-indexed (C++) format
   sampling_to_cpp_format <- function(x) {

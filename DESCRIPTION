@@ -33,7 +33,8 @@ Imports:
     stats,
     ggsci,
     lubridate,
-    rlang
+    rlang,
+    dplyr
 SystemRequirements: C++11
 Suggests: 
     testthat (>= 2.1.0),
