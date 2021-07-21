@@ -1,8 +1,8 @@
 ---
-title: "Basic Tutorial"
+title: "Getting started:\nsimulating epidemiological data"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Basic Tutorial}
+  %\VignetteIndexEntry{Getting started: simulating epidemiological data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -37,12 +37,12 @@ myproj <- define_epi_model_parameters(myproj,
 
 Alternatively, if you are familiar with the pipe operator `%>%` from the `dplyr` package then you can use this to chain together multiple commands:
 
-```{r eval=FALSE}
+```{r}
 library(dplyr)
 
 myproj <- simplegen_project() %>%
   define_epi_model_parameters(H = 1e3,
-                              M = 1e4)
+                              M = 5e4)
 ```
 
 Here we've just specified the human and mosquito population sizes and left all other parameters with their default values. A complete list of model parameters and their defaults can be found in the help for this function (see `?define_epi_model_parameters`).
@@ -91,7 +91,7 @@ myproj <- define_epi_sampling_parameters(project = myproj,
                                          daily = daily_dataframe)
 ```
 
-The second type of output is sweeps. These can be defined using a second dataframe identical in format to the daily output but with an added `time` column. For example, the following code specifies that we want acute prevalence and incidence in 5-year age bands at day 365:
+The second type of output is sweeps. These can be defined using a second dataframe identical in format to the daily output but with an added `time` column. For example, the following code specifies that we want to output acute prevalence and acute incidence in 5-year age bands at day 365:
 
 ```{r}
 sweep_dataframe <- rbind(data.frame(name = "prev_acute", time = 365, deme = 1, measure = "prevalence", state = "A", diagnostic = "true", age_min = seq(0, 100, 5), age_max = seq(0, 100, 5) + 4),
@@ -100,7 +100,7 @@ sweep_dataframe <- rbind(data.frame(name = "prev_acute", time = 365, deme = 1, m
 
 print(head(sweep_dataframe))
 ```
-Again, this needs to be loaded into the project. Normally we would load all sampling dataframes in one go:
+Again, this needs to be loaded into the project:
 
 ```{r}
 myproj <- define_epi_sampling_parameters(project = myproj,
@@ -108,103 +108,64 @@ myproj <- define_epi_sampling_parameters(project = myproj,
                                          sweeps = sweep_dataframe)
 ```
 
-The final type of output is surveys. These mainly relate to genetic data, and so will be explored in a later vignette.
+The final type of output is surveys, but these mainly relate to genetic data and so will be explored in a later vignette.
 
 
-### Running the model and extracting results
+### Running the simulation
 
-Once we have specified our model and desired outputs we are ready to run the simulation. This is done using the `sim_epi()` function. Note that the argument `pb_markdown = TRUE` is used here just to avoid cluttering this tutorial with too much output, but you should run the model without this argument.
+Once we have specified our model parameters and outputs we are ready to run the simulation. This is done using the `sim_epi()` function. Note that the argument `pb_markdown = TRUE` is used here just to avoid cluttering this tutorial with too much output, but you should run without this argument. In the example below we run the simulation for 10 years of output:
 
 ```{r}
 myproj <- sim_epi(myproj,
-                  max_time = 365,
+                  max_time = 3650,
                   pb_markdown = TRUE)
 ```
 
-Taking a quick look at the project we can now see that we have some results:
+Taking a quick look at the project we can now see that we have some output:
 
 ```{r}
 myproj
 ```
 
-All output from the epidemiological model is stored within the `epi_outputs` element of the project. For example, we can look at the first few daily output values as follows:
+All output from the epidemiological model is stored within the `epi_outputs` element of the project. For example, we can look at the first few daily output values:
 
 ```{r}
 head(myproj$epi_output$daily)
 ```
-Notice that the format of this dataframe is identical to what we loaded in, but now replicated over all `time` points and with an added `value` column. We see a very similar thing when we look at the sweep output:
+Notice that the format of this dataframe is identical to the daily dataframe we loaded in, but now replicated over all `time` points and with an added `value` column. We see a very similar thing when we look at the sweep output:
 
 ```{r}
 head(myproj$epi_output$sweeps)
 ```
-Having outputs in long format like this is not always the most efficient in terms of space, but is very convenient when it comes to plotting and summarizing results.
+Having outputs in long format like this makes it easy to plot and summarize results, as will be seen below.
 
 
-### Plotting results
+### Plotting and summarizing results
 
-One of the most basic plots that we might be interested in is the daily number of hosts in each state. We can specify the states that we want to plot as an input vector:
+Having outputs in long format makes it straightforward to plot and summarize results - especially if we make use of fantastic packages like `dplyr` and `ggplot2`.
 
-```{r}
-#plot_daily_prevalence(myproj, state = c("A", "C"), diagnostic = "microscopy")
-```
-
-This is also true of mosquito states, which are suffixed with "v":
+For example, the following code filters our daily output to prevalence measures only and then produces a basic line plot of prevalence over time:
 
 ```{r}
-#plot_daily_states(myproj, states = c("Ev", "Iv"))
+library(ggplot2)
+
+myproj$epi_output$daily %>%
+  dplyr::filter(measure == "prevalence") %>%
+  ggplot(aes(x = time, y = value)) + theme_bw() +
+  geom_line(aes(color = name))
 ```
 
-In addition to storing daily counts in each state, the `sim_epi()` function takes a slice of the population at various times, allowing us to plot age-distributions at these points in time. The sampling times are specified by the argument `output_age_times`, which defaults to the final timepoint only. Hence, we can plot:
+We can see that prevalence increased initally, then reached a stable level after a period of time.
+
+Similarly, we can produce simple plots of our sweep output:
 
 ```{r}
-#plot_age_states(myproj, state = "C")
+myproj$epi_output$sweeps %>%
+  dplyr::mutate(age_mid = (age_min + age_max) / 2,
+                age_width = age_max - age_min + 1) %>%
+  ggplot() + theme_bw() +
+  geom_bar(aes(x = age_mid, y = value, width = age_width), color = "black", stat = "identity") +
+  xlab("age") +
+  facet_wrap(~name)
 ```
-
-
-### Multiple demes and migration
-
-SIMPLEGEN allows for multiple sub-populations (also called demes), which can be perfectly isolated or connected by migration. First, we specify the human and mosquito population sizes in each deme by using a vector of values for `H`, `M`, and `seed_infections`. Second, we specify a migration matrix giving the daily probability of each human moving from the source deme (rows) to the destination deme (columns).
-
-```{r}
-# define parameters over multiple demes
-n_demes <- 3
-H <- rep(1e3, n_demes)
-seed_infections <- c(1e2, 0, 0)
-M <- c(1e3, 2e3, 3e3)
-
-# define a migration matrix
-m <- 0.01
-mig_mat <- matrix(m / n_demes, n_demes, n_demes) + diag(1 - m, n_demes)
-
-# load new paramters into the model
-myproj <- define_epi_model_parameters(myproj,
-                                      H = H,
-                                      seed_infections = seed_infections,
-                                      M = M,
-                                      mig_mat = mig_mat)
-
-myproj
-```
-
-Then define sampling parameters
-
-```{r}
-myproj <- define_epi_sampling_parameters(myproj)
-```
-
-We then run the simulation as normal:
-
-```{r}
-myproj <- sim_epi(myproj, pb_markdown = TRUE)
-```
-
-Now when plotting results we can use the `deme` argument to specify which deme to plot:
-
-```{r}
-#plot_daily_states(myproj, states = c("A", "C", "P"), deme = 1)
-#plot_daily_states(myproj, states = c("A", "C", "P"), deme = 2)
-#plot_daily_states(myproj, states = c("A", "C", "P"), deme = 3)
-```
-
-In the example above there are three demes, with only the first containing infected hosts initially. As time progresses we  see infections seed into the other two demes via migration.
 

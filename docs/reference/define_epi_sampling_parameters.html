@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Define the outputs that are produced from the transmission model — define_epi_sampling_parameters • SIMPLEGEN</title>
+<title>Define outputs produced from the transmission model — define_epi_sampling_parameters • SIMPLEGEN</title>
 
 
 <!-- jquery -->
@@ -39,14 +39,9 @@
 
 
 
-<meta property="og:title" content="Define the outputs that are produced from the transmission model — define_epi_sampling_parameters" />
-<meta property="og:description" content="Loads a dataframe into the SIMPLEGEN project that specifies how
-  one or more samples are taken from the population. This is an important
-  step in the SIMPLEGEN pipeline, as ultimately genotypes are only
-  constructed for these sampled individuals. The user can specify details of
-  the sampling scheme, including the type of sampling and the
-  locations/timepoints. Probabilities of detection are taken into account
-  when producing the final sample." />
+<meta property="og:title" content="Define outputs produced from the transmission model — define_epi_sampling_parameters" />
+<meta property="og:description" content="Loads one or more dataframes into the SIMPLEGEN project that
+  specify which outputs will be returned from the epidemiological model." />
 
 
 
@@ -95,7 +90,7 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li>
-      <a href="../articles/basic_tutorial.html">Basic tutorial</a>
+      <a href="../articles/getting_started.html">Getting started: simulating Epidemiological data</a>
     </li>
     <li class="divider"></li>
     <li>
@@ -133,19 +128,14 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Define the outputs that are produced from the transmission model</h1>
+    <h1>Define outputs produced from the transmission model</h1>
     <small class="dont-index">Source: <a href='https://github.com/mrc-ide/SIMPLEGEN/blob/master/R/main.R'><code>R/main.R</code></a></small>
     <div class="hidden name"><code>define_epi_sampling_parameters.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Loads a dataframe into the SIMPLEGEN project that specifies how
-  one or more samples are taken from the population. This is an important
-  step in the SIMPLEGEN pipeline, as ultimately genotypes are only
-  constructed for these sampled individuals. The user can specify details of
-  the sampling scheme, including the type of sampling and the
-  locations/timepoints. Probabilities of detection are taken into account
-  when producing the final sample.</p>
+    <p>Loads one or more dataframes into the SIMPLEGEN project that
+  specify which outputs will be returned from the epidemiological model.</p>
     </div>
 
     <pre class="usage"><span class='fu'>define_epi_sampling_parameters</span><span class='op'>(</span>
@@ -173,7 +163,8 @@
     </tr>
     <tr>
       <th>surveys</th>
-      <td><p>a dataframe specifying random surveys.</p></td>
+      <td><p>a dataframe specifying surveys to be conducted on the
+population.</p></td>
     </tr>
     </table>
 

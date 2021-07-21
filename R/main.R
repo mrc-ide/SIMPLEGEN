@@ -264,9 +264,7 @@ check_epi_model_params <- function(project) {
   mapply(assert_pos, x$time_treatment_chronic, name = "time_treatment_chronic")
   mapply(assert_pos, x$duration_prophylactic, name = "duration_prophylactic")
   
-  # check daily probabilities formats and ranges. NB. these mapply() calls
-  # work irrespective of whether distributions are defined as vectors or lists
-  # over vectors
+  # check daily probabilities formats and ranges
   mapply(assert_bounded, x$detectability_microscopy_acute, name = "detectability_microscopy_acute")
   mapply(assert_bounded, x$detectability_microscopy_chronic, name = "detectability_microscopy_chronic")
   mapply(assert_bounded, x$detectability_PCR_acute, name = "detectability_PCR_acute")
@@ -290,8 +288,9 @@ check_epi_model_params <- function(project) {
   assert_square_matrix(x$mig_mat, name = "mig_mat")
   assert_bounded(x$mig_mat, name = "mig_mat")
   
-  # check that deme vectors are either length 1 (in which case duplicate over
-  # all demes) or length equals migration matrix dimensions
+  # check that deme vector length equals migration matrix dimensions, or
+  # alternatively are length 1 in which case the same value is applied over all
+  # demes
   n_demes <- nrow(x$mig_mat)
   msg <- sprintf(paste0("H, M, and seed_infections",
                         " must be vectors with length equal to the number of rows",
@@ -327,7 +326,8 @@ check_epi_model_params <- function(project) {
 #' @noRd
 process_epi_model_params <- function(project) {
   
-  # function that forces objects that can be defined as list or vector to list
+  # function that forces objects that can be defined as list or vector into a
+  # list
   force_list <- function(x) {
     if (!is.list(x)) {
       x <- list(x)
@@ -436,6 +436,11 @@ define_epi_sampling_parameters <- function(project,
   # carried out later)
   assert_class(project, "simplegen_project")
   
+  # at least one input must be non-NULL
+  if (is.null(daily) & is.null(sweeps) & is.null(surveys)) {
+    stop("must define at least one output type")
+  }
+  
   # get list of all input values, including those set by default
   all_args <- within(as.list(environment()), rm(project))
   
@@ -468,9 +473,6 @@ check_epi_sampling_params <- function(project) {
   # check project class
   assert_class(project, "simplegen_project")
   
-  # model parameters must be defined before sampling parameters
-  assert_non_null(project$epi_model_parameters, message = "model parameters must be defined before sampling parameters. See ?define_epi_model_parameters")
-  
   # check that epi sampling parameters exist
   assert_non_null(project$epi_sampling_parameters, message = "no epi sampling parameters defined. See ?define_epi_sampling_parameters")
   
@@ -500,42 +502,105 @@ check_epi_sampling_params_daily <- function(x) {
   assert_in(col_titles, names(x), message = sprintf("daily sampling parameters dataframe must contain the following columns: {%s}",
                                                     paste0(col_titles, collapse = ", ") ))
   
-  # check deme and measure formats
+  # check deme format
   deme_mssg <- "deme must be a positive integer or -1"
   assert_vector_int(x$deme, message = deme_mssg)
   assert_greq(x$deme, -1, message = deme_mssg)
   assert_greq(x$deme[x$deme != -1], 1, message = deme_mssg)
   
-  x$measure <- as.character(x$measure)
-  measure_levels <- c("count", "prevalence", "incidence", "EIR")
-  assert_in(x$measure, measure_levels, message = sprintf("measure must be one of: {%s}", paste0(measure_levels, collapse = ", ") ))
+  # check state format
+  all_states <- c("A", "C", "S", "E", "P", "H", "Sv", "Ev", "Iv", "M")
+  assert_in(x$state, all_states, message = sprintf("state must be one of: {%s}", paste0(all_states, collapse = ", ")))
   
-  # split into sub-dataframes based on measure, and check state and diagnostic columns
-  if (any(x$measure == "EIR")) {
+  # states A and C
+  if (any(x$state %in% c("A", "C"))) {
+    df_sub <- subset(x, state %in% c("A", "C"))
     
-    df_EIR <- subset(x, measure == "EIR")
+    # check measure format
+    measure_levels <- c("count", "prevalence", "incidence")
+    assert_in(df_sub$measure, measure_levels, message = sprintf("for states A and C, measure must be one of: {%s}", paste0(measure_levels, collapse = ", ") ))
     
-    # check NA columns
-    assert_NA(df_EIR$state, message = "state must be NA when measure is EIR")
-    assert_NA(df_EIR$diagnostic, message = "diagnostic must be NA when measure is EIR")
-    assert_NA(df_EIR$age_min, message = "age_min must be NA when measure is EIR")
-    assert_NA(df_EIR$age_max, message = "age_max must be NA when measure is EIR")
+    # check diagnostic format
+    diagnostic_levels <- c("true", "microscopy", "PCR")
+    assert_in(df_sub$diagnostic, diagnostic_levels, message = sprintf("for states A and C, diagnostic must be one of: {%s}", paste0(diagnostic_levels, collapse = ", ") ))
+    
+    # check age format
+    assert_non_NA(df_sub$age_min, message = "for all human states, age_min must be a positive integer or zero")
+    assert_non_NA(df_sub$age_max, message = "for all human states, age_max must be a positive integer or zero")
+    assert_pos_int(df_sub$age_min, zero_allowed = TRUE, message = "for all human states, age_min must be a positive integer or zero")
+    assert_pos_int(df_sub$age_max, zero_allowed = TRUE, message = "for all human states, age_max must be a positive integer or zero")
+    assert_greq(df_sub$age_max, df_sub$age_min, message = "for all human states, age_max must be greater than or equal to age_min")
+  }
+  
+  # states S, E and P
+  if (any(x$state %in% c("S", "E", "P"))) {
+    df_sub <- subset(x, state %in% c("S", "E", "P"))
+    
+    # check measure format
+    measure_levels <- c("count", "prevalence", "incidence")
+    assert_in(df_sub$measure, measure_levels, message = sprintf("for states S, E and P, measure must be one of: {%s}", paste0(measure_levels, collapse = ", ") ))
+    
+    # check diagnostic format
+    assert_NA(df_sub$diagnostic, message = "for states S, E and P, diagnostic must be NA")
+    
+    # check age format
+    assert_non_NA(df_sub$age_min, message = "for all human states, age_min must be a positive integer or zero")
+    assert_non_NA(df_sub$age_max, message = "for all human states, age_max must be a positive integer or zero")
+    assert_pos_int(df_sub$age_min, zero_allowed = TRUE, message = "for all human states, age_min must be a positive integer or zero")
+    assert_pos_int(df_sub$age_max, zero_allowed = TRUE, message = "for all human states, age_max must be a positive integer or zero")
+    assert_greq(df_sub$age_max, df_sub$age_min, message = "for all human states, age_max must be greater than or equal to age_min")
+  }
+  
+  # state H
+  if (any(x$state == "H")) {
+    df_sub <- subset(x, state == "H")
+    
+    # check measure format
+    measure_levels <- c("count", "proportion", "EIR")
+    assert_in(df_sub$measure, measure_levels, message = sprintf("for state H, measure must be one of: {%s}", paste0(measure_levels, collapse = ", ") ))
+    
+    # check diagnostic format
+    assert_NA(df_sub$diagnostic, message = "for state H, diagnostic must be NA")
+    
+    # check age format
+    assert_non_NA(df_sub$age_min, message = "for all human states, age_min must be a positive integer or zero")
+    assert_non_NA(df_sub$age_max, message = "for all human states, age_max must be a positive integer or zero")
+    assert_pos_int(df_sub$age_min, zero_allowed = TRUE, message = "for all human states, age_min must be a positive integer or zero")
+    assert_pos_int(df_sub$age_max, zero_allowed = TRUE, message = "for all human states, age_max must be a positive integer or zero")
+    assert_greq(df_sub$age_max, df_sub$age_min, message = "for all human states, age_max must be greater than or equal to age_min")
+  }
+  
+  # states Sv, Ev, Iv
+  if (any(x$state %in% c("Sv", "Ev", "Iv"))) {
+    df_sub <- subset(x, state %in% c("Sv", "Ev", "Iv"))
+    
+    # check measure format
+    measure_levels <- c("count", "prevalence")
+    assert_in(df_sub$measure, measure_levels, message = sprintf("for states Sv, Ev and Iv, measure must be one of: {%s}", paste0(measure_levels, collapse = ", ") ))
+    
+    # check diagnostic format
+    assert_NA(df_sub$diagnostic, message = "for states Sv, Ev and Iv, diagnostic must be NA")
+    
+    # check age format
+    assert_NA(df_sub$age_min, message = "for all mosquito states, age_min must be NA")
+    assert_NA(df_sub$age_max, message = "for all mosquito states, age_max must be NA")
     
   }
-  if (any(x$measure != "EIR")) {
+  
+  # state M
+  if (any(x$state == "M")) {
+    df_sub <- subset(x, state == "M")
     
-    df_main = subset(x, measure != "EIR")
+    # check measure format
+    measure_levels <- c("count")
+    assert_in(df_sub$measure, measure_levels, message = sprintf("for state M, measure must be one of: {%s}", paste0(measure_levels, collapse = ", ") ))
     
-    # check state and diagnostic columns
-    state_levels <- c("S", "E", "A", "C", "P", "H", "Sv", "Ev", "Iv", "M")
-    assert_in(df_main$state, state_levels, message = sprintf("state must be one of {%s}", paste0(state_levels, collapse = ", ")))
-    diagnostic_levels <- c("true", "microscopy", "PCR")
-    assert_in(df_main$diagnostic, diagnostic_levels, message = sprintf("diagnostic must be one of {%s}", paste0(diagnostic_levels, collapse = ", ")))
+    # check diagnostic format
+    assert_NA(df_sub$diagnostic, message = "for state M, diagnostic must be NA")
     
-    # check age_min and age_max columns
-    assert_pos_int(df_main$age_min, zero_allowed = TRUE, message = "age_min must be a positive integer or zero")
-    assert_pos_int(df_main$age_max, zero_allowed = TRUE, message = "age_max must be a positive integer or zero")
-    assert_greq(df_main$age_max, df_main$age_min, message = "age_max must be greater than or equal to age_min")
+    # check age format
+    assert_NA(df_sub$age_min, message = "for all mosquito states, age_min must be NA")
+    assert_NA(df_sub$age_max, message = "for all mosquito states, age_max must be NA")
     
   }
   
