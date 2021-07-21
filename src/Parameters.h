@@ -90,7 +90,6 @@ public:
   std::vector<Diagnostic> daily_diagnostic;
   std::vector<int> daily_age_min;
   std::vector<int> daily_age_max;
-  std::vector<int> daily_inoculations;
   int n_daily_outputs;
   bool any_daily_outputs;
   
@@ -102,7 +101,6 @@ public:
   std::vector<Diagnostic> sweep_diagnostic;
   std::vector<int> sweep_age_min;
   std::vector<int> sweep_age_max;
-  std::vector<int> sweep_inoculations;
   int n_sweep_outputs;
   bool any_sweep_outputs;
   

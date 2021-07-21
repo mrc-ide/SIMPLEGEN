@@ -48,14 +48,14 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li>
-      <a href="../articles/basic_tutorial.html">Basic tutorial</a>
+      <a href="../articles/getting_started.html">Getting started: simulating Epidemiological data</a>
     </li>
     <li class="divider">
     <li>
-      <a href="../articles/model_description.html">The inbuilt epidemiological model</a>
+      <a href="../articles/model_description.html">Epidemiological model details</a>
     </li>
     <li>
-      <a href="../articles/transmission_record.html">The transmission record</a>
+      <a href="../articles/transmission_record.html">Pruning the transmission record</a>
     </li>
     <li>
       <a href="../articles/simulating_relatedness.html">Simulating relatedness</a>
@@ -89,7 +89,7 @@
       <h1 data-toc-skip>Transmission Model Details</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2021-02-05</h4>
+            <h4 class="date">2021-07-21</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/mrc-ide/SIMPLEGEN/blob/master/vignettes/model_description.Rmd"><code>vignettes/model_description.Rmd</code></a></small>
       <div class="hidden name"><code>model_description.Rmd</code></div>
@@ -122,7 +122,7 @@ p.caption {
 </ol>
 <p>Inoculations can pass through all four stages in order, or they can skip over the acute or chronic stages depending on the model parameters (see <strong>Figure 4</strong>). The acute stage essentially represents the symptomatic stage of infection, although the word “acute” has been used rather than “symptomatic” to avoid forcing a clinical interpretation on the model. The chronic stage is designed to capture long-lasting infections, including possible asymptomatic and/or sub-patent stages (more on detection later).</p>
 <p>The state of a host is defined using the decision tree in <strong>Figure 1</strong>.</p>
-<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/host_decision_tree.png"><font size="2">
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/host_decision_tree.png" width="80" height="150"><font size="2">
 <figcaption><strong>Figure 1</strong> Decision tree showing how the state of a host is decided.
 </figcaption><p></p></font>
 <p>Unless the host has recently recieved treatment, and so is in the prophylactic stage, the state of the host is dictated by the states of the inoculations it carries.. This can be seen in <strong>Figure 2</strong>, which shows the host state for a simple case of two overlapping inoculations.</p>
@@ -184,14 +184,14 @@ p.caption {
 <p>All flexible distributions can be visualised using the function <code><a href="../reference/plot_epi_distribution.html">plot_epi_distribution()</a></code>, for example:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/simplegen_project.html">simplegen_project</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="../reference/define_epi_params.html">define_epi_params</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="../reference/define_epi_model_parameters.html">define_epi_model_parameters</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="../reference/plot_epi_distribution.html">plot_epi_distribution</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"duration_acute"</span><span class="op">)</span></code></pre></div>
 <p><img src="model_description_files/figure-html/unnamed-chunk-2-1.png" width="480"></p>
 <p>In the case of list inputs, all distributions are plotted together:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/simplegen_project.html">simplegen_project</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="../reference/define_epi_params.html">define_epi_params</a></span><span class="op">(</span>duration_acute <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Geometric.html">dgeom</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">30</span>, <span class="fl">0.2</span><span class="op">)</span>,
-                                          <span class="fu"><a href="https://rdrr.io/r/stats/Geometric.html">dgeom</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">30</span>, <span class="fl">0.1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="../reference/define_epi_model_parameters.html">define_epi_model_parameters</a></span><span class="op">(</span>duration_acute <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Geometric.html">dgeom</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">30</span>, <span class="fl">0.2</span><span class="op">)</span>,
+                                                    <span class="fu"><a href="https://rdrr.io/r/stats/Geometric.html">dgeom</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">30</span>, <span class="fl">0.1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="../reference/plot_epi_distribution.html">plot_epi_distribution</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"duration_acute"</span><span class="op">)</span></code></pre></div>
 <p><img src="model_description_files/figure-html/unnamed-chunk-3-1.png" width="768"></p>
 </div>
@@ -204,7 +204,8 @@ p.caption {
 <p>For example, imagine we want to model a population that has good access to healthcare overall, but with wide disparity between individuals. We choose parameter values <code>treatment_seeking_mean = 0.7</code> and <code>treatment_seeking_sd = 0.2</code>, which we can visualise using the <code><a href="../reference/plot_treatment_seeking.html">plot_treatment_seeking()</a></code> function:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/simplegen_project.html">simplegen_project</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="../reference/define_epi_params.html">define_epi_params</a></span><span class="op">(</span>treatment_seeking_mean <span class="op">=</span> <span class="fl">0.7</span>, treatment_seeking_sd <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="../reference/define_epi_model_parameters.html">define_epi_model_parameters</a></span><span class="op">(</span>treatment_seeking_mean <span class="op">=</span> <span class="fl">0.7</span>,
+                              treatment_seeking_sd <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="../reference/plot_treatment_seeking.html">plot_treatment_seeking</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <p><img src="model_description_files/figure-html/unnamed-chunk-4-1.png" width="480"></p>
 <p>The dashed line shows that at a population level there is a 70% chance of seeking treatment for malaria, but there is also considerable spread around this value. Each host has a value <span class="math inline">\(p_i\)</span> drawn from this distribution once at birth. For example, imagine a single unlucky individual for which <span class="math inline">\(p_i = 0.1\)</span>. This individual has poor access to malaria treatment, either for economic reasons or geographic reasons or whatever. If this individual becomes infected <em>and</em> if clinical symptoms occur <em>before</em> the disease has chance to clear naturally, then this individual makes the decision whether to obtain treatment, with only a 10% chance of choosing to do so. If they choose not to seek treatment then the disease continues until it clears naturally.</p>

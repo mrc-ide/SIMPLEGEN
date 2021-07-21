@@ -390,7 +390,6 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
                                                 params->daily_diagnostic[this_out[j]],
                                                 params->daily_age_min[this_out[j]],
                                                 params->daily_age_max[this_out[j]],
-                                                params->daily_inoculations[this_out[j]],
                                                 t,
                                                 daily_numer_today[this_out[j]],
                                                 daily_denom_today[this_out[j]]);
@@ -442,7 +441,6 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
                                             params->sweep_diagnostic[i],
                                             params->sweep_age_min[i],
                                             params->sweep_age_max[i],
-                                            params->sweep_inoculations[i],
                                             t, 
                                             sweep_numer_today, 
                                             sweep_denom_today);
@@ -458,7 +456,6 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
                                                     params->sweep_diagnostic[i],
                                                     params->sweep_age_min[i],
                                                     params->sweep_age_max[i],
-                                                    params->sweep_inoculations[i],
                                                     t, 
                                                     sweep_numer_today, 
                                                     sweep_denom_today);

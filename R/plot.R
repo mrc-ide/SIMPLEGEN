@@ -18,13 +18,28 @@ set_col_alpha <- function(col, alpha) {
 #' @title Generic function for plotting a SIMPLEGEN flexible distribution
 #'
 #' @description Many distributions within the inbuilt SIMPLEGEN transmission
-#'   model can be defined flexibly, as either a vector or a list of vectors.
-#'   This function facilitates quick visualisation of these distributions.
+#'   model can be defined flexibly as either a vector or a list of vectors. This
+#'   function produces simple visualisations of these distributions.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
-#' @param name the name of the distribution to be plotted, as it is found within
-#'   the \code{project$epi_model_parameters}
+#' @param name the name of the distribution to be plotted, which must be one of:
+#'   \itemize{
+#'     \item \code{"duration_acute"}
+#'     \item \code{"duration_chronic"}
+#'     \item \code{"time_treatment_acute"}
+#'     \item \code{"time_treatment_chronic"}
+#'     \item \code{"duration_prophylactic"}
+#'     \item \code{"prob_infection"}
+#'     \item \code{"prob_acute"}
+#'     \item \code{"prob_AC"}
+#'     \item \code{"detectability_microscopy_acute"}
+#'     \item \code{"detectability_microscopy_chronic"}
+#'     \item \code{"detectability_PCR_acute"}
+#'     \item \code{"detectability_PCR_chronic"}
+#'     \item \code{"infectivity_acute"}
+#'     \item \code{"infectivity_chronic"}
+#'   }
 #'
 #' @importFrom stats dbeta
 #' @export
