@@ -1145,22 +1145,16 @@ void Host::update_output(Measure measure,
                          Diagnostic diagnostic,
                          int age_min,
                          int age_max,
-                         int inoculations,
                          int t, 
                          double &numer, 
                          double &denom) {
   
-  // return if outside age or inoculations ranges
+  // return if outside age range
   if ((get_age(t) < age_min) || (get_age(t) > age_max)) {
     return;
   }
-  if (inoculations != -1) {
-    if (get_n_active_inoc() != inoculations) {
-      return;
-    }
-  }
   
-  // counts or prevalence
+  // counts or prevalence (also applies to proportions, which are recoded as prevalence)
   if ((measure == Measure_count) || (measure == Measure_prevalence)) {
     
     // update numerator
@@ -1195,12 +1189,8 @@ void Host::update_output(Measure measure,
   // incidence
   } else if (measure == Measure_incidence) {
     
-    // NB. for the time being the denominator in these calculations is always the entire population
-    if (state == Model_E) {
-      if ((host_state == Host_Eh) && (host_state_previous != Host_Eh) && (time_host_state_change == t)) {
-        numer += 1.0;
-      }
-    } else if (state == Model_A) {
+    // update numerator
+     if (state == Model_A) {
       if ((host_state == Host_Ah) && (host_state_previous != Host_Ah) && (time_host_state_change == t)) {
         if (diagnostic == Diagnostic_true) {
           numer += 1.0;
@@ -1220,17 +1210,23 @@ void Host::update_output(Measure measure,
           numer += get_detectability_PCR_chronic(t);
         }
       }
-    } else if (state == Model_P) {
-      if ((host_state == Host_Ph) && (host_state_previous != Host_Ph) && (time_host_state_change == t)) {
-        numer += 1.0;
-      }
     } else if (state == Model_S) {
       if ((host_state == Host_Sh) && (host_state_previous != Host_Sh) && (time_host_state_change == t)) {
+        numer += 1.0;
+      }
+    } else if (state == Model_E) {
+      if ((host_state == Host_Eh) && (host_state_previous != Host_Eh) && (time_host_state_change == t)) {
+        numer += 1.0;
+      }
+    } else if (state == Model_P) {
+      if ((host_state == Host_Ph) && (host_state_previous != Host_Ph) && (time_host_state_change == t)) {
         numer += 1.0;
       }
     }
     
     // update denominator
+    // NB. for the time being the denominator in these calculations is always
+    // the entire population. May want to revisit this calculation
     denom += 1.0;
     
   }

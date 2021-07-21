@@ -11,8 +11,8 @@ navbar:
       menu:
         - text: "Installation"
           href: articles/installation.html
-        - text: "Basic tutorial"
-          href: articles/basic_tutorial.html
+        - text: "Getting started: simulating epidemiological data"
+          href: articles/getting_started.html
         - text: -------
         - text: "Epidemiological model details"
           href: articles/model_description.html

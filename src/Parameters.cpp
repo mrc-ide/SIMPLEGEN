@@ -163,7 +163,6 @@ void Parameters::load_sampling_params_daily(Rcpp::List args) {
   
   daily_age_min = Rcpp::as<vector<int>>(daily_df["age_min"]);
   daily_age_max = Rcpp::as<vector<int>>(daily_df["age_max"]);
-  daily_inoculations = Rcpp::as<vector<int>>(daily_df["inoculations"]);
   
   // create a map to assist in working out if a host is required to produce
   // daily output. The key to the map is a deme-&-age combination (1-year age
@@ -256,7 +255,6 @@ void Parameters::load_sampling_params_sweep(Rcpp::List args) {
   
   sweep_age_min = Rcpp::as<vector<int>>(sweep_df["age_min"]);
   sweep_age_max = Rcpp::as<vector<int>>(sweep_df["age_max"]);
-  sweep_inoculations = Rcpp::as<vector<int>>(sweep_df["inoculations"]);
   
 }
 

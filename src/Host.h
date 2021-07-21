@@ -168,7 +168,6 @@ public:
                      Diagnostic diagnostic,
                      int age_min,
                      int age_max,
-                     int inoculations,
                      int t,
                      double &numer,
                      double &denom);

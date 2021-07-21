@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Basic Tutorial • SIMPLEGEN</title>
+<title>Getting started: simulating epidemiological data • SIMPLEGEN</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Basic Tutorial">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Getting started: simulating epidemiological data">
 <meta property="og:description" content="SIMPLEGEN">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -48,7 +48,7 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li>
-      <a href="../articles/basic_tutorial.html">Basic tutorial</a>
+      <a href="../articles/getting_started.html">Getting started: simulating epidemiological data</a>
     </li>
     <li class="divider">
     <li>
@@ -83,14 +83,14 @@
 
       
 
-      </header><script src="basic_tutorial_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
+      </header><script src="getting_started_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Basic Tutorial</h1>
+      <h1 data-toc-skip>Getting started: simulating epidemiological data</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/mrc-ide/SIMPLEGEN/blob/master/vignettes/basic_tutorial.Rmd"><code>vignettes/basic_tutorial.Rmd</code></a></small>
-      <div class="hidden name"><code>basic_tutorial.Rmd</code></div>
+      <small class="dont-index">Source: <a href="https://github.com/mrc-ide/SIMPLEGEN/blob/master/vignettes/getting_started.Rmd"><code>vignettes/getting_started.Rmd</code></a></small>
+      <div class="hidden name"><code>getting_started.Rmd</code></div>
 
     </div>
 
@@ -109,10 +109,18 @@
 <p>Alternatively, if you are familiar with the pipe operator <code><a href="../reference/%&gt;%.html">%&gt;%</a></code> from the <code>dplyr</code> package then you can use this to chain together multiple commands:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Attaching package: 'dplyr'</span>
+<span class="co">#&gt; The following objects are masked from 'package:stats':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     filter, lag</span>
+<span class="co">#&gt; The following objects are masked from 'package:base':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     intersect, setdiff, setequal, union</span>
 
 <span class="va">myproj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simplegen_project.html">simplegen_project</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="../reference/define_epi_model_parameters.html">define_epi_model_parameters</a></span><span class="op">(</span>H <span class="op">=</span> <span class="fl">1e3</span>,
-                              M <span class="op">=</span> <span class="fl">1e4</span><span class="op">)</span></code></pre></div>
+                              M <span class="op">=</span> <span class="fl">5e4</span><span class="op">)</span></code></pre></div>
 <p>Here we’ve just specified the human and mosquito population sizes and left all other parameters with their default values. A complete list of model parameters and their defaults can be found in the help for this function (see <code><a href="../reference/define_epi_model_parameters.html">?define_epi_model_parameters</a></code>).</p>
 <p>Taking a quick look at our project we get e a summary of the current setup:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -120,13 +128,13 @@
 <span class="co">#&gt; Epidemiological model:</span>
 <span class="co">#&gt;   demes: 1</span>
 <span class="co">#&gt;   H:  1000</span>
-<span class="co">#&gt;   M:  10000</span>
+<span class="co">#&gt;   M:  50000</span>
 <span class="co">#&gt;   seed infections: 100</span>
 <span class="co">#&gt; </span></code></pre></div>
 <p>We can use our inbuilt plotting functions to explore some of the assumed distributions of our model. For example, we can look at the distribution of time spent in the acute state:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/plot_epi_distribution.html">plot_epi_distribution</a></span><span class="op">(</span><span class="va">myproj</span>, name <span class="op">=</span> <span class="st">"duration_acute"</span><span class="op">)</span></code></pre></div>
-<p><img src="basic_tutorial_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
+<p><img src="getting_started_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
 <p>Many distributions can be explored in this way, and <code><a href="../reference/plot_epi_distribution.html">?plot_epi_distribution</a></code> gives a complete list.</p>
 <p>Once we’re happy with the parameters of the model, the next step is to define the outputs that we expect it to produce. There are three possible types of output:</p>
 <ol style="list-style-type: decimal">
@@ -178,26 +186,26 @@
                                          sweeps <span class="op">=</span> <span class="va">sweep_dataframe</span><span class="op">)</span></code></pre></div>
 <p>The final type of output is surveys, but these mainly relate to genetic data and so will be explored in a later vignette.</p>
 </div>
-<div id="running-the-model-and-extracting-results" class="section level3">
+<div id="running-the-simulation" class="section level3">
 <h3 class="hasAnchor">
-<a href="#running-the-model-and-extracting-results" class="anchor"></a>Running the model and extracting results</h3>
-<p>Once we have specified our model parameters and outputs we are ready to run the simulation. This is done using the <code><a href="../reference/sim_epi.html">sim_epi()</a></code> function. Note that the argument <code>pb_markdown = TRUE</code> is used here just to avoid cluttering this tutorial with too much output, but you should run without this argument.</p>
+<a href="#running-the-simulation" class="anchor"></a>Running the simulation</h3>
+<p>Once we have specified our model parameters and outputs we are ready to run the simulation. This is done using the <code><a href="../reference/sim_epi.html">sim_epi()</a></code> function. Note that the argument <code>pb_markdown = TRUE</code> is used here just to avoid cluttering this tutorial with too much output, but you should run without this argument. In the example below we run the simulation for 10 years of output:</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>myproj &lt;-<span class="st"> </span><span class="kw">sim_epi</span>(myproj,</span>
-<span id="cb9-2"><a href="#cb9-2"></a>                  <span class="dt">max_time =</span> <span class="dv">365</span>,</span>
+<span id="cb9-2"><a href="#cb9-2"></a>                  <span class="dt">max_time =</span> <span class="dv">3650</span>,</span>
 <span id="cb9-3"><a href="#cb9-3"></a>                  <span class="dt">pb_markdown =</span> <span class="ot">TRUE</span>)</span>
 <span id="cb9-4"><a href="#cb9-4"></a><span class="co">#&gt; Running simulation</span></span>
 <span id="cb9-5"><a href="#cb9-5"></a><span class="co">#&gt; </span></span>
 <span id="cb9-6"><a href="#cb9-6"></a>  <span class="op">|</span><span class="st">                                                                            </span></span>
 <span id="cb9-7"><a href="#cb9-7"></a><span class="st">  </span><span class="er">|======================================================================|</span><span class="st"> </span><span class="dv">100</span>%</span>
 <span id="cb9-8"><a href="#cb9-8"></a><span class="co">#&gt; </span></span>
-<span id="cb9-9"><a href="#cb9-9"></a><span class="co">#&gt; completed in 0.027570 seconds</span></span></code></pre></div>
+<span id="cb9-9"><a href="#cb9-9"></a><span class="co">#&gt; completed in 1.473755 seconds</span></span></code></pre></div>
 <p>Taking a quick look at the project we can now see that we have some output:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">myproj</span>
 <span class="co">#&gt; Epidemiological model:</span>
 <span class="co">#&gt;   demes: 1</span>
 <span class="co">#&gt;   H:  1000</span>
-<span class="co">#&gt;   M:  10000</span>
+<span class="co">#&gt;   M:  50000</span>
 <span class="co">#&gt;   seed infections: 100</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Sampling strategy:</span>
@@ -206,7 +214,7 @@
 <span class="co">#&gt;   survey outputs: 0</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Output:</span>
-<span class="co">#&gt;   simulation days: 365</span></code></pre></div>
+<span class="co">#&gt;   simulation days: 3650</span></code></pre></div>
 <p>All output from the epidemiological model is stored within the <code>epi_outputs</code> element of the project. For example, we can look at the first few daily output values:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">myproj</span><span class="op">$</span><span class="va">epi_output</span><span class="op">$</span><span class="va">daily</span><span class="op">)</span>
@@ -220,87 +228,41 @@
 <p>Notice that the format of this dataframe is identical to the daily dataframe we loaded in, but now replicated over all <code>time</code> points and with an added <code>value</code> column. We see a very similar thing when we look at the sweep output:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">myproj</span><span class="op">$</span><span class="va">epi_output</span><span class="op">$</span><span class="va">sweeps</span><span class="op">)</span>
-<span class="co">#&gt;         name time deme    measure state diagnostic age_min age_max      value</span>
-<span class="co">#&gt; 1 prev_acute  365    1 prevalence     A       true       0       4 0.01111111</span>
-<span class="co">#&gt; 2 prev_acute  365    1 prevalence     A       true       5       9 0.03488372</span>
-<span class="co">#&gt; 3 prev_acute  365    1 prevalence     A       true      10      14 0.03174603</span>
-<span class="co">#&gt; 4 prev_acute  365    1 prevalence     A       true      15      19 0.03409091</span>
-<span class="co">#&gt; 5 prev_acute  365    1 prevalence     A       true      20      24 0.04109589</span>
-<span class="co">#&gt; 6 prev_acute  365    1 prevalence     A       true      25      29 0.06349206</span></code></pre></div>
-<p>Having outputs in long format like this is not always the most efficient in terms of storage, but is very convenient when it comes to plotting and summarizing results as will be seen below.</p>
+<span class="co">#&gt;         name time deme    measure state diagnostic age_min age_max     value</span>
+<span class="co">#&gt; 1 prev_acute  365    1 prevalence     A       true       0       4 0.1777778</span>
+<span class="co">#&gt; 2 prev_acute  365    1 prevalence     A       true       5       9 0.1976744</span>
+<span class="co">#&gt; 3 prev_acute  365    1 prevalence     A       true      10      14 0.1587302</span>
+<span class="co">#&gt; 4 prev_acute  365    1 prevalence     A       true      15      19 0.1931818</span>
+<span class="co">#&gt; 5 prev_acute  365    1 prevalence     A       true      20      24 0.2328767</span>
+<span class="co">#&gt; 6 prev_acute  365    1 prevalence     A       true      25      29 0.2063492</span></code></pre></div>
+<p>Having outputs in long format like this makes it easy to plot and summarize results, as will be seen below.</p>
 </div>
-<div id="plotting-results" class="section level3">
+<div id="plotting-and-summarizing-results" class="section level3">
 <h3 class="hasAnchor">
-<a href="#plotting-results" class="anchor"></a>Plotting results</h3>
-<p>One of the most basic plots that we might be interested in is the daily number of hosts in each state. We can specify the states that we want to plot as an input vector:</p>
+<a href="#plotting-and-summarizing-results" class="anchor"></a>Plotting and summarizing results</h3>
+<p>Having outputs in long format makes it straightforward to plot and summarize results - especially if we make use of fantastic packages like <code>dplyr</code> and <code>ggplot2</code>.</p>
+<p>For example, the following code filters our daily output to prevalence measures only and then produces a basic line plot of prevalence over time:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
 
 <span class="va">myproj</span><span class="op">$</span><span class="va">epi_output</span><span class="op">$</span><span class="va">daily</span> <span class="op">%&gt;%</span>
-  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">name</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"acute_prev"</span>, <span class="st">"chronic_prev"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">measure</span> <span class="op">==</span> <span class="st">"prevalence"</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">name</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<p><img src="basic_tutorial_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
-<p>This is also true of mosquito states, which are suffixed with “v”:</p>
+<p><img src="getting_started_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+<p>We can see that prevalence increased initally, then reached a stable level after a period of time.</p>
+<p>Similarly, we can produce simple plots of our sweep output:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co">#plot_daily_states(myproj, states = c("Ev", "Iv"))</span></code></pre></div>
-<p>In addition to storing daily counts in each state, the <code><a href="../reference/sim_epi.html">sim_epi()</a></code> function takes a slice of the population at various times, allowing us to plot age-distributions at these points in time. The sampling times are specified by the argument <code>output_age_times</code>, which defaults to the final timepoint only. Hence, we can plot:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co">#plot_age_states(myproj, state = "C")</span></code></pre></div>
-</div>
-<div id="multiple-demes-and-migration" class="section level3">
-<h3 class="hasAnchor">
-<a href="#multiple-demes-and-migration" class="anchor"></a>Multiple demes and migration</h3>
-<p>SIMPLEGEN allows for multiple sub-populations (also called demes), which can be perfectly isolated or connected by migration. First, we specify the human and mosquito population sizes in each deme by using a vector of values for <code>H</code>, <code>M</code>, and <code>seed_infections</code>. Second, we specify a migration matrix giving the daily probability of each human moving from the source deme (rows) to the destination deme (columns).</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># define parameters over multiple demes</span>
-<span class="va">n_demes</span> <span class="op">&lt;-</span> <span class="fl">3</span>
-<span class="va">H</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1e3</span>, <span class="va">n_demes</span><span class="op">)</span>
-<span class="va">seed_infections</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1e2</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>
-<span class="va">M</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1e3</span>, <span class="fl">2e3</span>, <span class="fl">3e3</span><span class="op">)</span>
-
-<span class="co"># define a migration matrix</span>
-<span class="va">m</span> <span class="op">&lt;-</span> <span class="fl">0.01</span>
-<span class="va">mig_mat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="va">m</span> <span class="op">/</span> <span class="va">n_demes</span>, <span class="va">n_demes</span>, <span class="va">n_demes</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html">diag</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">m</span>, <span class="va">n_demes</span><span class="op">)</span>
-
-<span class="co"># load new paramters into the model</span>
-<span class="va">myproj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_epi_model_parameters.html">define_epi_model_parameters</a></span><span class="op">(</span><span class="va">myproj</span>,
-                                      H <span class="op">=</span> <span class="va">H</span>,
-                                      seed_infections <span class="op">=</span> <span class="va">seed_infections</span>,
-                                      M <span class="op">=</span> <span class="va">M</span>,
-                                      mig_mat <span class="op">=</span> <span class="va">mig_mat</span><span class="op">)</span>
-
-<span class="va">myproj</span>
-<span class="co">#&gt; Epidemiological model:</span>
-<span class="co">#&gt;   demes: 3</span>
-<span class="co">#&gt;   H:  1000, 1000, 1000</span>
-<span class="co">#&gt;   M:  1000, 2000, 3000</span>
-<span class="co">#&gt;   seed infections: 100, 0, 0</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Sampling strategy:</span>
-<span class="co">#&gt;   daily outputs: 3</span>
-<span class="co">#&gt;   sweep timepoints: 1</span>
-<span class="co">#&gt;   survey outputs: 0</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Output:</span>
-<span class="co">#&gt;   simulation days: 365</span></code></pre></div>
-<p>Then define sampling parameters</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">myproj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_epi_sampling_parameters.html">define_epi_sampling_parameters</a></span><span class="op">(</span><span class="va">myproj</span>, daily <span class="op">=</span> <span class="va">daily_dataframe</span><span class="op">)</span></code></pre></div>
-<p>We then run the simulation as normal:</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a>myproj &lt;-<span class="st"> </span><span class="kw">sim_epi</span>(myproj, <span class="dt">pb_markdown =</span> <span class="ot">TRUE</span>)</span>
-<span id="cb18-2"><a href="#cb18-2"></a><span class="co">#&gt; Running simulation</span></span>
-<span id="cb18-3"><a href="#cb18-3"></a><span class="co">#&gt; </span></span>
-<span id="cb18-4"><a href="#cb18-4"></a>  <span class="op">|</span><span class="st">                                                                            </span></span>
-<span id="cb18-5"><a href="#cb18-5"></a><span class="st">  </span><span class="er">|======================================================================|</span><span class="st"> </span><span class="dv">100</span>%</span>
-<span id="cb18-6"><a href="#cb18-6"></a><span class="co">#&gt; </span></span>
-<span id="cb18-7"><a href="#cb18-7"></a><span class="co">#&gt; completed in 0.059445 seconds</span></span></code></pre></div>
-<p>Now when plotting results we can use the <code>deme</code> argument to specify which deme to plot:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co">#plot_daily_states(myproj, states = c("A", "C", "P"), deme = 1)</span>
-<span class="co">#plot_daily_states(myproj, states = c("A", "C", "P"), deme = 2)</span>
-<span class="co">#plot_daily_states(myproj, states = c("A", "C", "P"), deme = 3)</span></code></pre></div>
-<p>In the example above there are three demes, with only the first containing infected hosts initially. As time progresses we see infections seed into the other two demes via migration.</p>
+<code class="sourceCode R"><span class="va">myproj</span><span class="op">$</span><span class="va">epi_output</span><span class="op">$</span><span class="va">sweeps</span> <span class="op">%&gt;%</span>
+  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>age_mid <span class="op">=</span> <span class="op">(</span><span class="va">age_min</span> <span class="op">+</span> <span class="va">age_max</span><span class="op">)</span> <span class="op">/</span> <span class="fl">2</span>,
+                age_width <span class="op">=</span> <span class="va">age_max</span> <span class="op">-</span> <span class="va">age_min</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_bar</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">age_mid</span>, y <span class="op">=</span> <span class="va">value</span>, width <span class="op">=</span> <span class="va">age_width</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"black"</span>, stat <span class="op">=</span> <span class="st">"identity"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"age"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">name</span><span class="op">)</span>
+<span class="co">#&gt; Warning: Ignoring unknown aesthetics: width</span>
+<span class="co">#&gt; Warning: Removed 6 rows containing missing values (position_stack).</span></code></pre></div>
+<p><img src="getting_started_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
 </div>
   </div>
 

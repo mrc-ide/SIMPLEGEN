@@ -2,10 +2,10 @@ pandoc: 2.7.3
 pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
-  basic_tutorial: basic_tutorial.html
+  getting_started: getting_started.html
   installation: installation.html
   model_description: model_description.html
   simulating_relatedness: simulating_relatedness.html
   transmission_record: transmission_record.html
-last_built: 2021-02-05T08:12Z
+last_built: 2021-07-21T15:09Z
 

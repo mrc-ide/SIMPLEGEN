@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Load system file — simplegen_file • SIMPLEGEN</title>
+<title>Define outputs produced from the transmission model — define_epi_sampling_parameters • SIMPLEGEN</title>
 
 
 <!-- jquery -->
@@ -39,9 +39,9 @@
 
 
 
-<meta property="og:title" content="Load system file — simplegen_file" />
-<meta property="og:description" content="Load a file from within the inst/extdata folder of the SIMPLEGEN
-  package. File extension must be one of .csv, .txt, or .rds." />
+<meta property="og:title" content="Define outputs produced from the transmission model — define_epi_sampling_parameters" />
+<meta property="og:description" content="Loads one or more dataframes into the SIMPLEGEN project that
+  specify which outputs will be returned from the epidemiological model." />
 
 
 
@@ -128,24 +128,43 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Load system file</h1>
+    <h1>Define outputs produced from the transmission model</h1>
     <small class="dont-index">Source: <a href='https://github.com/mrc-ide/SIMPLEGEN/blob/master/R/main.R'><code>R/main.R</code></a></small>
-    <div class="hidden name"><code>simplegen_file.Rd</code></div>
+    <div class="hidden name"><code>define_epi_sampling_parameters.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Load a file from within the inst/extdata folder of the SIMPLEGEN
-  package. File extension must be one of .csv, .txt, or .rds.</p>
+    <p>Loads one or more dataframes into the SIMPLEGEN project that
+  specify which outputs will be returned from the epidemiological model.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>simplegen_file</span><span class='op'>(</span><span class='va'>name</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>define_epi_sampling_parameters</span><span class='op'>(</span>
+  <span class='va'>project</span>,
+  daily <span class='op'>=</span> <span class='cn'>NULL</span>,
+  sweeps <span class='op'>=</span> <span class='cn'>NULL</span>,
+  surveys <span class='op'>=</span> <span class='cn'>NULL</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>name</th>
-      <td><p>the name of a file within the inst/extdata folder.</p></td>
+      <th>project</th>
+      <td><p>a SIMPLEGEN project, as produced by the
+<code><a href='simplegen_project.html'>simplegen_project()</a></code> function.</p></td>
+    </tr>
+    <tr>
+      <th>daily</th>
+      <td><p>a dataframe of daily outputs.</p></td>
+    </tr>
+    <tr>
+      <th>sweeps</th>
+      <td><p>a dataframe of outputs at specific time points.</p></td>
+    </tr>
+    <tr>
+      <th>surveys</th>
+      <td><p>a dataframe specifying surveys to be conducted on the
+population.</p></td>
     </tr>
     </table>
 

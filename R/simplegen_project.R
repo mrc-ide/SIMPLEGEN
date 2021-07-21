@@ -59,29 +59,35 @@ summary.simplegen_project <- function(object, ...) {
     message(sprintf("  H:\t %s", paste(p$epi_model_parameters$H, collapse = ", ")))
     message(sprintf("  M:\t %s", paste(p$epi_model_parameters$M, collapse = ", ")))
     message(sprintf("  seed infections: %s", paste(p$epi_model_parameters$seed_infections, collapse = ", ")))
+    
+    message("")
   }
   
   # print epi sampling parameters
-  #if (!is.null(p$epi_sampling_parameters)) {
-  #  message("Sampling strategy:")
-  #  n_time <- unique(p$epi_sampling_parameters$time)
-  #  n_samp_time <- mapply(sum, split(p$epi_sampling_parameters$n, f = p$epi_sampling_parameters$time))
-  #  if (length(n_time) <= 5) {
-  #    message(sprintf("  time: %s", paste(n_time, collapse = ", ")))
-  #    message(sprintf("  n: %s", paste(n_samp_time, collapse = ", ")))
-  #  } else {
-  #    message("  time: (more than 5)")
-  #    message("  n: (more than 5)")
-  #  }
-  #}
+  if (!is.null(p$epi_sampling_parameters)) {
+    message("Sampling strategy:")
+    
+    df_daily <- p$epi_sampling_parameters$daily
+    n_daily_outputs <- ifelse(is.null(df_daily), 0, nrow(df_daily))
+    message(sprintf("  daily outputs: %s", n_daily_outputs))
+    
+    df_sweeps <- p$epi_sampling_parameters$sweeps
+    n_sweep_times <- ifelse(is.null(df_sweeps), 0, length(unique(df_sweeps$time)))
+    message(sprintf("  sweep timepoints: %s", n_sweep_times))
+    
+    df_surveys <- p$epi_sampling_parameters$surveys
+    n_survey_outputs <- ifelse(is.null(df_surveys), 0, nrow(df_surveys))
+    message(sprintf("  survey outputs: %s", n_survey_outputs))
+    
+    message("")
+  }
   
   # print summary of epi output
-  #if (!is.null(p$sample_output)) {
-  #  message("Sample output:")
-  #  N <- nrow(p$sample_output)
-  #  n_pos <- sum(p$sample_output$positive)
-  #  message(sprintf("  prevalence: %s/%s (%s%%)", n_pos, N, signif(n_pos/N*100, digits = 2)))
-  #}
+  if (!is.null(p$epi_output)) {
+    message("Output:")
+    max_time <- max(c(p$epi_output$daily$time, p$epi_output$sweeps$time))
+    message(sprintf("  simulation days: %s", max_time))
+  }
   
   # print genetic parameters
   if (!is.null(p$genetic_parameters)) {
