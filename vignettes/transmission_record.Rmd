@@ -13,11 +13,40 @@ vignette: >
 Example comment
 -->
 
-The transmission record is
-  - a record of events in the simulation model
+In the second step of the SIMPLEGEN pipeline we store the output of our transmission model in a file called the *transmission record*. This vignette describes the format of the transmission record, and explains the logic behind storing information in this way.
 
-The overall purpose of the transmission record is
-  - to store the minimum amount of information that permits us to generate genetic data
+### What information do we need to track?
+
+When we simulate from a transmission model there are typically many thousands or even millions of events that take place. Some of these events have the *potential* to impact the genotypes that we see in our final sample of infected people. This does not mean they definitely *will* impact the observed genotypes, just that that *could* in theory impact them. A good example is a host being bitten by two infectious mosquitoes; this could result in a polyclonal infection if the mosquitoes carry different genotypes, or it could result in a monoclonal infection if the mosquitoes carry the same genotype.
+
+On the other hand, there are many events that we *do not* need to track because they cannot impact the genotypes we see in our final sample. A good example is a human host dying, either as a result of infection or just old age. If a host dies then by definition it will not be in our final sample of malaria-positive people, and so tracking this event would be a waste of computer memory.
+
+Overall, the purpose of the transmission record is **to keep a record of all events that have the potential to impact the genotypes in the final sample**. A secondary aim is to do this **in a computationally efficient way**, retaining only the minimum information required.
+
+These two aims are slightly at odds with one another, as the first wants us to retain as much information as possible and the second wants us to throw away as much as possible. The final format of the transmission record is a balance between these two extremes, allowing for fairly complex transmission models while also leading to managable file sizes.
+
+
+### Tracking infections
+
+The transmission record uses *infection IDs*. An infection in this context is defined as **a population of parasites passed between human host and mosquito at the point of biting**. Thus, a single infection can contain multiple genotypes or a single genotype. We should be careful not to confuse infection IDs with genotypes otherwise large parts of the SIMPLEGEN pipeline will not make sense!
+
+Now that we have a definition of an infection we can specify one of the most important assumptions of the SIMPLEGEN pipeline:
+
+**We assume that genotypes are conditionally independent of one another given the infection history**.
+
+This is a tricky statement to unpack, and actually allows for quite a range of models. In the simplest case we can think of neutral mutations, i.e. those that confer no selective advantage whatsoever. In this case the frequencies of the wild-type vs. mutant genotypes will drift up and down over time, perhaps undergoing strong bottlenecking at times, but crucially the relative frequencies will have no bearing on the overall progression of the infection (otherwise they would not be neutral mutations). This example falls within our assumption, and in fact is one of the main use-cases of SIMPLEGEN.
+
+It is also useful to think about counterexamples that violate this assumption. We can imagine a model in which every possible genotype has slightly different properties, perhaps relating to severity of disease or drug resistance. In this case having one or other genotype will impact how long a person is infected for, and whether they pass on that infection. Here the genotypes have a direct impact on the infection history
+
+To understand this assumption it's useful to think about some counterexamples. Imagine we had a model in which different genotypes had different within-host 
+
+It is this key assumption that allows us to decouple genetic simulation from the rest of the transmission model. To understand this assumption it's useful to think about cases that violate it. For example, if we had a genotype that was drug resistant then 
+
+For example, Figure 1 gives a schematic of parasite densities in an individual who receives two infections, shaded blue and red respectively. The second infection does not reach the same high parasite densities as the first, perhaps because the first infection stimulated a strong immune response that is still active. Thus, the two infections are not independent of one another - they are free to interact however we like within our model. The different shades show the genotypes within an infection, which undergo genetic drift over time.
+
+
+Notice that the two infections appear to interact in this example, with the second infection reaching lower parasite densities, perhaps due to 
+
 
 This step has two inputs:
   - the full transmission record of inoculations

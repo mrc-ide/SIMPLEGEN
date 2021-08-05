@@ -358,18 +358,14 @@ void Host::migrate(int new_deme) {
 // de-novo infection
 void Host::denovo_infection(int t, int &next_inoc_ID, std::ofstream &transmission_record) {
   
-  // generate dummy mosquito with an empty vector of inoculations
-  vector<int> empty_vec;
-  Mosquito dummy_mosquito(empty_vec);
-  
   // carry out infection from dummy mosquito
-  infection(t, next_inoc_ID, dummy_mosquito, transmission_record);
+  infection(t, next_inoc_ID, -1, -1, transmission_record);
   
 }
 
 //------------------------------------------------
 // infection
-void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &transmission_record) {
+void Host::infection(int t, int &next_inoc_ID, int mosquito_ID, int mosquito_infection_ID, std::ofstream &transmission_record) {
   
   // update cumulative infections
   cumul_infections++;
@@ -389,11 +385,7 @@ void Host::infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &tr
   
   // print to transmission record
   if (params->save_transmission_record) {
-    transmission_record << next_inoc_ID;
-    for (const auto &x : mosq.inoc_ID) {
-      transmission_record << " " << x;
-    }
-    transmission_record << ";";
+    transmission_record << t << ",1," << host_ID << "," << mosquito_ID << "," << next_inoc_ID << "," << mosquito_infection_ID << "\n";
   }
   
   // get next free inoculation slot

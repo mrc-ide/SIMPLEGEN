@@ -24,7 +24,9 @@ public:
   // filestream to transmission record
   std::ofstream transmission_record;
   
-  // unique IDs for each inoculation
+  // unique IDs for hosts, mosquitoes and inoculations
+  int next_host_ID;
+  int next_mosq_ID;
   int next_inoc_ID;
   
   // objects for sampling from probability distributions
@@ -52,7 +54,6 @@ public:
   
   // population of human hosts
   std::vector<Host> host_pop;
-  int next_host_ID;
   
   // store the integer index of hosts in each deme
   std::vector<std::vector<int>> host_index;
