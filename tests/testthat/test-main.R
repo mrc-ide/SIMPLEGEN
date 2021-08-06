@@ -53,38 +53,6 @@ test_that("default epi model runs and maintains expected project structure", {
   
 })
 
-#------------------------------------------------
-test_that("pruning generates expected output", {
-  
-  # make project
-  p <- simplegen_project()
-  
-  # manually define surver details (shortcut simulation)
-  p$epi_output$surveys <- data.frame(time = 365,
-                                     deme = 1,
-                                     host_ID = 1:2,
-                                     positive = TRUE,
-                                     inoc_IDs = c(15,16))
-  
-  # locations of transmission record (read from package), and pruned record
-  # (write to temporary file)
-  transmission_record_location <- system.file("extdata/", "trans_record_test1.txt", package = 'SIMPLEGEN', mustWork = TRUE)
-  pruned_record_location <- sprintf("%s/pruned_record_test1.txt", tempdir())
-  
-  # prune transmission record
-  p <- prune_transmission_record(project = p,
-                                 transmission_record_location = transmission_record_location,
-                                 pruned_record_location = pruned_record_location,
-                                 overwrite_pruned_record = TRUE)
-  
-  # read pruned record, and compare against expected output
-  pruned_record <- readLines(pruned_record_location)
-  pruned_record_ecpected_location <- system.file("extdata/", "pruned_record_test1.txt", package = 'SIMPLEGEN', mustWork = TRUE)
-  pruned_record_ecpected <- readLines(pruned_record_ecpected_location)
-  expect_identical(pruned_record, pruned_record_ecpected)
-  
-})
-
 
 
 

@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include "Host.h"
+
 //------------------------------------------------
 // class defining mosquito
 class Mosquito {
@@ -10,12 +12,24 @@ class Mosquito {
 public:
   
   // PUBLIC OBJECTS
-  std::vector<int> inoc_ID;
+  int mosquito_ID;
+  int infection_ID;
+  
+  int source_time;
+  int source_host_ID;
+  std::vector<int> source_infection_ID_vec;
+  
   
   // PUBLIC FUNCTIONS
   
   // constructors
   Mosquito() {};
-  Mosquito(std::vector<int> &inoc_ID);
+  
+  // main events
+  void infection(int t, int &next_infection_ID, Host &host);
+  void write_buffer(std::ofstream &transmission_record);
+  
+  // getters and setters
+  void set_mosquito_ID(int &mosquito_ID);
   
 };
