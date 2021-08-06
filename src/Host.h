@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include "Mosquito.h"
 #include "Parameters.h"
 #include "Sampler_v4.h"
 
@@ -120,7 +119,7 @@ public:
   void death(int &host_ID, int t);
   void migrate(int new_deme);
   void denovo_infection(int t, int &next_inoc_ID, std::ofstream &transmission_record);
-  void infection(int t, int &next_inoc_ID, Mosquito &mosq, std::ofstream &transmission_record);
+  void infection(int t, int &next_inoc_ID, int mosquito_ID, int mosquito_infection_ID, std::ofstream &transmission_record);
   void treatment(int t);
   void end_prophylaxis();
   

@@ -89,7 +89,7 @@
       <h1 data-toc-skip>The Transmission Record</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2021-07-21</h4>
+            <h4 class="date">2021-08-06</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/mrc-ide/SIMPLEGEN/blob/master/vignettes/transmission_record.Rmd"><code>vignettes/transmission_record.Rmd</code></a></small>
       <div class="hidden name"><code>transmission_record.Rmd</code></div>
@@ -101,41 +101,42 @@
 <!---
 Example comment
 -->
-<p>The transmission record is - a record of events in the simulation model</p>
-<p>The overall purpose of the transmission record is - to store the minimum amount of information that permits us to generate genetic data</p>
-<p>This step has two inputs: - the full transmission record of inoculations - the inoculation IDs corresponding to the sampled hosts And one output: - the pruned record</p>
-<p>Vignette sections:</p>
-<ul>
-<li>Basic description of record
-<ul>
-<li>we need to track inoculations not hosts in order to track potential of super-infection and co-transmission</li>
-<li>figure showing two generations of hosts with intervening mosquitoes and inoculations passing between them</li>
-<li>side-by-side with text version of record</li>
-</ul>
-</li>
-<li>More complex example involving partial mosquito feeds
-<ul>
-<li>figure shows mosquito obtaining inoculations from multiple sources, and passing on to multiple hosts</li>
-<li>another side-by-side text version</li>
-<li>assumption that feeds occur on same day. i.e. some information is lost, but hopefully justifiable</li>
-</ul>
-</li>
-<li>Pruning
-<ul>
-<li>sample usually a small fraction of total population. Most of these events have no relevance to sample.</li>
-<li>transmission model also needs to output the inoculation IDs of the hosts that make up the final sample. This allows us to prune the tree</li>
-<li>coalescent-style figure showing pruning. Side-by-side with pruned record (and full?)</li>
-<li>comment on reduction in size. Important as each inoculation will eventually represent a very large amount of information (potentially up to whole-genome scale) so reductions at this stage are welcome.</li>
-</ul>
-</li>
-<li>Conclusions
-<ul>
-<li>recap purpose and limitations of trasmission record</li>
-<li>note that things like migration are subsumed entirely into the record. Once we have the record we don’t need to know demes.</li>
-</ul>
-</li>
-</ul>
+<p>In the second step of the SIMPLEGEN pipeline the output of our transmission model is stored in a file called the <em>transmission record</em>. This vignette describes the format of the transmission record, and explains the logic behind storing information in this way.</p>
+<div id="what-information-do-we-need-to-track" class="section level3">
+<h3 class="hasAnchor">
+<a href="#what-information-do-we-need-to-track" class="anchor"></a>What information do we need to track?</h3>
+<p>When we simulate from a transmission model there are typically many thousands or even millions of events that take place. Some of these events have the <em>potential</em> to impact the genotypes that we see in our final sample of infected people - this does not mean they definitely <em>will</em> impact the observed genotypes, just that that <em>could</em> in theory impact them. A good example is a host being bitten by two infectious mosquitoes; this could result in a polyclonal infection if the mosquitoes carry different genotypes, or it could result in a monoclonal infection if the mosquitoes carry the same genotype.</p>
+<p>On the other hand, there are many events that cannot impact the genotypes we see in our final sample. A good example is a human host dying, either as a result of infection or just old age. If a host dies then by definition it will not make it into our final sample of malaria-positive people, and so tracking this event would be a waste of time and computer memory.</p>
+<p>Overall, the purpose of the transmission record is <strong>to keep a record of all events that have the potential to impact the genotypes in the final sample</strong>. This will allow us to use the transmission record to generate genotypes outside of the main simulation. A secondary aim is to do this <strong>in a computationally efficient way</strong>, retaining only the minimum information required. Simulations can get quite intensive, and so aiming for efficiency at this early stage can help keep file sizes small. Finally, we aim to do this <strong>in a flexible way</strong>, thereby ensuring that as many models as possible can access the pipeline.</p>
+<p>These three aims are slightly at odds with one another, and there is no single file format that will achieve all three perfectly. In the following we have tried to strike a balance that permits reasonably complex models while still keeping file sizes quite small.</p>
 </div>
+<div id="tracking-infections-not-genotypes" class="section level3">
+<h3 class="hasAnchor">
+<a href="#tracking-infections-not-genotypes" class="anchor"></a>Tracking infections, not genotypes</h3>
+<p>The transmission record works with <em>infections</em>, defined in this context as <strong>a population of parasites passed between human host and mosquito at the point of biting</strong>. Thus, a single infection can contain multiple genotypes or a single genotype. When we track infections we are simply making a note that a particular person had the potential to receive parasites from a particular mosquito, or vice versa. We are not thinking about more complex things like genetic drift or recombination which will be dealt with later.</p>
+<p>We can now specify one of the most important assumptions of the SIMPLEGEN pipeline:</p>
+<p><strong>We assume that the genotypes within an infection have no direct impact on disease progression or onward transmissibility.</strong></p>
+<p>This is a tricky statement to unpack, and actually allows for quite a wide range of models. In the simplest case we can think of genotypes separated by neutral mutations, i.e. those that confer no selective advantage to the parasite. In this case the frequencies of the different genotypes will drift up and down over time, perhaps undergoing strong bottlenecking at times, but crucially the relative frequencies will have no bearing on the overall progression of disease (otherwise they would not be neutral mutations). There can be a lot of information in patterns of neutral mutation, and so generating this sort of data will be one of the main use-cases of SIMPLEGEN.</p>
+<p>We can also think of examples that violate this assumption. We can imagine a model in which a particular genotype confers resistance to a common antimalarial drug, increasing the chance that an infection persists even after treatment. Here the presence or absence of the drug resistant gene directly impacts the progression of the disease, and so we would need to know genotypes at the time of simulating. This example would therefore not fit well within our framework.</p>
+<p>Not all models and research questions will fit neatly within this framework, but many transmission models use something akin to infections internally and so hopefully can be modified to produce output that can be used by SIMPLEGEN.</p>
+</div>
+<div id="working-with-infection-ids" class="section level3">
+<h3 class="hasAnchor">
+<a href="#working-with-infection-ids" class="anchor"></a>Working with infection IDs</h3>
+<p>Figure 1 gives an example of an infection being passed from a human host to a mosquito. There are several different IDs here: the human has <span style="color: red;"><b>ID 21</b></span>, the mosquito has <span style="color: blue;"><b>ID 33</b></span>, and the infection IDs are shown inside the small circles. The human initially carries infection ID 1, which then becomes infection ID 2 when it is passed to the mosquito. We can say that infection ID 1 is the parent of infection ID 2.</p>
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/transmission_record_single.png" width="100" height="100"><font size="2">
+<figcaption><strong>Figure 1</strong> Example of a human passing infection to a mosquito.
+</figcaption><p></p></font>
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/transmission_record.png" width="100" height="200"><font size="2">
+<figcaption><strong>Figure 1</strong> Transmission record diagram.
+</figcaption><p></p></font>
+<p>Text</p>
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/transmission_record_table.png" width="100" height="200"><font size="2">
+<figcaption><strong>Figure 1</strong> Transmission record diagram.
+</figcaption><p></p></font>
+<p>Text</p>
+</div>
+  </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
 

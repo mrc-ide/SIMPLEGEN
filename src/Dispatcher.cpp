@@ -26,12 +26,18 @@ void Dispatcher::init(Parameters &params_) {
     if (!transmission_record.is_open()) {
       Rcpp::stop("unable to create transmission record at specified location. Check the path exists, and that you have write access");
     }
+    
+    // write header line of transmission record
+    transmission_record << "time,event,human_ID,mosquito_ID,new_infection_ID,old_infection_ID\n";
+    
   }
   
-  // initialise unique IDs for each inoculation
+  // initialise unique IDs for hosts, mosquitoes and inoculations
+  next_host_ID = 1;
+  next_mosq_ID = 1;
   next_inoc_ID = 1;
   
-  // objects for sampling from probability distributions
+  // create objects for sampling from probability distributions
   int sampler_draws = 1000;
   sampler_age_stable = Sampler(params->age_stable, sampler_draws);
   sampler_age_death = Sampler(params->age_death, sampler_draws);
@@ -76,17 +82,16 @@ void Dispatcher::init(Parameters &params_) {
   // mean moving hosts around due to migration. With a single population we can
   // simply change the "deme" attribute of a host to represent migration
   host_pop = vector<Host>(sum(H));
-  next_host_ID = 0;
   
   // for each deme, store the integer index of all hosts in that deme, and the
   // integer index of infective hosts only. Infections are seeded in the latent
   // stage, therefore there are no infective hosts initially.
   host_index = vector<vector<int>>(params->n_demes);
   host_infective_index = vector<vector<int>>(params->n_demes);
-  int tmp1 = 0;
+  int tmp_int1 = 0;
   for (int k = 0; k < params->n_demes; ++k) {
-    host_index[k] = seq_int(tmp1, tmp1 + H[k] - 1);
-    tmp1 += H[k];
+    host_index[k] = seq_int(tmp_int1, tmp_int1 + H[k] - 1);
+    tmp_int1 += H[k];
   }
   
   // initialise the host population
@@ -155,13 +160,12 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
   // loop through daily time steps
   for (int t = 0; t < params->max_time; ++t) {
     
-    
     // update progress bar
     if (!params->silent) {
-      int remainder = t % int(ceil(double(params->max_time)/100));
-      if ((remainder == 0 && !params->pb_markdown) || ((t+1) == params->max_time)) {
-        update_progress(args_progress, "pb_sim", t+1, params->max_time, true);
-        if ((t+1) == params->max_time) {
+      int remainder = t % int(ceil(double(params->max_time) / 100));
+      if ((remainder == 0 && !params->pb_markdown) || ((t + 1) == params->max_time)) {
+        update_progress(args_progress, "pb_sim", t + 1, params->max_time, true);
+        if ((t + 1) == params->max_time) {
           print("");
         }
       }
@@ -251,8 +255,11 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
           // choose mosquito at random
           int rnd1 = sample2(0, Iv[k] - 1);
           
+          // write buffered mosquito transmission record
+          Iv_pop[k][rnd1].write_buffer(transmission_record);
+          
           // infect host
-          host_pop[this_host].infection(t, next_inoc_ID, Iv_pop[k][rnd1], transmission_record);
+          host_pop[this_host].infection(t, next_inoc_ID, Iv_pop[k][rnd1].mosquito_ID, Iv_pop[k][rnd1].infection_ID, transmission_record);
           
         }
         
@@ -318,11 +325,13 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
             
           } else {
             
-            // sample inoc IDs from host
-            vector<int> inoc_ID_vec = host_pop[this_host].get_inoc_ID_vec();
+            // create new mosquito and infect from host
+            Mosquito m;
+            m.set_mosquito_ID(next_mosq_ID);
+            m.infection(t, next_inoc_ID, host_pop[this_host]);
             
             // add to Ev_pop, scheduled to enter Iv_pop at future time
-            Ev_pop[k][v_ringbuffer].emplace_back(inoc_ID_vec);
+            Ev_pop[k][v_ringbuffer].emplace_back(m);
             
           }
           
@@ -491,11 +500,6 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
       }
     }
     */
-    
-    // line break in transmission record at end of this time step
-    if (params->save_transmission_record) {
-      transmission_record << "\n";
-    }
     
   }  // end main loop through daily time steps
   
