@@ -52,10 +52,10 @@
     </li>
     <li class="divider">
     <li>
-      <a href="../articles/model_description.html">Epidemiological model details</a>
+      <a href="../articles/model_description.html">The inbuilt transmission model</a>
     </li>
     <li>
-      <a href="../articles/transmission_record.html">Pruning the transmission record</a>
+      <a href="../articles/transmission_record.html">The transmission record</a>
     </li>
     <li>
       <a href="../articles/simulating_relatedness.html">Simulating relatedness</a>
@@ -89,7 +89,7 @@
       <h1 data-toc-skip>The Inbuilt Transmission Model</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2021-08-06</h4>
+            <h4 class="date">2021-08-10</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/mrc-ide/SIMPLEGEN/blob/master/vignettes/model_description.Rmd"><code>vignettes/model_description.Rmd</code></a></small>
       <div class="hidden name"><code>model_description.Rmd</code></div>
@@ -107,7 +107,7 @@ p.caption {
   font-size: 0.9em;
 }
 </style>
-<p>The first step in the SIMPLEGEN pipeline is to simulate from an epidemiological transmission model. An inbuilt transmission model is included with the program to make life easier, but any transmission model can be used as long as it can produce output in a certain format (described in a later vignette). The inbuilt model is designed to be as simple as possible but no simpler. It does not attempt to be a complete phenomenological description of the malaria life cycle - rather it is a cartoon that tries to capture some of the key relationships we see in data.</p>
+<p>The first step in the SIMPLEGEN pipeline is to simulate from an epidemiological transmission model. An inbuilt transmission model is included with the pipeline to make life easier, but any transmission model can be used as long as it can produce output in a certain format (described in <a href="https://mrc-ide.github.io/SIMPLEGEN/articles/transmission_record.html">the next vignette</a>). The inbuilt model is designed to be as simple as possible but no simpler. It does not attempt to be a complete phenomenological description of the malaria life cycle - rather it is a cartoon that tries to capture some of the key relationships we see in data.</p>
 <p>This vignette gives a high-level description of the inbuilt transmission model, including some of the key assumptions. For details on how to <em>run</em> this model, see <a href="https://mrc-ide.github.io/SIMPLEGEN/articles/getting_started.html">this vignette</a>.</p>
 <div id="inoculations-and-host-states" class="section level3">
 <h3 class="hasAnchor">
@@ -122,7 +122,7 @@ p.caption {
 </ol>
 <p>Inoculations can pass through all four stages in order, or they can skip over the acute or chronic stages depending on the model parameters (see <strong>Figure 4</strong>). The acute stage essentially represents the symptomatic stage of infection, although the word “acute” has been used rather than “symptomatic” to avoid forcing a clinical interpretation on the model. The chronic stage is designed to capture long-lasting infections, including possible asymptomatic and/or sub-patent stages (more on detection later).</p>
 <p>The state of a host is defined using the decision tree in <strong>Figure 1</strong>.</p>
-<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/host_decision_tree.png" width="80" height="150"><font size="2">
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/host_decision_tree.png" width="160" height="300"><font size="2">
 <figcaption><strong>Figure 1</strong> Decision tree showing how the state of a host is decided.
 </figcaption><p></p></font>
 <p>Unless the host has recently recieved treatment, and so is in the prophylactic stage, the state of the host is dictated by the states of the inoculations it carries.. This can be seen in <strong>Figure 2</strong>, which shows the host state for a simple case of two overlapping inoculations.</p>
