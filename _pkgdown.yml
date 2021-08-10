@@ -14,9 +14,9 @@ navbar:
         - text: "Getting started: simulating epidemiological data"
           href: articles/getting_started.html
         - text: -------
-        - text: "Epidemiological model details"
+        - text: "The inbuilt transmission model"
           href: articles/model_description.html
-        - text: "Pruning the transmission record"
+        - text: "The transmission record"
           href: articles/transmission_record.html
         - text: "Simulating relatedness"
           href: articles/simulating_relatedness.html
