@@ -25,7 +25,7 @@ set.seed(1)
 library(SIMPLEGEN)
 ```
 
-The first step in the SIMPLEGEN pipeline is to simulate from an epidemiological transmission model. An inbuilt transmission model is included with the program to make life easier, but any transmission model can be used as long as it can produce output in a certain format (described in a later vignette). The inbuilt model is designed to be as simple as possible but no simpler. It does not attempt to be a complete phenomenological description of the malaria life cycle - rather it is a cartoon that tries to capture some of the key relationships we see in data.
+The first step in the SIMPLEGEN pipeline is to simulate from an epidemiological transmission model. An inbuilt transmission model is included with the pipeline to make life easier, but any transmission model can be used as long as it can produce output in a certain format (described in [the next vignette](https://mrc-ide.github.io/SIMPLEGEN/articles/transmission_record.html)). The inbuilt model is designed to be as simple as possible but no simpler. It does not attempt to be a complete phenomenological description of the malaria life cycle - rather it is a cartoon that tries to capture some of the key relationships we see in data.
 
 This vignette gives a high-level description of the inbuilt transmission model, including some of the key assumptions. For details on how to *run* this model, see [this vignette](https://mrc-ide.github.io/SIMPLEGEN/articles/getting_started.html).
 
@@ -45,7 +45,7 @@ Inoculations can pass through all four stages in order, or they can skip over th
 
 The state of a host is defined using the decision tree in **Figure 1**.
 
-<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/host_decision_tree.png" width="80" height = "150"/>
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/host_decision_tree.png" width="160" height = "300"/>
 <font size="2">
 <figcaption> **Figure 1** Decision tree showing how the state of a host is decided.</figcaption>
 </font>

@@ -1218,7 +1218,8 @@ void Host::update_output(Measure measure,
     
     // update denominator
     // NB. for the time being the denominator in these calculations is always
-    // the entire population. May want to revisit this calculation
+    // the entire population (in this age group). May want to revisit this
+    // calculation
     denom += 1.0;
     
   }
