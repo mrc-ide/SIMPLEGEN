@@ -1,6 +1,6 @@
 
-[![develop build](https://github.com/mrc-ide/SIMPLEGEN/actions/workflows/develop_build.yaml/badge.svg?branch=develop)](https://github.com/mrc-ide/SIMPLEGEN/actions/workflows/develop_build.yaml)
 [![master build](https://github.com/mrc-ide/SIMPLEGEN/actions/workflows/master_build.yaml/badge.svg?branch=master)](https://github.com/mrc-ide/SIMPLEGEN/actions/workflows/master_build.yaml)
+[![develop build](https://github.com/mrc-ide/SIMPLEGEN/actions/workflows/develop_build.yaml/badge.svg?branch=develop)](https://github.com/mrc-ide/SIMPLEGEN/actions/workflows/develop_build.yaml)
 [![Coverage status](https://codecov.io/gh/mrc-ide/SIMPLEGEN/branch/develop/graph/badge.svg)](https://codecov.io/github/mrc-ide/SIMPLEGEN?branch=develop)
 
 # SIMPLEGEN

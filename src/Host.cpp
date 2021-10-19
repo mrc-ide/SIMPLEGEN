@@ -385,7 +385,7 @@ void Host::infection(int t, int &next_inoc_ID, int mosquito_ID, int mosquito_inf
   
   // print to transmission record
   if (params->save_transmission_record) {
-    transmission_record << t << ",1," << host_ID << "," << mosquito_ID << "," << next_inoc_ID << "," << mosquito_infection_ID << "\n";
+    transmission_record << t << ",1," << host_ID << "," << mosquito_ID << "," << next_inoc_ID << "," << mosquito_infection_ID << "," << deme + 1 << "\n";
   }
   
   // get next free inoculation slot

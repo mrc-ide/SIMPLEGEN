@@ -16,6 +16,7 @@ public:
   int infection_ID;
   
   int source_time;
+  int source_deme;
   int source_host_ID;
   std::vector<int> source_infection_ID_vec;
   
