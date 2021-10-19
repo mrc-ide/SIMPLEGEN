@@ -1,4 +1,3 @@
-context("assertions_v12")
 
 #------------------------------------------------
 test_that("nice_format working correctly", {
