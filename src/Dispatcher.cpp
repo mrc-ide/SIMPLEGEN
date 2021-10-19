@@ -28,7 +28,7 @@ void Dispatcher::init(Parameters &params_) {
     }
     
     // write header line of transmission record
-    transmission_record << "time,event,human_ID,mosquito_ID,new_infection_ID,old_infection_ID\n";
+    transmission_record << "time,event,human_ID,mosquito_ID,child_infection_ID,parent_infection_ID,deme\n";
     
   }
   

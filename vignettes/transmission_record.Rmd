@@ -13,7 +13,7 @@ vignette: >
 Example comment
 -->
 
-One of the key steps in the SIMPLEGEN pipeline is the production of a *transmission record*. This vignette describes the format of the transmission record, and explains the logic behind storing information in this way.
+One of the key steps in the SIMPLEGEN pipeline is simulating a *transmission record*. This vignette describes the format of the transmission record and explains the logic behind storing information in this way.
 
 ### What is a transmission record?
 
@@ -21,9 +21,9 @@ When we simulate from a transmission model there are typically many thousands or
 
 On the other hand, there are many events that cannot impact the genotypes we see in our final sample. One example is a human host dying, either as a result of infection or from natural causes. If a host dies then by definition it will not make it into our final sample of malaria-positive people, and so, for our purposes, tracking this event would be a waste of time and computer memory.
 
-The purpose of the transmission record is **to keep a record of all events that have the potential to impact the genotypes in the final sample**. A secondary aim is to do this **in a computationally efficient way**, retaining only the minimum information required. A third aim is to do this **in a simple and flexible way**, thereby ensuring that as many models as possible can access the SIMPLEGEN pipeline.
+The purpose of the transmission record is **to keep a record of all events that have the potential to impact the genotypes in the final sample**. We aim to do this **in a computationally efficient way**, retaining only the minimum information required, and also **in a simple and flexible way** to ensure as many models as possible can access the SIMPLEGEN pipeline.
 
-These aims are slightly at odds with one another - there is no single file format that will achieve all three aims perfectly. In chooseing the format of the transmission record we have tried to strike a balance that permits reasonably complex models while still keeping file sizes small.
+The purpose of the transmission record is *not* keep track of every event in the simulation. We are not aiming to reconstruct the entire simulation from this output, we are just trying to capture the important genetic elements.
 
 
 ### Tracking infections, not genotypes
@@ -36,19 +36,19 @@ This brings us to one of the most important assumptions of the SIMPLEGEN pipelin
 
 This is a tricky statement to unpack, as it actually allows for quite a wide range of models. In the simplest case we can think of genotypes separated by neutral mutations, i.e. those that confer no selective advantage to the parasite. In this case the frequencies of the different genotypes will drift up and down, perhaps undergoing strong bottlenecking at times, but crucially the relative frequencies will have no bearing on the overall progression of disease (otherwise they would not be *neutral* mutations).
 
-We can also try to think of examples that violate this assumption. We can imagine a model in which a particular allele confers resistance to a common antimalarial drug, thereby increasing the chance that an infection persists even after treatment. Here the presence or absence of the allele directly impacts the progression of the disease, and so we would need to know genotypes at the time of simulating transmission.
+We can also try to think of examples that violate this assumption. We can imagine a model in which a particular allele confers resistance to a commonly used antimalarial drug, thereby increasing the chance that an infection persists even after treatment. Here the presence or absence of the allele directly impacts the progression of the disease, and so we would need to know genotypes at the time of simulating transmission.
 
 Although this assumption limits the kinds of models that can use the SIMPLEGEN pipeline, it does so with good reason. When this assumption is met it means we can separate out the genetic aspect of simulation from the epidemiological aspect, which in turn can have huge benefints in terms of speed and memory requirements. It still leaves the door open to many research and surveillance questions, for example those that rely on patterns of neutral genetic variation, however, there will always be situations where we cannot make this assumption in which case other tools may be more appropriate.
 
 ### Working with infection IDs
 
-To make a transmission record we need a way of tracking infections as they move between human hosts and mosquitoes. This can be done quite easily by using three different types of IDs:
+To make the transmission record we need a way of tracking infections as they move between human hosts and mosquitoes. This can be done quite easily by using three different types of IDs:
 
 1. <span style="color: red;">Human IDs</span>
 2. <span style="color: blue;">Mosquito IDs</span>
 3. Infection IDs
 
-These IDs are nothing more than integer numbers that uniquely identify a given person/mosquito/infection. **Figure 1** gives a diagram of an infection being passed from a human host to a mosquito. The human here has ID <span style="color: red;">21</span>, the mosquito has ID <span style="color: blue;">33</span>, and the infection IDs are shown inside the small circles and along the arrow, which represents transmission. The human host initially carries infection ID 1, which then becomes infection ID 2 when it is passed to the mosquito. We can say that infection 2 is the *child* of infection 1, and likewise infection 1 is the *parent* of infection 2.
+These IDs are nothing more than numbers that uniquely identify a given person/mosquito/infection. **Figure 1** gives a diagram of an infection being passed from a human host to a mosquito. The human here has ID <span style="color: red;">21</span>, the mosquito has ID <span style="color: blue;">33</span>, and the infection IDs are shown inside the small circles. The human host initially carries infection ID 1, which then becomes infection ID 2 when it is passed to the mosquito. We can say that infection 2 is the *child* of infection 1, and likewise infection 1 is the *parent* of infection 2. There is nothing special ocurring biologically when we move from infection ID 1 to 2, this is just how we choose to label events.
 
 <img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/transmission_record_single.png" style="width:50%"/>
 <font size="2">
@@ -66,15 +66,21 @@ There are several things to note from this diagram:
 
 - Every infection has a unique ID, even infections that are children of the same parent. For example, infections 3 and 4 are both children of infection 1, but they have different IDs to distinguish them from one another (they are different populations of parasites).
 
-- Both humans and mosquitoes can be infected multiple times. In this example human <span style="color: red;">25</span> picks up infections from two different mosquitoes, and similarly mosquito <span style="color: blue;">35</span> picks up infections from two different humans. There is no limit imposed on the number of infections a human/mosquito can receive.
+- Both humans and mosquitoes can be infected multiple times. In this example human <span style="color: red;">25</span> picks up infections from two different mosquitoes, and similarly mosquito <span style="color: blue;">35</span> picks up infections from two different humans. There is no limit imposed by the transmission record on the number of infections a human/mosquito can receive.
 
-- An infection can have a single parent or multiple parents. In this example infection 12 is the child of parents 8 and 9.
+- An infection can have a single parent or multiple parents. In this example infection 12 is the child of parents 8 and 9. This does not mean anything in terms of genotypes or ancestors, at this stage we are just tracking which infections were present at the time of mosquito bite.
 
-Now that we have established some rules for how infections are passed between humans and mosquitoes we can think about how to encode this information. **Figure 3** gives the exact same information as shown in the diagram, but in the form of a table:
+This method of tracking infections is simple, yet rich enough to capture some important dynamics such as human and mosquito superinfection.
+
+
+### The transmission record
+
+Now that we have established some rules for how infections are passed between humans and mosquitoes we can think about how to encode this information. **Figure 3** gives the exact same information as **Figure 2**, but in the form of a table:
+
 
 <img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/transmission_record_table.png" style="width:70%" />
 <font size="2">
-<figcaption> **Figure 3** Example transmission record format.</figcaption>
+<figcaption> **Figure 3** Example of a basic transmission record.</figcaption>
 </font>
 
 Again, there a few things to note from this table:
@@ -85,7 +91,20 @@ Again, there a few things to note from this table:
 
 - In some cases we might want to represent a new infection entering the population without a parent; for example an infection imported from outside our study population. In this case a value -1 can be used for both the infection ID and the human/mosquito ID. In this example we start with two infected humans (<span style="color: red;">21</span> and <span style="color: red;">22</span>), so these are encoded in the table as two new infections without parents.
 
-The transmission record is nothing more than a copy of this table for every event in the simulation. It is stored as a comma-separated file (.csv), meaning it can be opened and browsed manually if needed.
+This is the most basic format of the transmission record. **Any simulation model that is capable of producing a record like the one above is free to plug into the SIMPLEGEN pipeline.**
 
+There are also some optional columns that can be used to add depth to the transmission record. The first column contains a record of parasite densities. In the example above it appears that infections within a host/mosquito are equivalent - for example infection IDs 8 and 9 within host <span style="color: red;">25</span> appear to be equally important. In reality, one of these infections might contribute far more to the total parasite load, which has implications for the chance of onward transmission. We can accommodate this by storing the relative parasite densities of each infection in an additional *parent_infection_density* column. The values in this column correspond directly to the infections in the *parent_infection_ID* column. Some genetic models might make use of this information while others will not. The second optional field is the *deme*. This stores the deme (i.e. subpopulation) in which the human and mosquito reside at the time of the bite. Sometimes we will not need this information, or our model will be unable to produce it, but in other cases this information will be very important, for example if we want to assume some sort of spatial structure in our model with each location having a different mix of starting allele frequencies. **Figure 4** gives an example of a transmission record with these optional extra columns:
 
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/transmission_record_table2.png" style="width:70%" />
+<font size="2">
+<figcaption> **Figure 4** Example of a transmission record with optional extra columns.</figcaption>
+</font>
+
+Again, there a few things to note from this table:
+
+- Parasite densities are taken as relative values, meaning they can be proportions or absolute numbers.
+
+- Demes are integer numbers and represent the deme in which the bite occurs. In this example host <span style="color: red;">21</span> moves demes between their first and second mosquito bite.
+
+The format of the transmission record is a comma-separated file (.csv), meaning it can be opened and browsed manually if needed, although often the file might become too large to make sense of by eye. The next step will be to prune this record down, which can reduce file sizes dramatically.
 

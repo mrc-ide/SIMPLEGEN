@@ -9,7 +9,7 @@
 #include <fstream>
 
 //------------------------------------------------
-// enumerate possible asexual and sexual inoculation states
+// enumerate possible asexual and sexual infection states
 enum State_asexual {Inactive_asexual, Liverstage_asexual, Acute_asexual, Chronic_asexual};
 enum State_sexual {Inactive_sexual, Acute_sexual, Chronic_sexual};
 

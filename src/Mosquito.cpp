@@ -12,6 +12,7 @@ void Mosquito::infection(int t, int &next_infection_ID, Host &host) {
   
   // record properties of host for writing to transmission record later
   source_time = t;
+  source_deme = host.deme;
   source_host_ID = host.host_ID;
   
   if (source_infection_ID_vec.size() != 0) {
@@ -36,7 +37,7 @@ void Mosquito::write_buffer(ofstream &transmission_record) {
     for (int i = 1; i < source_infection_ID_vec.size(); ++i) {
       transmission_record << ";" << source_infection_ID_vec[i];
     }
-    transmission_record << "\n";
+    transmission_record << "," << source_deme + 1 << "\n";
     source_infection_ID_vec.clear();
     
   }
