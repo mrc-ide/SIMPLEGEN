@@ -643,8 +643,40 @@ check_epi_sampling_params_surveys <- function(x) {
     return()
   }
   
-  # TODO - fill in this function
+  # check dataframe column names
+  assert_dataframe(x, message = "survey sampling parameters must be a dataframe")
+  col_titles <- c("t_start", "t_end", "interval", "measure", "sampling", "deme", "age_min", "age_max")
+  assert_in(col_titles, names(x), message = sprintf("survey sampling parameters dataframe must contain the following columns: {%s}",
+                                                    paste0(col_titles, collapse = ", ") ))
   
+  # check times
+  assert_vector_pos_int(x$t_start, zero_allowed = FALSE, message = "t_start must be a positive integer")
+  assert_vector_pos_int(x$t_end, zero_allowed = FALSE, message = "t_end must be a positive integer")
+  assert_greq(x$t_end, x$t_start, message = "t_end must be greater than or equal to t_start")
+  
+  # check interval
+  assert_vector_pos_int(x$interval, zero_allowed = FALSE, message = "interval must be a positive integer")
+  
+  # check measure
+  assert_in(x$measure, c("prevalence", "incidence", "EIR"), name_x = "survey measures")
+  
+  # check sampling
+  x %>%
+    dplyr::filter(.data$measure == "incidence") %>%
+    dplyr::pull(.data$sampling) %>%
+    assert_in(c("ACD", "PCD"), message = "survey sampling not formatted correctly")
+  x %>%
+    dplyr::filter(.data$measure != "incidence") %>%
+    dplyr::pull(.data$sampling) %>%
+    assert_NA(message = "survey sampling not formatted correctly")
+  
+  # check deme
+  assert_vector_pos_int(x$deme, zero_allowed = FALSE, message = "deme must be a positive integer")
+  
+  # check age range
+  assert_vector_pos_int(x$age_min, zero_allowed = TRUE, message = "age_min must be a positive integer or zero")
+  assert_vector_pos_int(x$age_max, zero_allowed = TRUE, message = "age_max must be a positive integer or zero")
+  assert_greq(x$age_max, x$age_min, message = "age_max must be greater than or equal to age_min")
 }
 
 #------------------------------------------------
@@ -676,12 +708,6 @@ check_epi_sampling_params_present <- function(project) {
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
 #' @param max_time run simulation for this many days.
-#' @param output_format several options exist for the output format:
-#'   \itemize{
-#'     \item 1 (default) = return final values only
-#'     \item 2 = also return numerator and denominator of prevalence and
-#'     incidence calculations.
-#'   }
 #' @param save_transmission_record whether to write the transmission record to
 #'   file.
 #' @param transmission_record_location the file path that the transmission
@@ -698,7 +724,6 @@ check_epi_sampling_params_present <- function(project) {
 
 sim_epi <- function(project,
                     max_time = 365,
-                    output_format = 1,
                     save_transmission_record = FALSE,
                     transmission_record_location = "",
                     overwrite_transmission_record = FALSE,
@@ -713,7 +738,6 @@ sim_epi <- function(project,
   
   assert_class(project, "simplegen_project")
   assert_single_pos_int(max_time, zero_allowed = FALSE)
-  assert_in(output_format, c(1,2))
   assert_single_logical(save_transmission_record)
   assert_string(transmission_record_location)
   assert_single_logical(overwrite_transmission_record)
@@ -740,7 +764,6 @@ sim_epi <- function(project,
   # append function arguments
   args <- c(args,
             list(max_time = max_time,
-                 output_format = output_format,
                  save_transmission_record = save_transmission_record,
                  transmission_record_location = transmission_record_location,
                  pb_markdown = pb_markdown,
@@ -756,27 +779,34 @@ sim_epi <- function(project,
   
   # establish which outputs are required
   args$any_daily_outputs <- !is.null(args$daily)
-  args$any_sweep_outputs <- !is.null(args$sweep)
+  args$any_sweep_outputs <- !is.null(args$sweeps)
+  args$any_survey_outputs <- !is.null(args$surveys)
   
-  # replace proportion with prevalence, as this is the same calculation
-  args$daily <- args$daily %>%
-    dplyr::mutate(measure = replace(measure, measure == "proportion", "prevalence"))
+  # replace "proportion" with "prevalence", as this uses the same calculation
+  args$daily$measure <- replace(args$daily$measure, args$daily$measure == "proportion", "prevalence")
   
-  # get sampling strategy indices into 0-indexed (C++) format
+  # get sampling strategy indices into 0-indexed numerical format
   sampling_to_cpp_format <- function(x) {
+    if (is.null(x)) {
+      return(x)
+    }
     w <- which(x$deme != -1)
     x$deme[w] <- x$deme[w] - 1
     x$measure <- match(x$measure, c("count", "prevalence", "incidence", "EIR")) - 1
-    x$state <- match(x$state, c("S", "E", "A", "C", "P", "H", "Sv", "Ev", "Iv", "M")) - 1
-    x$diagnostic <- match(x$diagnostic, c("true", "microscopy", "PCR")) - 1
+    if ("state" %in% names(x)) {
+      x$state <- match(x$state, c("S", "E", "A", "C", "P", "H", "Sv", "Ev", "Iv", "M")) - 1
+    }
+    if ("diagnostic" %in% names(x)) {
+      x$diagnostic <- match(x$diagnostic, c("true", "microscopy", "PCR")) - 1
+    }
+    if ("sampling" %in% names(x)) {
+      x$sampling <- match(x$sampling, c(NA, "ACD", "PCD")) - 1
+    }
     return(x)
   }
-  if (args$any_daily_outputs) {
-    args$daily <- sampling_to_cpp_format(args$daily)
-  }
-  if (args$any_sweep_outputs) {
-    args$sweeps <- sampling_to_cpp_format(args$sweeps)
-  }
+  args$daily <- sampling_to_cpp_format(args$daily)
+  args$sweeps <- sampling_to_cpp_format(args$sweeps)
+  args$surveys <- sampling_to_cpp_format(args$surveys)
   
   # unique times at which sweeps happen
   args$sweep_time_ordered <- sort(unique(args$sweeps$time))
@@ -794,64 +824,30 @@ sim_epi <- function(project,
   # run efficient C++ function
   output_raw <- indiv_sim_cpp(args, args_functions, args_progress)
   
+  #return(output_raw)
   
   # ---------- process output ----------
   
   # wrangle daily output
   daily_output <- NULL
-  daily_sampling <- project$epi_sampling_parameters$daily
-  if (!is.null(daily_sampling)) {
-    
-    # calculate final values from numerator and denominator
-    daily_numer <- unlist(output_raw$daily_numer)
-    daily_denom <- unlist(output_raw$daily_denom)
-    daily_values <- daily_numer / daily_denom
+  if (args$any_daily_outputs) {
     
     # make output dataframe with raw values
-    daily_output <- cbind(time = rep(seq_len(max_time), each = nrow(daily_sampling)),
-                          daily_sampling,
-                          value = daily_values,
-                          numer = daily_numer,
-                          denom = daily_denom,
+    daily_df <- project$epi_sampling_parameters$daily
+    daily_output <- cbind(time = rep(seq_len(max_time), each = nrow(daily_df)),
+                          daily_df,
+                          value = unlist(output_raw$daily_output),
                           row.names = NULL)
-    
-    # insert NAs as needed
-    w <- which(!(daily_output$measure %in% c("prevalence", "incidence")))
-    daily_output$value[w] <- daily_output$numer[w]
-    daily_output$numer[w] <- daily_output$denom[w] <- NA
-    
-    # format dataframe
-    if (output_format == 1) {
-      daily_output <- subset(daily_output, select = -c(numer, denom))
-    }
   }
   
   # wrangle sweep output
   sweeps_output <- NULL
-  sweeps_sampling <- project$epi_sampling_parameters$sweeps
-  if (!is.null(sweeps_sampling)) {
-    
-    # calculate final values from numerator and denominator
-    sweep_numer <- unlist(output_raw$sweep_numer)
-    sweep_denom <- unlist(output_raw$sweep_denom)
-    sweep_values <- sweep_numer / sweep_denom
+  if (args$any_sweep_outputs) {
     
     # make output dataframe with raw values
-    sweeps_output <- cbind(sweeps_sampling,
-                           value = sweep_values,
-                           numer = sweep_numer,
-                           denom = sweep_denom,
+    sweeps_output <- cbind(project$epi_sampling_parameters$sweeps,
+                           value = unlist(output_raw$sweep_output),
                            row.names = NULL)
-    
-    # insert NAs as needed
-    w <- which(!(sweeps_output$measure %in% c("prevalence", "incidence")))
-    sweeps_output$value[w] <- sweeps_output$numer[w]
-    sweeps_output$numer[w] <- sweeps_output$denom[w] <- NA
-    
-    # format dataframe
-    if (output_format == 1) {
-      sweeps_output <- subset(sweeps_output, select = -c(numer, denom))
-    }
   }
   
   # wrangle surveys output

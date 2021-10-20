@@ -89,7 +89,7 @@
       <h1 data-toc-skip>The Transmission Record</h1>
                         <h4 class="author">Bob Verity</h4>
             
-            <h4 class="date">2021-10-18</h4>
+            <h4 class="date">2021-10-20</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/mrc-ide/SIMPLEGEN/blob/master/vignettes/transmission_record.Rmd"><code>vignettes/transmission_record.Rmd</code></a></small>
       <div class="hidden name"><code>transmission_record.Rmd</code></div>
@@ -160,7 +160,7 @@ Example comment
 </ul>
 <p>This is the most basic format of the transmission record. <strong>Any simulation model that is capable of producing a record like the one above is free to plug into the SIMPLEGEN pipeline.</strong></p>
 <p>There are also some optional columns that can be used to add depth to the transmission record. The first column contains a record of parasite densities. In the example above it appears that infections within a host/mosquito are equivalent - for example infection IDs 8 and 9 within host <span style="color: red;">25</span> appear to be equally important. In reality, one of these infections might contribute far more to the total parasite load, which has implications for the chance of onward transmission. We can accommodate this by storing the relative parasite densities of each infection in an additional <em>parent_infection_density</em> column. The values in this column correspond directly to the infections in the <em>parent_infection_ID</em> column. Some genetic models might make use of this information while others will not. The second optional field is the <em>deme</em>. This stores the deme (i.e. subpopulation) in which the human and mosquito reside at the time of the bite. Sometimes we will not need this information, or our model will be unable to produce it, but in other cases this information will be very important, for example if we want to assume some sort of spatial structure in our model with each location having a different mix of starting allele frequencies. <strong>Figure 4</strong> gives an example of a transmission record with these optional extra columns:</p>
-<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/transmission_record_table2.png" style="width:70%"><font size="2">
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/transmission_record_table2.png" style="width:90%"><font size="2">
 <figcaption><strong>Figure 4</strong> Example of a transmission record with optional extra columns.
 </figcaption><p></p></font>
 <p>Again, there a few things to note from this table:</p>

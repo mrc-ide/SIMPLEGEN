@@ -3,6 +3,8 @@
 
 <img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/simplegenlogo.png" height="123px" width="533px" />
 
+# SIMPLEGEN IS CURRENTLY IN DEVELOPMENT AND SHOULD NOT BE USED FOR REAL ANALYSIS.
+## Watch this space...
 
 SIMPLEGEN is an R package for **sim**ulating **Pl**asmodium **e**pidemiological and **gen**etic data. The rationalle behind SIMPLEGEN is that computationally intensive forwards-simulation of *P. falciparum* genetic data can be avoided by splitting the process into multiple stages. These stages make up the SIMPLEGEN pipeline:
 

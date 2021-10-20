@@ -104,9 +104,19 @@ public:
   int n_sweep_outputs;
   bool any_sweep_outputs;
   
+  std::vector<int> survey_t_start;
+  std::vector<int> survey_t_end;
+  std::vector<int> survey_interval;
+  std::vector<Measure> survey_measure;
+  std::vector<int> survey_sampling;
+  std::vector<int> survey_deme;
+  std::vector<int> survey_age_min;
+  std::vector<int> survey_age_max;
+  int n_survey_outputs;
+  bool any_survey_outputs;
+  
   // run parameters
   int max_time;
-  int output_format;
   bool save_transmission_record;
   std::string transmission_record_location;
   bool pb_markdown;
@@ -126,9 +136,11 @@ public:
   void load_sampling_params(Rcpp::List args);
   void load_sampling_params_daily(Rcpp::List args);
   void load_sampling_params_sweep(Rcpp::List args);
+  void load_sampling_params_survey(Rcpp::List args);
   void load_run_params(Rcpp::List args);
   
   void summary();
+  void print_daily_maps();
   
 };
 

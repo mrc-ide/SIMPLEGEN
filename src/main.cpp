@@ -29,10 +29,8 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List 
   // end timer
   chrono_timer(t1);
   
-  return Rcpp::List::create(Rcpp::Named("daily_numer") = dispatcher.daily_numer,
-                            Rcpp::Named("daily_denom") = dispatcher.daily_denom,
-                            Rcpp::Named("sweep_numer") = dispatcher.sweep_numer,
-                            Rcpp::Named("sweep_denom") = dispatcher.sweep_denom);
+  return Rcpp::List::create(Rcpp::Named("daily_output") = dispatcher.daily_output,
+                            Rcpp::Named("sweep_output") = dispatcher.sweep_output);
   
 }
 #endif

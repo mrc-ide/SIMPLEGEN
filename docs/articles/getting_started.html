@@ -69,7 +69,7 @@
 <ul class="nav navbar-nav navbar-right">
 <li>
   <a href="https://github.com/mrc-ide/SIMPLEGEN">
-    <span class="fas fa-github"></span>
+    <span class="fa fa-github"></span>
      
   </a>
 </li>
@@ -83,7 +83,7 @@
 
       
 
-      </header><script src="getting_started_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
+      </header><script src="getting_started_files/header-attrs-2.10/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Getting started: simulating epidemiological data</h1>
@@ -106,7 +106,7 @@
 <span class="va">myproj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_epi_model_parameters.html">define_epi_model_parameters</a></span><span class="op">(</span><span class="va">myproj</span>,
                                       H <span class="op">=</span> <span class="fl">1e3</span>,
                                       M <span class="op">=</span> <span class="fl">1e4</span><span class="op">)</span></code></pre></div>
-<p>Alternatively, if you are familiar with the pipe operator <code><a href="../reference/%&gt;%.html">%&gt;%</a></code> from the <code>dplyr</code> package then you can use this to chain together multiple commands:</p>
+<p>Alternatively, if you are familiar with the pipe operator <code><a href="../reference/%&gt;%.html">%&gt;%</a></code> from the <code>magrittr</code> package then you can use this to chain together multiple commands:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>
 <span class="co">#&gt; </span>
@@ -131,25 +131,25 @@
 <span class="co">#&gt;   M:  50000</span>
 <span class="co">#&gt;   seed infections: 100</span>
 <span class="co">#&gt; </span></code></pre></div>
-<p>We can use our inbuilt plotting functions to explore some of the assumed distributions of our model. For example, we can look at the distribution of time spent in the acute state:</p>
+<p>We can use inbuilt plotting functions to explore some of the assumptions of our model. For example, we can look at the distribution of time spent in the acute state:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/plot_epi_distribution.html">plot_epi_distribution</a></span><span class="op">(</span><span class="va">myproj</span>, name <span class="op">=</span> <span class="st">"duration_acute"</span><span class="op">)</span></code></pre></div>
 <p><img src="getting_started_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
-<p>Many distributions can be explored in this way, and <code><a href="../reference/plot_epi_distribution.html">?plot_epi_distribution</a></code> gives a complete list.</p>
-<p>Once we’re happy with the parameters of the model, the next step is to define the outputs that we expect it to produce. There are three possible types of output:</p>
+<p>Many distributions can be explored in this way, see <code><a href="../reference/plot_epi_distribution.html">?plot_epi_distribution</a></code> for a complete list.</p>
+<p>Once we are happy with the parameters of the model, the next step is to define the outputs that we expect it to produce. There are three types of output:</p>
 <ol style="list-style-type: decimal">
 <li>
 <code>daily</code> output contains values for each day of simulation. This can be useful for visualising trends over time.</li>
 <li>
-<code>sweeps</code> are the same as <code>daily</code> output, but evaluated at specific points in time. This can be useful for getting a more detailed snap-shot of the population without overloading the daily output. For example, we might want to return the prevalence in 5-year age bands on day 100, but without returning these values every other day of the simulation.</li>
+<code>sweeps</code> are the same as <code>daily</code> output, but evaluated at specific points in time. This can be useful for getting a more detailed snap-shot of the population without overloading the daily output. For example, we might want to return the prevalence in 5-year age bands on day 365, but without returning these values every other day of the simulation.</li>
 <li>
-<code>surveys</code> represent samples taken from the population according to a predefined sampling strategy. Surveys are the most important type of output from the genetic perspective, as genetic data will only be generated from individuals in the survey.</li>
+<code>surveys</code> represent samples taken from the population according to a predefined sampling strategy. Surveys are the most detailed and important type of output, as genetic data will only be generated from individuals in the survey.</li>
 </ol>
-<p>We specify daily outputs using a basic dataframe. <strong>Table 1</strong> gives the columns of this dataframe along with all possible combinations of values (<strong>Table 1</strong> should be read from left to right, moving into any box not separated by a horizontal line - for example, <code>state = "A", measure = "count"</code> is a viable combination, but <code>state = "A", measure = "EIR"</code> is not).</p>
+<p>We specify daily outputs using a basic dataframe. <strong>Table 1</strong> gives the columns of this dataframe along with all possible combinations of values.</p>
 <img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/sampling_params_table.png"><font size="2">
-<figcaption><strong>Table 1</strong> All possible options for daily outputs. Human outputs are shaded in red and mosquito outputs in green.
+<figcaption><strong>Table 1</strong> All possible options for daily outputs. Human outputs are shaded in red and mosquito outputs in green. This table should be read from left to right, moving into any box not separated by a horizontal line - for example, <code>state = "A", measure = "count"</code> is a viable combination, but <code>state = "A", measure = "EIR"</code> is not.
 </figcaption><p></p></font>
-<p>Any number of extra columns can be added to this basic dataframe, for example it can be useful to have a <code>name</code> column giving a short description of what each row contains. We can use any standard method to produce this dataframe; the code below uses the <code><a href="https://rdrr.io/r/base/cbind.html">rbind()</a></code> method:</p>
+<p>Any number of extra columns can be added to this basic dataframe and will simply be ignored by the software, for example it can be useful to have a <code>name</code> column giving a short description of what each row contains. We can use any standard method to produce this dataframe; the code below uses the <code><a href="https://rdrr.io/r/base/cbind.html">rbind()</a></code> method:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">daily_dataframe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"acute_prev"</span>, deme <span class="op">=</span> <span class="fl">1</span>, state <span class="op">=</span> <span class="st">"A"</span>, measure <span class="op">=</span> <span class="st">"prevalence"</span>, diagnostic <span class="op">=</span> <span class="st">"microscopy"</span>, age_min <span class="op">=</span> <span class="fl">0</span>, age_max <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,
                          <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"chronic_prev"</span>, deme <span class="op">=</span> <span class="fl">1</span>, state <span class="op">=</span> <span class="st">"C"</span>, measure <span class="op">=</span> <span class="st">"prevalence"</span>, diagnostic <span class="op">=</span> <span class="st">"microscopy"</span>, age_min <span class="op">=</span> <span class="fl">0</span>, age_max <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,
@@ -161,11 +161,11 @@
 <span class="co">#&gt; 1   acute_prev    1     A prevalence microscopy       0       5</span>
 <span class="co">#&gt; 2 chronic_prev    1     C prevalence microscopy       0       5</span>
 <span class="co">#&gt; 3    acute_inc    1     A  incidence        PCR       2      10</span></code></pre></div>
-<p>Once we’re happy with this dataframe we can load it into the project using <code><a href="../reference/define_epi_sampling_parameters.html">define_epi_sampling_parameters()</a></code>. At this point any errors in the format will be flagged.</p>
+<p>Once we’re happy with this dataframe we can load it into the project using <code><a href="../reference/define_epi_sampling_parameters.html">define_epi_sampling_parameters()</a></code>. At this point if there are any errors in the format they will be flagged.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">myproj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_epi_sampling_parameters.html">define_epi_sampling_parameters</a></span><span class="op">(</span>project <span class="op">=</span> <span class="va">myproj</span>,
                                          daily <span class="op">=</span> <span class="va">daily_dataframe</span><span class="op">)</span></code></pre></div>
-<p>The second type of output is sweeps. These can be defined using a second dataframe identical in format to the daily output but with an added <code>time</code> column. For example, the following code specifies that we want to output acute prevalence and acute incidence in 5-year age bands at day 365:</p>
+<p>The second type of output is sweeps. These can be defined using a second dataframe identical in format to the daily output, but with an added <code>time</code> column. For example, the following code specifies that we want to output acute prevalence and acute incidence in 5-year age bands at day 365:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">sweep_dataframe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"prev_acute"</span>, time <span class="op">=</span> <span class="fl">365</span>, deme <span class="op">=</span> <span class="fl">1</span>, measure <span class="op">=</span> <span class="st">"prevalence"</span>, state <span class="op">=</span> <span class="st">"A"</span>, diagnostic <span class="op">=</span> <span class="st">"true"</span>, age_min <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">100</span>, <span class="fl">5</span><span class="op">)</span>, age_max <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">100</span>, <span class="fl">5</span><span class="op">)</span> <span class="op">+</span> <span class="fl">4</span><span class="op">)</span>,
                          <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"inc_acute"</span>, time <span class="op">=</span> <span class="fl">365</span>, deme <span class="op">=</span> <span class="fl">1</span>, measure <span class="op">=</span> <span class="st">"incidence"</span>,  state <span class="op">=</span> <span class="st">"A"</span>, diagnostic <span class="op">=</span> <span class="st">"true"</span>, age_min <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">100</span>, <span class="fl">5</span><span class="op">)</span>, age_max <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">100</span>, <span class="fl">5</span><span class="op">)</span> <span class="op">+</span> <span class="fl">4</span><span class="op">)</span>,
@@ -179,7 +179,7 @@
 <span class="co">#&gt; 4 prev_acute  365    1 prevalence     A       true      15      19</span>
 <span class="co">#&gt; 5 prev_acute  365    1 prevalence     A       true      20      24</span>
 <span class="co">#&gt; 6 prev_acute  365    1 prevalence     A       true      25      29</span></code></pre></div>
-<p>Again, this needs to be loaded into the project:</p>
+<p>As before, we load this into the project using the <code><a href="../reference/define_epi_sampling_parameters.html">define_epi_sampling_parameters()</a></code> function:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">myproj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_epi_sampling_parameters.html">define_epi_sampling_parameters</a></span><span class="op">(</span>project <span class="op">=</span> <span class="va">myproj</span>,
                                          daily <span class="op">=</span> <span class="va">daily_dataframe</span>,
@@ -190,15 +190,15 @@
 <h3 class="hasAnchor">
 <a href="#running-the-simulation" class="anchor"></a>Running the simulation</h3>
 <p>Once we have specified our model parameters and outputs we are ready to run the simulation. This is done using the <code><a href="../reference/sim_epi.html">sim_epi()</a></code> function. Note that the argument <code>pb_markdown = TRUE</code> is used here just to avoid cluttering this tutorial with too much output, but you should run without this argument. In the example below we run the simulation for 10 years of output:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>myproj &lt;-<span class="st"> </span><span class="kw">sim_epi</span>(myproj,</span>
-<span id="cb9-2"><a href="#cb9-2"></a>                  <span class="dt">max_time =</span> <span class="dv">3650</span>,</span>
-<span id="cb9-3"><a href="#cb9-3"></a>                  <span class="dt">pb_markdown =</span> <span class="ot">TRUE</span>)</span>
-<span id="cb9-4"><a href="#cb9-4"></a><span class="co">#&gt; Running simulation</span></span>
-<span id="cb9-5"><a href="#cb9-5"></a><span class="co">#&gt; </span></span>
-<span id="cb9-6"><a href="#cb9-6"></a>  <span class="op">|</span><span class="st">                                                                            </span></span>
-<span id="cb9-7"><a href="#cb9-7"></a><span class="st">  </span><span class="er">|======================================================================|</span><span class="st"> </span><span class="dv">100</span>%</span>
-<span id="cb9-8"><a href="#cb9-8"></a><span class="co">#&gt; </span></span>
-<span id="cb9-9"><a href="#cb9-9"></a><span class="co">#&gt; completed in 1.484338 seconds</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>myproj <span class="ot">&lt;-</span> <span class="fu">sim_epi</span>(myproj,</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">max_time =</span> <span class="dv">3650</span>,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">pb_markdown =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Running simulation</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="er">|======================================================================|</span> <span class="dv">100</span>%</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; completed in 6.353640 seconds</span></span></code></pre></div>
 <p>Taking a quick look at the project we can now see that we have some output:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">myproj</span>
@@ -228,13 +228,13 @@
 <p>Notice that the format of this dataframe is identical to the daily dataframe we loaded in, but now replicated over all <code>time</code> points and with an added <code>value</code> column. We see a very similar thing when we look at the sweep output:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">myproj</span><span class="op">$</span><span class="va">epi_output</span><span class="op">$</span><span class="va">sweeps</span><span class="op">)</span>
-<span class="co">#&gt;         name time deme    measure state diagnostic age_min age_max     value</span>
-<span class="co">#&gt; 1 prev_acute  365    1 prevalence     A       true       0       4 0.1777778</span>
-<span class="co">#&gt; 2 prev_acute  365    1 prevalence     A       true       5       9 0.1976744</span>
-<span class="co">#&gt; 3 prev_acute  365    1 prevalence     A       true      10      14 0.1587302</span>
-<span class="co">#&gt; 4 prev_acute  365    1 prevalence     A       true      15      19 0.1931818</span>
-<span class="co">#&gt; 5 prev_acute  365    1 prevalence     A       true      20      24 0.2328767</span>
-<span class="co">#&gt; 6 prev_acute  365    1 prevalence     A       true      25      29 0.2063492</span></code></pre></div>
+<span class="co">#&gt;         name time deme    measure state diagnostic age_min age_max value</span>
+<span class="co">#&gt; 1 prev_acute  365    1 prevalence     A       true       0       4   1.6</span>
+<span class="co">#&gt; 2 prev_acute  365    1 prevalence     A       true       5       9   1.7</span>
+<span class="co">#&gt; 3 prev_acute  365    1 prevalence     A       true      10      14   1.0</span>
+<span class="co">#&gt; 4 prev_acute  365    1 prevalence     A       true      15      19   1.7</span>
+<span class="co">#&gt; 5 prev_acute  365    1 prevalence     A       true      20      24   1.7</span>
+<span class="co">#&gt; 6 prev_acute  365    1 prevalence     A       true      25      29   1.3</span></code></pre></div>
 <p>Having outputs in long format like this makes it easy to plot and summarize results, as will be seen below.</p>
 </div>
 <div id="plotting-and-summarizing-results" class="section level3">
@@ -260,8 +260,7 @@
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_bar</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">age_mid</span>, y <span class="op">=</span> <span class="va">value</span>, width <span class="op">=</span> <span class="va">age_width</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"black"</span>, stat <span class="op">=</span> <span class="st">"identity"</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"age"</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">name</span><span class="op">)</span>
-<span class="co">#&gt; Warning: Ignoring unknown aesthetics: width</span>
-<span class="co">#&gt; Warning: Removed 6 rows containing missing values (position_stack).</span></code></pre></div>
+<span class="co">#&gt; Warning: Ignoring unknown aesthetics: width</span></code></pre></div>
 <p><img src="getting_started_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
 </div>
   </div>

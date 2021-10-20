@@ -7,7 +7,6 @@
 sim_epi(
   project,
   max_time = 365,
-  output_format = 1,
   save_transmission_record = FALSE,
   transmission_record_location = "",
   overwrite_transmission_record = FALSE,
@@ -20,13 +19,6 @@ sim_epi(
 \code{simplegen_project()} function.}
 
 \item{max_time}{run simulation for this many days.}
-
-\item{output_format}{several options exist for the output format:
-\itemize{
-  \item 1 (default) = return final values only
-  \item 2 = also return numerator and denominator of prevalence and
-  incidence calculations.
-}}
 
 \item{save_transmission_record}{whether to write the transmission record to
 file.}

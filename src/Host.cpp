@@ -50,10 +50,10 @@ void Host::init(Parameters &params_,
   sampler_duration_prophylatic_ptr = &sampler_duration_prophylatic;
   
   // cumulative count of how many times this host has been bitten by infective
-  // mosquito (cumul_infections) and how many times an infection has taken hold
-  // (cumul_inoculations)
+  // mosquitoes (cumul_infective_bites) and how many times an infection has
+  // taken hold (cumul_infections)
+  cumul_infective_bites = 0;
   cumul_infections = 0;
-  cumul_inoculations = 0;
   
   // draw birth and death days from stable demography distribution
   draw_starting_age();
@@ -170,15 +170,15 @@ void Host::draw_treatment_seeking() {
 // t_next_inoc_event, in which case it replaces it.
 
 //------------------------------------------------
-// add new inoc event to list
-void Host::new_inoc_event(int t, Event this_event, int this_slot) {
+// add new infection event to list
+void Host::new_infection_event(int t, Event this_event, int this_slot) {
   t_next_inoc_event = (t < t_next_inoc_event) ? t : t_next_inoc_event;
   inoc_events[this_slot].insert(make_pair(this_event, t));
 }
 
 //------------------------------------------------
-// check for any inoc-level events that need to be carried out at time t
-void Host::check_inoc_event(int t) {
+// check for any infection-level events that need to be carried out at time t
+void Host::check_infection_event(int t) {
   
   // return if nothing scheduled at time t
   if (t_next_inoc_event != t) {
@@ -281,8 +281,8 @@ void Host::death(int &host_ID, int t) {
   this->host_ID = host_ID++;
   
   // reset cumulative counts
+  cumul_infective_bites = 0;
   cumul_infections = 0;
-  cumul_inoculations = 0;
   
   // reset prophylactic status
   prophylaxis_on = false;
@@ -356,19 +356,19 @@ void Host::migrate(int new_deme) {
 
 //------------------------------------------------
 // de-novo infection
-void Host::denovo_infection(int t, int &next_inoc_ID, std::ofstream &transmission_record) {
+void Host::denovo_infection(int t, int &next_infection_ID, std::ofstream &transmission_record) {
   
   // carry out infection from dummy mosquito
-  infection(t, next_inoc_ID, -1, -1, transmission_record);
+  infection(t, next_infection_ID, -1, -1, transmission_record);
   
 }
 
 //------------------------------------------------
 // infection
-void Host::infection(int t, int &next_inoc_ID, int mosquito_ID, int mosquito_infection_ID, std::ofstream &transmission_record) {
+void Host::infection(int t, int &next_infection_ID, int mosquito_ID, int mosquito_infection_ID, std::ofstream &transmission_record) {
   
-  // update cumulative infections
-  cumul_infections++;
+  // update cumulative infective bites
+  cumul_infective_bites++;
   
   // return if already at max_inoculations
   if (get_n_active_inoc() == params->max_inoculations) {
@@ -380,19 +380,19 @@ void Host::infection(int t, int &next_inoc_ID, int mosquito_ID, int mosquito_inf
     return;
   }
   
-  // update cumulative inoculations
-  cumul_inoculations++;
+  // update cumulative infections
+  cumul_infections++;
   
   // print to transmission record
   if (params->save_transmission_record) {
-    transmission_record << t << ",1," << host_ID << "," << mosquito_ID << "," << next_inoc_ID << "," << mosquito_infection_ID << "," << deme + 1 << "\n";
+    transmission_record << t << ",1," << host_ID << "," << mosquito_ID << "," << next_infection_ID << "," << mosquito_infection_ID << "," << deme + 1 << "\n";
   }
   
   // get next free inoculation slot
   int this_slot = get_free_inoc_slot();
   
   // add new inoculation and increment ID
-  new_Eh(this_slot, t, next_inoc_ID);
+  new_Eh(this_slot, t, next_infection_ID);
   
   // schedule disease progression. This is where we look through the tree of all
   // possible future trajectories, for example whether the inoculation
@@ -405,11 +405,11 @@ void Host::infection(int t, int &next_inoc_ID, int mosquito_ID, int mosquito_inf
   if (acute) {
     
     // schedule change of state
-    new_inoc_event(t1, Event_Eh_to_Ah, this_slot);
+    new_infection_event(t1, Event_Eh_to_Ah, this_slot);
     
     // schedule become acutely infective
     int t2 = t1 + params->g;
-    new_inoc_event(t2, Event_begin_infective_acute, this_slot);
+    new_infection_event(t2, Event_begin_infective_acute, this_slot);
     
     // draw duration of acute phase
     int dur_acute = draw_duration_acute();
@@ -429,42 +429,42 @@ void Host::infection(int t, int &next_inoc_ID, int mosquito_ID, int mosquito_inf
     if (acute_to_chronic) {
       
       // schedule change of state
-      new_inoc_event(t3, Event_Ah_to_Ch, this_slot);
+      new_infection_event(t3, Event_Ah_to_Ch, this_slot);
       
       // schedule become chronically infective
       int t4 = t3 + params->g;
-      new_inoc_event(t4, Event_begin_infective_chronic, this_slot);
+      new_infection_event(t4, Event_begin_infective_chronic, this_slot);
       
       // draw duration of chronic phase
       int dur_chronic = draw_duration_chronic();
       int t5 = t3 + dur_chronic;
       
       // schedule change of state
-      new_inoc_event(t5, Event_Ch_to_Sh, this_slot);
+      new_infection_event(t5, Event_Ch_to_Sh, this_slot);
       
       // schedule recover from infective
       int t6 = t5 + params->g;
-      new_inoc_event(t6, Event_end_infective, this_slot);
+      new_infection_event(t6, Event_end_infective, this_slot);
       
     } else {  // transition directly from acute to recovery
       
       // schedule change of state
-      new_inoc_event(t3, Event_Ah_to_Sh, this_slot);
+      new_infection_event(t3, Event_Ah_to_Sh, this_slot);
       
       // schedule recover from infective
       int t4 = t3 + params->g;
-      new_inoc_event(t4, Event_end_infective, this_slot);
+      new_infection_event(t4, Event_end_infective, this_slot);
       
     }
     
   } else {  // transition directly to chronic stage
     
     // schedule change of state
-    new_inoc_event(t1, Event_Eh_to_Ch, this_slot);
+    new_infection_event(t1, Event_Eh_to_Ch, this_slot);
     
     // schedule become chronically infective
     int t2 = t1 + params->g;
-    new_inoc_event(t2, Event_begin_infective_chronic, this_slot);
+    new_infection_event(t2, Event_begin_infective_chronic, this_slot);
     
     // draw duration of chronic phase
     int dur_chronic = draw_duration_chronic();
@@ -480,18 +480,18 @@ void Host::infection(int t, int &next_inoc_ID, int mosquito_ID, int mosquito_inf
     }
     
     // schedule change of state
-    new_inoc_event(t3, Event_Ch_to_Sh, this_slot);
+    new_infection_event(t3, Event_Ch_to_Sh, this_slot);
     
     // schedule recover from infective
     int t4 = t3 + params->g;
-    new_inoc_event(t4, Event_end_infective, this_slot);
+    new_infection_event(t4, Event_end_infective, this_slot);
     
   }
   
   // schedule treatment
   if (seek_treatment) {
     int t2 = t1 + time_consider_treatment;
-    new_inoc_event(t2, Event_treatment, this_slot);
+    new_infection_event(t2, Event_treatment, this_slot);
   }
   
 }
@@ -538,13 +538,13 @@ void Host::treatment(int t) {
       
       // reinstate infectious start if needed
       if (due_acute_infective) {
-        new_inoc_event(t_infective_start, Event_begin_infective_acute, i);
+        new_infection_event(t_infective_start, Event_begin_infective_acute, i);
       } else if (due_chronic_infective) {
-        new_inoc_event(t_infective_start, Event_begin_infective_chronic, i);
+        new_infection_event(t_infective_start, Event_begin_infective_chronic, i);
       }
       
       // schedule new infectious end
-      new_inoc_event(t + params->g, Event_end_infective, i);
+      new_infection_event(t + params->g, Event_end_infective, i);
       
     }
     
@@ -562,9 +562,9 @@ void Host::treatment(int t) {
         inoc_events[i].clear();
         
         // reschedule progression directly to clearance
-        new_inoc_event(t_emerge, Event_Eh_to_Ah, i);
-        new_inoc_event(t_emerge, Event_Ah_to_Sh, i);
-        new_inoc_event(t_emerge, Event_end_infective, i);
+        new_infection_event(t_emerge, Event_Eh_to_Ah, i);
+        new_infection_event(t_emerge, Event_Ah_to_Sh, i);
+        new_infection_event(t_emerge, Event_end_infective, i);
         
         // inoculations that will emerge to chronic stage
       } else if ((inoc_events[i].count(Event_Eh_to_Ch) != 0) && (inoc_events[i][Event_Eh_to_Ch] <= t2)) {
@@ -576,9 +576,9 @@ void Host::treatment(int t) {
         inoc_events[i].clear();
         
         // reschedule progression directly to clearance
-        new_inoc_event(t_emerge, Event_Eh_to_Ch, i);
-        new_inoc_event(t_emerge, Event_Ch_to_Sh, i);
-        new_inoc_event(t_emerge, Event_end_infective, i);
+        new_infection_event(t_emerge, Event_Eh_to_Ch, i);
+        new_infection_event(t_emerge, Event_Ch_to_Sh, i);
+        new_infection_event(t_emerge, Event_end_infective, i);
         
       }
     }
@@ -621,10 +621,10 @@ void Host::end_prophylaxis() {
 
 //------------------------------------------------
 // new Eh inoculation
-void Host::new_Eh(int this_slot, int t, int &next_inoc_ID) {
+void Host::new_Eh(int this_slot, int t, int &next_infection_ID) {
   
   // add inoculation ID and increment
-  inoc_ID_vec[this_slot] = next_inoc_ID++;
+  inoc_ID_vec[this_slot] = next_infection_ID++;
   
   // mark inoculation as active
   inoc_active[this_slot] = true;
@@ -926,56 +926,56 @@ double Host::get_prob_infection() {
   }
   
   // get probability from flexible distribution
-  int tmp = (cumul_infections < params->n_prob_infection) ? cumul_infections : params->n_prob_infection - 1;
+  int tmp = (cumul_infective_bites < params->n_prob_infection) ? cumul_infective_bites : params->n_prob_infection - 1;
   return params->prob_infection[tmp];
 }
 
 //------------------------------------------------
 // get current probability of going to acute infection
 double Host::get_prob_acute() {
-  int tmp = (cumul_inoculations < params->n_prob_acute) ? cumul_inoculations : params->n_prob_acute - 1;
+  int tmp = (cumul_infections < params->n_prob_acute) ? cumul_infections : params->n_prob_acute - 1;
   return params->prob_acute[tmp];
 }
 
 //------------------------------------------------
 // get current probability of going to chronic from acute infection
 double Host::get_prob_AC() {
-  int tmp = (cumul_inoculations < params->n_prob_AC) ? cumul_inoculations : params->n_prob_AC - 1;
+  int tmp = (cumul_infections < params->n_prob_AC) ? cumul_infections : params->n_prob_AC - 1;
   return params->prob_AC[tmp];
 }
 
 //------------------------------------------------
 // draw duration of acute disease
 int Host::draw_duration_acute() {
-  int tmp = (cumul_inoculations < params->n_duration_acute) ? cumul_inoculations : params->n_duration_acute - 1;
+  int tmp = (cumul_infections < params->n_duration_acute) ? cumul_infections : params->n_duration_acute - 1;
   return (*sampler_duration_acute_ptr)[tmp].draw();
 }
 
 //------------------------------------------------
 // draw duration of chronic disease
 int Host::draw_duration_chronic() {
-  int tmp = (cumul_inoculations < params->n_duration_chronic) ? cumul_inoculations : params->n_duration_chronic - 1;
+  int tmp = (cumul_infections < params->n_duration_chronic) ? cumul_infections : params->n_duration_chronic - 1;
   return (*sampler_duration_chronic_ptr)[tmp].draw();
 }
 
 //------------------------------------------------
 // draw time until treatment of acute disease
 int Host::draw_time_treatment_acute() {
-  int tmp = (cumul_inoculations < params->n_time_treatment_acute) ? cumul_inoculations : params->n_time_treatment_acute - 1;
+  int tmp = (cumul_infections < params->n_time_treatment_acute) ? cumul_infections : params->n_time_treatment_acute - 1;
   return (*sampler_time_treatment_acute_ptr)[tmp].draw();
 }
 
 //------------------------------------------------
 // draw time until treatment of chronic disease
 int Host::draw_time_treatment_chronic() {
-  int tmp = (cumul_inoculations < params->n_time_treatment_chronic) ? cumul_inoculations : params->n_time_treatment_chronic - 1;
+  int tmp = (cumul_infections < params->n_time_treatment_chronic) ? cumul_infections : params->n_time_treatment_chronic - 1;
   return (*sampler_time_treatment_chronic_ptr)[tmp].draw();
 }
 
 //------------------------------------------------
 // draw duration of prophylaxis
 int Host::draw_duration_prophylaxis() {
-  int tmp = (cumul_inoculations < params->n_duration_prophylactic) ? cumul_inoculations : params->n_duration_prophylactic - 1;
+  int tmp = (cumul_infections < params->n_duration_prophylactic) ? cumul_infections : params->n_duration_prophylactic - 1;
   return (*sampler_duration_prophylatic_ptr)[tmp].draw();
 }
 
@@ -992,7 +992,7 @@ double Host::get_detectability_microscopy_acute(int t) {
       int time_diff = t - inoc_time_asexual[i];
       
       // get detectability from appropriate distribution
-      int tmp1 = (cumul_inoculations < params->n_detectability_microscopy_acute) ? cumul_inoculations : params->n_detectability_microscopy_acute - 1;
+      int tmp1 = (cumul_infections < params->n_detectability_microscopy_acute) ? cumul_infections : params->n_detectability_microscopy_acute - 1;
       int tmp2 = (time_diff < int(params->detectability_microscopy_acute[tmp1].size())) ? time_diff : int(params->detectability_microscopy_acute[tmp1].size()) - 1;
       double inoc_detectability = params->detectability_microscopy_acute[tmp1][tmp2];
       
@@ -1017,7 +1017,7 @@ double Host::get_detectability_microscopy_chronic(int t) {
       int time_diff = t - inoc_time_asexual[i];
       
       // get detectability from appropriate distribution
-      int tmp1 = (cumul_inoculations < params->n_detectability_microscopy_chronic) ? cumul_inoculations : params->n_detectability_microscopy_chronic - 1;
+      int tmp1 = (cumul_infections < params->n_detectability_microscopy_chronic) ? cumul_infections : params->n_detectability_microscopy_chronic - 1;
       int tmp2 = (time_diff < int(params->detectability_microscopy_chronic[tmp1].size())) ? time_diff : int(params->detectability_microscopy_chronic[tmp1].size()) - 1;
       double inoc_detectability = params->detectability_microscopy_chronic[tmp1][tmp2];
       
@@ -1042,7 +1042,7 @@ double Host::get_detectability_PCR_acute(int t) {
       int time_diff = t - inoc_time_asexual[i];
       
       // get detectability from appropriate distribution
-      int tmp1 = (cumul_inoculations < params->n_detectability_PCR_acute) ? cumul_inoculations : params->n_detectability_PCR_acute - 1;
+      int tmp1 = (cumul_infections < params->n_detectability_PCR_acute) ? cumul_infections : params->n_detectability_PCR_acute - 1;
       int tmp2 = (time_diff < int(params->detectability_PCR_acute[tmp1].size())) ? time_diff : int(params->detectability_PCR_acute[tmp1].size()) - 1;
       double inoc_detectability = params->detectability_PCR_acute[tmp1][tmp2];
       
@@ -1067,7 +1067,7 @@ double Host::get_detectability_PCR_chronic(int t) {
       int time_diff = t - inoc_time_asexual[i];
       
       // get detectability from appropriate distribution
-      int tmp1 = (cumul_inoculations < params->n_detectability_PCR_chronic) ? cumul_inoculations : params->n_detectability_PCR_chronic - 1;
+      int tmp1 = (cumul_infections < params->n_detectability_PCR_chronic) ? cumul_infections : params->n_detectability_PCR_chronic - 1;
       int tmp2 = (time_diff < int(params->detectability_PCR_chronic[tmp1].size())) ? time_diff : int(params->detectability_PCR_chronic[tmp1].size()) - 1;
       double inoc_detectability = params->detectability_PCR_chronic[tmp1][tmp2];
       
@@ -1096,14 +1096,14 @@ double Host::get_infectivity(int t) {
       if (inoc_state_sexual[i] == Acute_sexual) {
         
         // get infectivity from appropriate distribution
-        int tmp1 = (cumul_inoculations < params->n_infectivity_acute) ? cumul_inoculations : params->n_infectivity_acute-1;
+        int tmp1 = (cumul_infections < params->n_infectivity_acute) ? cumul_infections : params->n_infectivity_acute-1;
         int tmp2 = (time_diff < int(params->infectivity_acute[tmp1].size())) ? time_diff : int(params->infectivity_acute[tmp1].size())-1;
         inoc_infectivity = params->infectivity_acute[tmp1][tmp2];
         
       } else {
         
         // get infectivity from appropriate distribution
-        int tmp1 = (cumul_inoculations < params->n_infectivity_chronic) ? cumul_inoculations : params->n_infectivity_chronic-1;
+        int tmp1 = (cumul_infections < params->n_infectivity_chronic) ? cumul_infections : params->n_infectivity_chronic-1;
         int tmp2 = (time_diff < int(params->infectivity_chronic[tmp1].size())) ? time_diff : int(params->infectivity_chronic[tmp1].size())-1;
         inoc_infectivity = params->infectivity_chronic[tmp1][tmp2];
         
@@ -1131,99 +1131,79 @@ int Host::get_age(int t) {
 // #############################################################################
 
 //------------------------------------------------
-// update numerator and denominator of output elements
-void Host::update_output(Measure measure, 
-                         Model_state state,
-                         Diagnostic diagnostic,
-                         int age_min,
-                         int age_max,
-                         int t, 
-                         double &numer, 
-                         double &denom) {
+// return prevalence/incidence/counts output
+double Host::get_output(Measure measure, 
+                        Model_state state,
+                        Diagnostic diagnostic,
+                        int age_min,
+                        int age_max,
+                        int t) {
   
-  // return if outside age range
+  // return if outside age range. This should never be the case as individuals
+  // should already be filtered by the daily_map.
   if ((get_age(t) < age_min) || (get_age(t) > age_max)) {
-    return;
+    Rcpp::stop("daily output individual outside age range");
   }
+  
+  // initialise return object
+  double ret = 0.0;
   
   // counts or prevalence (also applies to proportions, which are recoded as prevalence)
   if ((measure == Measure_count) || (measure == Measure_prevalence)) {
     
-    // update numerator
     if ( (state == Model_A) && (get_host_state() == Host_Ah) ) {
       if (diagnostic == Diagnostic_true) {
-        numer += 1.0;
+        ret += 1.0;
       } else if (diagnostic == Diagnostic_microscopy) {
-        numer += get_detectability_microscopy_acute(t);
+        ret += get_detectability_microscopy_acute(t);
       } else if (diagnostic == Diagnostic_PCR) {
-        numer += get_detectability_PCR_acute(t);
+        ret += get_detectability_PCR_acute(t);
       }
     } else if ( (state == Model_C) && (get_host_state() == Host_Ch) ) {
       if (diagnostic == Diagnostic_true) {
-        numer += 1.0;
+        ret += 1.0;
       } else if (diagnostic == Diagnostic_microscopy) {
-        numer += get_detectability_microscopy_chronic(t);
+        ret += get_detectability_microscopy_chronic(t);
       } else if (diagnostic == Diagnostic_PCR) {
-        numer += get_detectability_PCR_chronic(t);
+        ret += get_detectability_PCR_chronic(t);
       }
     } else if ( ((state == Model_S) && (get_host_state() == Host_Sh)) ||
          ((state == Model_E) && (get_host_state() == Host_Eh)) ||
          ((state == Model_P) && (get_host_state() == Host_Ph)) ||
          (state == Model_H) ) {
-      numer += 1.0;
-    }
-    
-    // update denominator
-    if (measure == Measure_prevalence) {
-      denom += 1.0;
+      ret += 1.0;
     }
     
   // incidence
   } else if (measure == Measure_incidence) {
     
-    // update numerator
-     if (state == Model_A) {
-      if ((host_state == Host_Ah) && (host_state_previous != Host_Ah) && (time_host_state_change == t)) {
-        if (diagnostic == Diagnostic_true) {
-          numer += 1.0;
-        } else if (diagnostic == Diagnostic_microscopy) {
-          numer += get_detectability_microscopy_acute(t);
-        } else if (diagnostic == Diagnostic_PCR) {
-          numer += get_detectability_PCR_acute(t);
-        }
+     if ( (state == Model_A) && (host_state == Host_Ah) && (host_state_previous != Host_Ah) && (time_host_state_change == t) ) {
+      if (diagnostic == Diagnostic_true) {
+        ret += 1.0;
+      } else if (diagnostic == Diagnostic_microscopy) {
+        ret += get_detectability_microscopy_acute(t);
+      } else if (diagnostic == Diagnostic_PCR) {
+        ret += get_detectability_PCR_acute(t);
       }
-    }  else if (state == Model_C) {
-      if ((host_state == Host_Ch) && (host_state_previous != Host_Ch) && (time_host_state_change == t)) {
-        if (diagnostic == Diagnostic_true) {
-          numer += 1.0;
-        } else if (diagnostic == Diagnostic_microscopy) {
-          numer += get_detectability_microscopy_chronic(t);
-        } else if (diagnostic == Diagnostic_PCR) {
-          numer += get_detectability_PCR_chronic(t);
-        }
+    }  else if ( (state == Model_C) && (host_state == Host_Ch) && (host_state_previous != Host_Ch) && (time_host_state_change == t) ) {
+      if (diagnostic == Diagnostic_true) {
+        ret += 1.0;
+      } else if (diagnostic == Diagnostic_microscopy) {
+        ret += get_detectability_microscopy_chronic(t);
+      } else if (diagnostic == Diagnostic_PCR) {
+        ret += get_detectability_PCR_chronic(t);
       }
-    } else if (state == Model_S) {
-      if ((host_state == Host_Sh) && (host_state_previous != Host_Sh) && (time_host_state_change == t)) {
-        numer += 1.0;
-      }
-    } else if (state == Model_E) {
-      if ((host_state == Host_Eh) && (host_state_previous != Host_Eh) && (time_host_state_change == t)) {
-        numer += 1.0;
-      }
-    } else if (state == Model_P) {
-      if ((host_state == Host_Ph) && (host_state_previous != Host_Ph) && (time_host_state_change == t)) {
-        numer += 1.0;
-      }
+    } else if ( (state == Model_S) && (host_state == Host_Sh) && (host_state_previous != Host_Sh) && (time_host_state_change == t) ) {
+      ret += 1.0;
+    } else if ( (state == Model_E) && (host_state == Host_Eh) && (host_state_previous != Host_Eh) && (time_host_state_change == t) ) {
+      ret += 1.0;
+    } else if ( (state == Model_P) && (host_state == Host_Ph) && (host_state_previous != Host_Ph) && (time_host_state_change == t) ) {
+      ret += 1.0;
     }
-    
-    // update denominator
-    // NB. for the time being the denominator in these calculations is always
-    // the entire population (in this age group). May want to revisit this
-    // calculation
-    denom += 1.0;
     
   }
   
+  return ret;
 }
 
 
