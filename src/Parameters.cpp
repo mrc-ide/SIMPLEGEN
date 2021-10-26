@@ -123,6 +123,7 @@ void Parameters::load_demog_params(Rcpp::List args) {
 void Parameters::load_sampling_params(Rcpp::List args) {
   load_sampling_params_daily(args);
   load_sampling_params_sweep(args);
+  load_sampling_params_survey(args);
 }
 
 //------------------------------------------------
@@ -164,19 +165,21 @@ void Parameters::load_sampling_params_daily(Rcpp::List args) {
   daily_age_min = Rcpp::as<vector<int>>(daily_df["age_min"]);
   daily_age_max = Rcpp::as<vector<int>>(daily_df["age_max"]);
   
-  // create a map to assist in working out if a host is required to produce
+  // Create a map to assist in working out if a host is required to produce
   // daily output. The key to the map is a deme-&-age combination (1-year age
   // groups). The value associated with this key is a list of all output indices
-  // that apply to this group.
+  // (i.e. rows of the daily dataframe) that apply to this group.
   //
-  // For example, if output field 2 needs to be the prevalence in 0-5 year olds
+  // For example, if output row 2 needs to be the prevalence in 0-5 year olds
   // in deme 1, then the map at key {1,0} and {1,1} etc. up to {1,5} will all
   // contain the value 2 (the output index), along with any other output indices
   // that apply to this group.
   //
-  // a simpler vector object also exists just for checking if a deme is required
+  // A simpler vector object also exists just for checking if a deme is required
   // in any outputs. This avoids looping through hosts in demes that are not
   // required in any output.
+  //
+  // The function print_daily_maps() can be used to look at these objects.
   
   daily_flag_deme = vector<bool>(n_demes, false);
   for (int i = 0; i < n_daily_outputs; i++) {
@@ -196,8 +199,14 @@ void Parameters::load_sampling_params_daily(Rcpp::List args) {
     }
   }
   
-  /*
-  // uncomment this block of code to print out the full daily map
+}
+
+//------------------------------------------------
+// print maps that assist in working out which hosts are required to produce
+// daily output
+void Parameters::print_daily_maps() {
+  
+  // individual-level map
   print("DAILY MAP:");
   for (auto it = daily_map.cbegin(); it != daily_map.cend(); ++it) {
     pair<int, int> map_key = it->first;
@@ -207,10 +216,11 @@ void Parameters::load_sampling_params_daily(Rcpp::List args) {
     }
     cout << "\n";
   }
+  
+  // deme-level mep
   print("DAILY DEME MAP:");
   print_vector(daily_flag_deme);
-  Rcpp::stop("foobar");
-  */
+  
 }
 
 //------------------------------------------------
@@ -259,12 +269,46 @@ void Parameters::load_sampling_params_sweep(Rcpp::List args) {
 }
 
 //------------------------------------------------
+// load syrvey sampling strategy parameter values
+void Parameters::load_sampling_params_survey(Rcpp::List args) {
+  
+  // return if no sweep outputs
+  any_survey_outputs = args["any_survey_outputs"];
+  if (!any_survey_outputs) {
+    n_survey_outputs = 0;
+    return;
+  }
+  
+  // extract dataframe
+  Rcpp::List survey_df = args["surveys"];
+  
+  // extract columns into vectors
+  survey_t_start = rcpp_to_vector_int(survey_df["t_start"]);
+  survey_t_start = rcpp_to_vector_int(survey_df["t_start"]);
+  n_survey_outputs = survey_t_start.size();
+  
+  survey_interval = rcpp_to_vector_int(survey_df["interval"]);
+  
+  vector<int> survey_measure_int = rcpp_to_vector_int(survey_df["measure"]);
+  survey_measure = std::vector<Measure>(survey_measure_int.size());
+  for (unsigned int i = 0; i < survey_measure_int.size(); ++i) {
+    sweep_measure[i] = static_cast<Measure>(survey_measure_int[i]);
+  }
+  
+  survey_sampling = rcpp_to_vector_int(survey_df["sampling"]);
+  survey_deme = rcpp_to_vector_int(survey_df["deme"]);
+  
+  survey_age_min = Rcpp::as<vector<int>>(survey_df["age_min"]);
+  survey_age_max = Rcpp::as<vector<int>>(survey_df["age_max"]);
+  
+}
+
+//------------------------------------------------
 // load run parameter values
 void Parameters::load_run_params(Rcpp::List args) {
   
   // load values
   max_time = rcpp_to_int(args["max_time"]);
-  output_format = rcpp_to_int(args["output_format"]);
   save_transmission_record = rcpp_to_bool(args["save_transmission_record"]);
   transmission_record_location = rcpp_to_string(args["transmission_record_location"]);
   silent = rcpp_to_bool(args["silent"]);

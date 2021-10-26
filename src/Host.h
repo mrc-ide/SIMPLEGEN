@@ -57,10 +57,10 @@ public:
   std::vector<Sampler>* sampler_duration_prophylatic_ptr;
   
   // cumulative count of how many times this host has been bitten by infective
-  // mosquito (cumul_infections) and how many times an infection has taken hold
-  // (cumul_inoculations)
+  // mosquitoes (cumul_infective_bites) and how many times an infection has
+  // taken hold (cumul_infections)
+  int cumul_infective_bites;
   int cumul_infections;
-  int cumul_inoculations;
   
   // dates of birth and death
   int birth_day;
@@ -112,19 +112,19 @@ public:
   void draw_treatment_seeking();
   
   // event schedulers
-  void new_inoc_event(int t, Event this_event, int this_slot);
-  void check_inoc_event(int t);
+  void new_infection_event(int t, Event this_event, int this_slot);
+  void check_infection_event(int t);
   
   // host-level events
   void death(int &host_ID, int t);
   void migrate(int new_deme);
-  void denovo_infection(int t, int &next_inoc_ID, std::ofstream &transmission_record);
-  void infection(int t, int &next_inoc_ID, int mosquito_ID, int mosquito_infection_ID, std::ofstream &transmission_record);
+  void denovo_infection(int t, int &next_infection_ID, std::ofstream &transmission_record);
+  void infection(int t, int &next_infection_ID, int mosquito_ID, int mosquito_infection_ID, std::ofstream &transmission_record);
   void treatment(int t);
   void end_prophylaxis();
   
   // inoculation-level events
-  void new_Eh(int this_slot, int t, int &next_inoc_ID);
+  void new_Eh(int this_slot, int t, int &next_infection_ID);
   void Eh_to_Ah(int this_slot, int t);
   void Eh_to_Ch(int this_slot, int t);
   void Ah_to_Ch(int this_slot, int t);
@@ -162,14 +162,12 @@ public:
   int get_age(int t);
   
   // outputs
-  void update_output(Measure measure,
-                     Model_state state,
-                     Diagnostic diagnostic,
-                     int age_min,
-                     int age_max,
-                     int t,
-                     double &numer,
-                     double &denom);
+  double get_output(Measure measure,
+                    Model_state state,
+                    Diagnostic diagnostic,
+                    int age_min,
+                    int age_max,
+                    int t);
   
   // diagnostics and checks
   void print_inoc_events();

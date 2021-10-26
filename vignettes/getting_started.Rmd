@@ -35,7 +35,7 @@ myproj <- define_epi_model_parameters(myproj,
                                       M = 1e4)
 ```
 
-Alternatively, if you are familiar with the pipe operator `%>%` from the `dplyr` package then you can use this to chain together multiple commands:
+Alternatively, if you are familiar with the pipe operator `%>%` from the `magrittr` package then you can use this to chain together multiple commands:
 
 ```{r}
 library(dplyr)
@@ -53,28 +53,28 @@ Taking a quick look at our project we get e a summary of the current setup:
 myproj
 ```
 
-We can use our inbuilt plotting functions to explore some of the assumed distributions of our model. For example, we can look at the distribution of time spent in the acute state:
+We can use inbuilt plotting functions to explore some of the assumptions of our model. For example, we can look at the distribution of time spent in the acute state:
 
 ```{r}
 plot_epi_distribution(myproj, name = "duration_acute")
 ```
 
-Many distributions can be explored in this way, and `?plot_epi_distribution` gives a complete list.
+Many distributions can be explored in this way, see `?plot_epi_distribution` for a complete list.
 
-Once we're happy with the parameters of the model, the next step is to define the outputs that we expect it to produce. There are three possible types of output:
+Once we are happy with the parameters of the model, the next step is to define the outputs that we expect it to produce. There are three types of output:
 
 1. `daily` output contains values for each day of simulation. This can be useful for visualising trends over time.
-2. `sweeps` are the same as `daily` output, but evaluated at specific points in time. This can be useful for getting a more detailed snap-shot of the population without overloading the daily output. For example, we might want to return the prevalence in 5-year age bands on day 100, but without returning these values every other day of the simulation.
-3. `surveys` represent samples taken from the population according to a predefined sampling strategy. Surveys are the most important type of output from the genetic perspective, as genetic data will only be generated from individuals in the survey.
+2. `sweeps` are the same as `daily` output, but evaluated at specific points in time. This can be useful for getting a more detailed snap-shot of the population without overloading the daily output. For example, we might want to return the prevalence in 5-year age bands on day 365, but without returning these values every other day of the simulation.
+3. `surveys` represent samples taken from the population according to a predefined sampling strategy. Surveys are the most detailed and important type of output, as genetic data will only be generated from individuals in the survey.
 
-We specify daily outputs using a basic dataframe. **Table 1** gives the columns of this dataframe along with all possible combinations of values (**Table 1** should be read from left to right, moving into any box not separated by a horizontal line - for example, `state = "A", measure = "count"` is a viable combination, but `state = "A", measure = "EIR"` is not).
+We specify daily outputs using a basic dataframe. **Table 1** gives the columns of this dataframe along with all possible combinations of values.
 
 <img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/sampling_params_table.png"/>
 <font size="2">
-<figcaption> **Table 1** All possible options for daily outputs. Human outputs are shaded in red and mosquito outputs in green.</figcaption>
+<figcaption> **Table 1** All possible options for daily outputs. Human outputs are shaded in red and mosquito outputs in green. This table should be read from left to right, moving into any box not separated by a horizontal line - for example, `state = "A", measure = "count"` is a viable combination, but `state = "A", measure = "EIR"` is not.</figcaption>
 </font>
 
-Any number of extra columns can be added to this basic dataframe, for example it can be useful to have a `name` column giving a short description of what each row contains. We can use any standard method to produce this dataframe; the code below uses the `rbind()` method:
+Any number of extra columns can be added to this basic dataframe and will simply be ignored by the software, for example it can be useful to have a `name` column giving a short description of what each row contains. We can use any standard method to produce this dataframe; the code below uses the `rbind()` method:
 
 ```{r}
 daily_dataframe <- rbind(data.frame(name = "acute_prev", deme = 1, state = "A", measure = "prevalence", diagnostic = "microscopy", age_min = 0, age_max = 5),
@@ -84,14 +84,14 @@ daily_dataframe <- rbind(data.frame(name = "acute_prev", deme = 1, state = "A", 
 
 print(daily_dataframe)
 ```
-Once we're happy with this dataframe we can load it into the project using `define_epi_sampling_parameters()`. At this point any errors in the format will be flagged.
+Once we're happy with this dataframe we can load it into the project using `define_epi_sampling_parameters()`. At this point if there are any errors in the format they will be flagged.
 
 ```{r}
 myproj <- define_epi_sampling_parameters(project = myproj,
                                          daily = daily_dataframe)
 ```
 
-The second type of output is sweeps. These can be defined using a second dataframe identical in format to the daily output but with an added `time` column. For example, the following code specifies that we want to output acute prevalence and acute incidence in 5-year age bands at day 365:
+The second type of output is sweeps. These can be defined using a second dataframe identical in format to the daily output, but with an added `time` column. For example, the following code specifies that we want to output acute prevalence and acute incidence in 5-year age bands at day 365:
 
 ```{r}
 sweep_dataframe <- rbind(data.frame(name = "prev_acute", time = 365, deme = 1, measure = "prevalence", state = "A", diagnostic = "true", age_min = seq(0, 100, 5), age_max = seq(0, 100, 5) + 4),
@@ -100,7 +100,7 @@ sweep_dataframe <- rbind(data.frame(name = "prev_acute", time = 365, deme = 1, m
 
 print(head(sweep_dataframe))
 ```
-Again, this needs to be loaded into the project:
+As before, we load this into the project using the `define_epi_sampling_parameters()` function:
 
 ```{r}
 myproj <- define_epi_sampling_parameters(project = myproj,

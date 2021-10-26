@@ -14,54 +14,22 @@ void Dispatcher::init(Parameters &params_) {
   params = &params_;
   
   // open filestream to write transmission record to file
-  if (params->save_transmission_record) {
-    
-    // open filestream
-    if (!params->silent) {
-      print("Opening filestream to transmission record");
-    }
-    transmission_record.open(params->transmission_record_location);
-    
-    // check that open
-    if (!transmission_record.is_open()) {
-      Rcpp::stop("unable to create transmission record at specified location. Check the path exists, and that you have write access");
-    }
-    
-    // write header line of transmission record
-    transmission_record << "time,event,human_ID,mosquito_ID,child_infection_ID,parent_infection_ID,deme\n";
-    
-  }
+  open_trans_record();
   
   // initialise unique IDs for hosts, mosquitoes and inoculations
   next_host_ID = 1;
   next_mosq_ID = 1;
-  next_inoc_ID = 1;
+  next_infection_ID = 1;
   
   // create objects for sampling from probability distributions
   int sampler_draws = 1000;
   sampler_age_stable = Sampler(params->age_stable, sampler_draws);
   sampler_age_death = Sampler(params->age_death, sampler_draws);
-  
-  sampler_duration_acute = vector<Sampler>(params->n_duration_acute);
-  for (int i = 0; i < params->n_duration_acute; ++i) {
-    sampler_duration_acute[i] = Sampler(params->duration_acute[i], sampler_draws);
-  }
-  sampler_duration_chronic = vector<Sampler>(params->n_duration_chronic);
-  for (int i = 0; i < params->n_duration_chronic; ++i) {
-    sampler_duration_chronic[i] = Sampler(params->duration_chronic[i], sampler_draws);
-  }
-  sampler_time_treatment_acute = vector<Sampler>(params->n_time_treatment_acute);
-  for (int i = 0; i < params->n_time_treatment_acute; ++i) {
-    sampler_time_treatment_acute[i] = Sampler(params->time_treatment_acute[i], sampler_draws);
-  }
-  sampler_time_treatment_chronic = vector<Sampler>(params->n_time_treatment_chronic);
-  for (int i = 0; i < params->n_time_treatment_chronic; ++i) {
-    sampler_time_treatment_chronic[i] = Sampler(params->time_treatment_chronic[i], sampler_draws);
-  }
-  sampler_duration_prophylactic = vector<Sampler>(params->n_duration_prophylactic);
-  for (int i = 0; i < params->n_duration_prophylactic; ++i) {
-    sampler_duration_prophylactic[i] = Sampler(params->duration_prophylactic[i], sampler_draws);
-  }
+  sampler_duration_acute = make_sampler_vec(params->duration_acute, sampler_draws);
+  sampler_duration_chronic = make_sampler_vec(params->duration_chronic, sampler_draws);
+  sampler_time_treatment_acute = make_sampler_vec(params->time_treatment_acute, sampler_draws);
+  sampler_time_treatment_chronic = make_sampler_vec(params->time_treatment_chronic, sampler_draws);
+  sampler_duration_prophylactic = make_sampler_vec(params->duration_prophylactic, sampler_draws);
   
   // counts of host types
   H = params->H_init;
@@ -71,20 +39,15 @@ void Dispatcher::init(Parameters &params_) {
   Ch = vector<int>(params->n_demes);
   Ph = vector<int>(params->n_demes);
   
-  // further counts of host types
-  Ah_detectable_microscopy = vector<double>(params->n_demes);
-  Ch_detectable_microscopy = vector<double>(params->n_demes);
-  Ah_detectable_PCR = vector<double>(params->n_demes);
-  Ch_detectable_PCR = vector<double>(params->n_demes);
-  
   // initialise single population of human hosts over all demes. This is
   // preferable to using separate vectors of hosts for each deme, as this would
   // mean moving hosts around due to migration. With a single population we can
   // simply change the "deme" attribute of a host to represent migration
   host_pop = vector<Host>(sum(H));
   
-  // for each deme, store the integer index of all hosts in that deme, and the
-  // integer index of infective hosts only. Infections are seeded in the latent
+  // for each deme, store the integer index of all hosts in that deme. The
+  // actual host object can be found by refering to this index within host_pop.
+  // Do the same for infective hosts only. Infections are seeded in the latent
   // stage, therefore there are no infective hosts initially.
   host_index = vector<vector<int>>(params->n_demes);
   host_infective_index = vector<vector<int>>(params->n_demes);
@@ -100,8 +63,7 @@ void Dispatcher::init(Parameters &params_) {
       int this_index = host_index[k][i];
       host_pop[this_index].init(*params,
                                 this_index, next_host_ID, k,
-                                host_index,
-                                host_infective_index,
+                                host_index, host_infective_index,
                                 sampler_age_stable, sampler_age_death,
                                 sampler_duration_acute, sampler_duration_chronic,
                                 sampler_time_treatment_acute, sampler_time_treatment_chronic,
@@ -110,7 +72,6 @@ void Dispatcher::init(Parameters &params_) {
   }
   
   // counts of mosquito types
-  M_total = sum(params->M);
   Sv = params->M;
   Ev = vector<int>(params->n_demes);
   Iv = vector<int>(params->n_demes);
@@ -123,14 +84,37 @@ void Dispatcher::init(Parameters &params_) {
   Iv_pop = vector<vector<Mosquito>>(params->n_demes);
   
   // objects for storing results
-  daily_numer = vector<vector<double>>(params->max_time, vector<double>(params->n_daily_outputs));
-  daily_denom = vector<vector<double>>(params->max_time, vector<double>(params->n_daily_outputs));
-  sweep_numer = vector<double>(params->n_sweep_outputs);
-  sweep_denom = vector<double>(params->n_sweep_outputs);
+  daily_output = vector<vector<double>>(params->max_time, vector<double>(params->n_daily_outputs));
+  sweep_output = vector<double>(params->n_sweep_outputs);
   
   // misc
   daily_EIR = vector<double>(params->n_demes);
   prob_infectious_bite = vector<double>(params->n_demes);
+  
+}
+
+//------------------------------------------------
+// open transmission record
+void Dispatcher::open_trans_record() {
+  
+  // return if not saving transmission record
+  if (!params->save_transmission_record) {
+    return;
+  }
+  
+  // open filestream
+  if (!params->silent) {
+    print("Opening filestream to transmission record");
+  }
+  transmission_record.open(params->transmission_record_location);
+  
+  // check that open
+  if (!transmission_record.is_open()) {
+    Rcpp::stop("unable to create transmission record at specified location. Check the path exists, and that you have write access");
+  }
+  
+  // write header line of transmission record
+  transmission_record << "time,event,human_ID,mosquito_ID,child_infection_ID,parent_infection_ID,deme\n";
   
 }
 
@@ -151,8 +135,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
   int v_ringbuffer = 0;
   
   // initialise vectors for storing daily output of each day
-  vector<double> daily_numer_today(params->n_daily_outputs);
-  vector<double> daily_denom_today(params->n_daily_outputs);
+  vector<double> daily_output_today(params->n_daily_outputs);
   
   // initialise indices that increment throughout simulation
   int sweep_index = 0;
@@ -162,7 +145,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
     
     // update progress bar
     if (!params->silent) {
-      int remainder = t % int(ceil(double(params->max_time) / 100));
+      int remainder = t % (int)ceil((double)params->max_time / 100);
       if ((remainder == 0 && !params->pb_markdown) || ((t + 1) == params->max_time)) {
         update_progress(args_progress, "pb_sim", t + 1, params->max_time, true);
         if ((t + 1) == params->max_time) {
@@ -183,7 +166,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
       for (int k = 0; k < params->n_demes; ++k) {
         for (int i = 0; i < params->seed_infections[k]; ++i) {
           int this_host = host_index[k][i];
-          host_pop[this_host].denovo_infection(t, next_inoc_ID, transmission_record);
+          host_pop[this_host].denovo_infection(t, next_infection_ID, transmission_record);
         }
       }
     }
@@ -215,7 +198,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
       //-------- NEW HUMAN EVENTS --------
       
       // get number of new infectious bites on humans
-      daily_EIR[k] = params->a * Iv[k] / double(H[k]);
+      daily_EIR[k] = params->a * Iv[k] / (double)H[k];
       
       // probability that each host receives an infectious bite
       prob_infectious_bite[k] = 1 - exp(-daily_EIR[k]);
@@ -229,7 +212,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
       // prob_infection was constant then we could draw from Binomial(H[k],
       // prob_infection*prob_infectious_bite), after which every bite would lead
       // to infection, however, we cannot do this as prob_infection is
-      // host-specific and changes over inoculations. Therefore, as a
+      // host-specific and changes over infections. Therefore, as a
       // middleground, draw from Binomial(H[k],
       // max_prob_infection*prob_infectious_bite), where max_prob_infection is
       // the largest value that prob_infection could possibly take. Then loop
@@ -255,11 +238,17 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
           // choose mosquito at random
           int rnd1 = sample2(0, Iv[k] - 1);
           
-          // write buffered mosquito transmission record
+          // this mosquito must have been infected at an earlier time, and so it
+          // may have info stored in its buffer. Write this buffer to
+          // transmission record now so that chronologically it appears the
+          // mosquito was infected before passing on infection.
           Iv_pop[k][rnd1].write_buffer(transmission_record);
           
-          // infect host
-          host_pop[this_host].infection(t, next_inoc_ID, Iv_pop[k][rnd1].mosquito_ID, Iv_pop[k][rnd1].infection_ID, transmission_record);
+          // infect host, and write this event to transmission record
+          host_pop[this_host].infection(t, next_infection_ID,
+                                        Iv_pop[k][rnd1].mosquito_ID,
+                                        Iv_pop[k][rnd1].infection_ID,
+                                        transmission_record);
           
         }
         
@@ -268,13 +257,13 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
       
       //-------- SCHEDULED MOSQUITO EVENTS --------
       
-      // deaths in Ev
+      // deaths in Ev are reborn in Sv
       Sv[k] += Ev_death[k][v_ringbuffer];
       Ev[k] -= Ev_death[k][v_ringbuffer];
       Ev_death[k][v_ringbuffer] = 0;
       
       // move Ev into Iv
-      int delta_Ev = int(Ev_pop[k][v_ringbuffer].size());
+      int delta_Ev = (int)Ev_pop[k][v_ringbuffer].size();
       if (delta_Ev > 0) {
         Ev[k] -= delta_Ev;
         Iv[k] += delta_Ev;
@@ -286,10 +275,11 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
       //-------- NEW MOSQUITO EVENTS --------
       
       // rate of mosquito biting infective host
-      double rate_bite_infective = params->a * host_infective_index[k].size() / double(H[k]); 
+      int n_infective = (int)host_infective_index[k].size();
+      double rate_bite_infective = params->a * n_infective / (double)H[k]; 
       
-      // draw number of mosquitoes that bite infective host or die (competing
-      // hazards)
+      // draw number of mosquitoes that bite infective host or die (these are
+      // competing hazards)
       double prob_bite_infective_or_death = 1 - exp(-(rate_bite_infective + params->mu));
       int n_bite_infective_or_death = rbinom1(Sv[k], prob_bite_infective_or_death);
       
@@ -316,7 +306,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
           
           // the majority of new mosquito infections will die in lag phase.
           // Schedule these deaths to move back into Sv in future steps.
-          // Otherwise add to Ev_pop
+          // Otherwise add to Ev_pop.
           int mosq_time_death = rgeom1(params->prob_mosq_death) + 1;
           if (mosq_time_death <= params->v) {
             
@@ -325,10 +315,10 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
             
           } else {
             
-            // create new mosquito and infect from host
+            // create new mosquito object and infect from host
             Mosquito m;
             m.set_mosquito_ID(next_mosq_ID);
-            m.infection(t, next_inoc_ID, host_pop[this_host]);
+            m.infection(t, next_infection_ID, host_pop[this_host]);
             
             // add to Ev_pop, scheduled to enter Iv_pop at future time
             Ev_pop[k][v_ringbuffer].emplace_back(m);
@@ -338,7 +328,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
         }
       } // end loop through query infective bites
       
-      // deaths in Iv
+      // deaths in Iv are reborn in Sv
       int death_Iv = rbinom1(Iv[k], params->prob_mosq_death);
       Sv[k] += death_Iv;
       Iv[k] -= death_Iv;
@@ -365,8 +355,8 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
         host_pop[i].end_prophylaxis();
       }
       
-      // apply any scheduled inoc-level events
-      host_pop[i].check_inoc_event(t);
+      // apply any scheduled infection-level events
+      host_pop[i].check_infection_event(t);
     }
     
     
@@ -376,83 +366,102 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
     if (params->any_daily_outputs) {
       
       // clear daily values vector
-      fill(daily_numer_today.begin(), daily_numer_today.end(), 0.0);
-      fill(daily_denom_today.begin(), daily_denom_today.end(), 0.0);
+      fill(daily_output_today.begin(), daily_output_today.end(), 0.0);
       
-      // loop through hosts in each deme
+      // loop through demes
       for (int k = 0; k < params->n_demes; ++k) {
+        
+        // skip this deme if it not required in any output
         if (!params->daily_flag_deme[k]) {
           continue;
         }
+        
+        // loop through hosts in this deme
         for (int i = 0; i < host_index[k].size(); ++i) {
           int this_host = host_index[k][i];
           int this_age = host_pop[this_host].get_age(t);
           
-          // look up whether daily output required
-          if (params->daily_map.count({k, this_age})) {
-            vector<int> this_out = params->daily_map[{k, this_age}];
-            
-            // add to daily values
-            for (unsigned int j = 0; j < this_out.size(); ++j) {
-              host_pop[this_host].update_output(params->daily_measure[this_out[j]],
-                                                params->daily_state[this_out[j]],
-                                                params->daily_diagnostic[this_out[j]],
-                                                params->daily_age_min[this_out[j]],
-                                                params->daily_age_max[this_out[j]],
-                                                t,
-                                                daily_numer_today[this_out[j]],
-                                                daily_denom_today[this_out[j]]);
-            }
-            
+          // skip this individual if it not required in any output
+          if (params->daily_map.count({k, this_age}) == 0) {
+            continue;
+          }
+          
+          // get which rows of daily output this individual applies to
+          vector<int> which_rows = params->daily_map[{k, this_age}];
+          
+          // get daily output for all required rows
+          for (unsigned int j = 0; j < which_rows.size(); ++j) {
+            int w = which_rows[j];
+            daily_output_today[w] += host_pop[this_host].get_output(params->daily_measure[w],
+                                                                    params->daily_state[w],
+                                                                    params->daily_diagnostic[w],
+                                                                    params->daily_age_min[w],
+                                                                    params->daily_age_max[w],
+                                                                    t);
           }
           
         }
       }
-      
       
       // calculate EIR
       for (int i = 0; i < params->n_daily_outputs; i++) {
         if (params->daily_measure[i] == Measure_EIR) {
           int this_deme = params->daily_deme[i];
           if (this_deme == -1) {
-            daily_numer_today[i] = 365 * mean(daily_EIR);
+            daily_output_today[i] = 365 * mean(daily_EIR);
           } else {
-            daily_numer_today[i] = 365 * daily_EIR[this_deme];
+            daily_output_today[i] = 365 * daily_EIR[this_deme];
+          }
+        }
+      }
+      
+      // divide through by denominator and change units
+      for (int i = 0; i < params->n_daily_outputs; i++) {
+        if (params->daily_measure[i] == Measure_prevalence) {
+          int this_deme = params->daily_deme[i];
+          if (this_deme == -1) {
+            daily_output_today[i] *= 100.0 / double(sum(H));
+          } else {
+            daily_output_today[i] *= 100.0 / double(H[this_deme]);
+          }
+        } else if (params->daily_measure[i] == Measure_incidence) {
+          int this_deme = params->daily_deme[i];
+          if (this_deme == -1) {
+            daily_output_today[i] *= 365.0 / double(sum(H));
+          } else {
+            daily_output_today[i] *= 365.0 / double(H[this_deme]);
           }
         }
       }
       
       // store values
-      daily_numer[t] = daily_numer_today;
-      daily_denom[t] = daily_denom_today;
+      daily_output[t] = daily_output_today;
       
     }  // end daily outputs
     
     // sweep outputs
     if (params->any_sweep_outputs) {
-      if (params->sweep_time_ordered[sweep_index] == t+1) {
+      if (params->sweep_time_ordered[sweep_index] == (t + 1)) {
         sweep_index++;
         
         // check all sweep outputs
         for (int i = 0; i < params->n_sweep_outputs; ++i) {
-          if (params->sweep_time[i] == t+1) {
+          if (params->sweep_time[i] == (t + 1)) {
             
-            double sweep_numer_today = 0.0;
-            double sweep_denom_today = 0.0;
+            // object for storing todays results
+            double sweep_output_today = 0.0;
             
             int this_deme = params->sweep_deme[i];
             if (this_deme == -1) {
               for (unsigned int j = 0; j < host_pop.size(); ++j) {
                 int this_age = host_pop[j].get_age(t);
                 if ((this_age >= params->sweep_age_min[i]) && (this_age <= params->sweep_age_max[i])) {
-                  host_pop[j].update_output(params->sweep_measure[i],
-                                            params->sweep_state[i],
-                                            params->sweep_diagnostic[i],
-                                            params->sweep_age_min[i],
-                                            params->sweep_age_max[i],
-                                            t, 
-                                            sweep_numer_today, 
-                                            sweep_denom_today);
+                  sweep_output_today += host_pop[j].get_output(params->sweep_measure[i],
+                                                               params->sweep_state[i],
+                                                               params->sweep_diagnostic[i],
+                                                               params->sweep_age_min[i],
+                                                               params->sweep_age_max[i],
+                                                               t);
                 }
               }
             } else {
@@ -460,27 +469,40 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
                 int this_host = host_index[this_deme][j];
                 int this_age = host_pop[this_host].get_age(t);
                 if ((this_age >= params->sweep_age_min[i]) && (this_age <= params->sweep_age_max[i])) {
-                  host_pop[this_host].update_output(params->sweep_measure[i],
-                                                    params->sweep_state[i],
-                                                    params->sweep_diagnostic[i],
-                                                    params->sweep_age_min[i],
-                                                    params->sweep_age_max[i],
-                                                    t, 
-                                                    sweep_numer_today, 
-                                                    sweep_denom_today);
+                  sweep_output_today += host_pop[this_host].get_output(params->sweep_measure[i],
+                                                                       params->sweep_state[i],
+                                                                       params->sweep_diagnostic[i],
+                                                                       params->sweep_age_min[i],
+                                                                       params->sweep_age_max[i],
+                                                                       t);
                 }
               }
             }
             
+            // divide through by denominator and change units
+            if (params->sweep_measure[i] == Measure_prevalence) {
+              if (this_deme == -1) {
+                sweep_output_today *= 100.0 / double(sum(H));
+              } else {
+                sweep_output_today *= 100.0 / double(H[this_deme]);
+              }
+            } else if (params->sweep_measure[i] == Measure_incidence) {
+              if (this_deme == -1) {
+                sweep_output_today *= 365.0 / double(sum(H));
+              } else {
+                sweep_output_today *= 365.0 / double(H[this_deme]);
+              }
+            }
+            
             // store values
-            sweep_numer[i] = sweep_numer_today;
-            sweep_denom[i] = sweep_denom_today;
+            sweep_output[i] = sweep_output_today;
             
           }
         }
         
       }
     }  // end sweep outputs
+    
     
     /*
     // sample inoc IDs

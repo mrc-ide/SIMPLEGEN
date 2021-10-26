@@ -6,6 +6,7 @@
 #include "Sampler_v4.h"
 #include "Host.h"
 #include "Mosquito.h"
+#include "utils.h"
 
 #include <set>
 #include <fstream>
@@ -27,7 +28,7 @@ public:
   // unique IDs for hosts, mosquitoes and inoculations
   int next_host_ID;
   int next_mosq_ID;
-  int next_inoc_ID;
+  int next_infection_ID;
   
   // objects for sampling from probability distributions
   Sampler sampler_age_stable;
@@ -46,12 +47,6 @@ public:
   std::vector<int> Ch;
   std::vector<int> Ph;
   
-  // further counts of host types
-  std::vector<double> Ah_detectable_microscopy;
-  std::vector<double> Ch_detectable_microscopy;
-  std::vector<double> Ah_detectable_PCR;
-  std::vector<double> Ch_detectable_PCR;
-  
   // population of human hosts
   std::vector<Host> host_pop;
   
@@ -60,7 +55,6 @@ public:
   std::vector<std::vector<int>> host_infective_index;
   
   // counts of mosquito types
-  int M_total;
   std::vector<int> Sv;
   std::vector<int> Ev;
   std::vector<int> Iv;
@@ -73,10 +67,8 @@ public:
   std::vector<std::vector<Mosquito>> Iv_pop;
   
   // objects for storing results
-  std::vector<std::vector<double>> daily_numer;
-  std::vector<std::vector<double>> daily_denom;
-  std::vector<double> sweep_numer;
-  std::vector<double> sweep_denom;
+  std::vector<std::vector<double>> daily_output;
+  std::vector<double> sweep_output;
   
   // misc
   std::vector<double> daily_EIR;
@@ -90,6 +82,7 @@ public:
   
   // methods
   void init(Parameters &params);
+  void open_trans_record();
   void run_simulation(Rcpp::List &args_functions, Rcpp::List &args_progress);
   void get_sample_details(int t, int deme, int n, Diagnostic diag);
   void get_age_distribution(int t_index);
