@@ -4,6 +4,7 @@ Title: Simulating Plasmodium Epidemiological and Genetic Data
 Version: 0.1.0
 Authors@R: as.person(c(
     "Bob Verity <r.verity@imperial.ac.uk> [aut, cre]", 
+    "Isobel Routledge [aut]",
     "Sophie Berube [aut]",
     "Daniel Larremore [aut]"
   ))
