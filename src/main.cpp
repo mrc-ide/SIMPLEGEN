@@ -30,7 +30,9 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List 
   chrono_timer(t1);
   
   return Rcpp::List::create(Rcpp::Named("daily_output") = dispatcher.daily_output,
-                            Rcpp::Named("sweep_output") = dispatcher.sweep_output);
+                            Rcpp::Named("sweep_output") = dispatcher.sweep_output,
+                            Rcpp::Named("survey_output") = dispatcher.surveys_indlevel_output,
+                            Rcpp::Named("survey_output_infection_IDs") = dispatcher.surveys_indlevel_output_infection_IDs);
   
 }
 #endif

@@ -58,9 +58,12 @@ void Host::init(Parameters &params_,
   // draw birth and death days from stable demography distribution
   draw_starting_age();
   
-  // prophylactic status
+  // treatment status
+  t_treatment = 0;
   prophylaxis_on = false;
   t_prophylaxis_stop = 0;
+  microscopy_positive_at_treatment = false;
+  PCR_positive_at_treatment = false;
   
   // host state now, previously, and time at which it changed
   host_state = Host_Sh;
@@ -135,7 +138,7 @@ void Host::draw_starting_age() {
 
 //------------------------------------------------
 // draw host-specific treatment seeking parameter, either from Beta distribution
-// or Dirac delta distribution
+// or Dirac delta distribution (fixed value)
 void Host::draw_treatment_seeking() {
   
   if ((params->treatment_seeking_mean == 0) || (params->treatment_seeking_mean == 1) || (params->treatment_seeking_sd == 0)) {
@@ -185,11 +188,11 @@ void Host::check_infection_event(int t) {
     return;
   }
   
-  // deal with treatment at time t first
+  // deal with treatment at time t before looking for other events
   for (int i = 0; i < params->max_inoculations; ++i) {
     for (const auto & x : inoc_events[i]) {
-      if ((x.first == Event_treatment) && (x.second == t)) {
-        treatment(t);
+      if ((x.first == Event_become_unwell) && (x.second == t)) {
+        become_unwell(t);
         goto treatment_break;
       }
     }
@@ -285,8 +288,11 @@ void Host::death(int &host_ID, int t) {
   cumul_infections = 0;
   
   // reset prophylactic status
+  t_treatment = 0;
   prophylaxis_on = false;
   t_prophylaxis_stop = 0;
+  microscopy_positive_at_treatment = false;
+  PCR_positive_at_treatment = false;
   
   // reset host state
   host_state = Host_Sh;
@@ -395,11 +401,11 @@ void Host::infection(int t, int &next_infection_ID, int mosquito_ID, int mosquit
   new_Eh(this_slot, t, next_infection_ID);
   
   // schedule disease progression. This is where we look through the tree of all
-  // possible future trajectories, for example whether the inoculation
+  // possible future trajectories, for example whether the infection
   // transitions to acute stage or directly to chronic stage etc, and schedule
   // these events to happen
-  int time_consider_treatment = 0;
-  bool seek_treatment = false;
+  bool become_unwell = false;
+  int time_become_unwell = 0;
   int t1 = t + params->u;
   bool acute = rbernoulli1(get_prob_acute());
   if (acute) {
@@ -415,14 +421,11 @@ void Host::infection(int t, int &next_infection_ID, int mosquito_ID, int mosquit
     int dur_acute = draw_duration_acute();
     int t3 = t1 + dur_acute;
     
-    // draw time to considering seeking treatment
-    time_consider_treatment = draw_time_treatment_acute();
+    // draw time to becoming unwell
+    time_become_unwell = draw_time_treatment_acute() + 1;
     
-    // if consider seeking treatment before infection clears naturally,
-    // determine whether host actively seeks treatment
-    if (time_consider_treatment <= dur_acute) {
-      seek_treatment = rbernoulli1(treatment_seeking);
-    }
+    // keep track of whether infection clears naturally before becoming unwell
+    become_unwell = (time_become_unwell <= dur_acute);
     
     // whether to transition to chronic stage prior to recovery
     bool acute_to_chronic = rbernoulli1(get_prob_AC());
@@ -470,14 +473,11 @@ void Host::infection(int t, int &next_infection_ID, int mosquito_ID, int mosquit
     int dur_chronic = draw_duration_chronic();
     int t3 = t1 + dur_chronic;
     
-    // draw time to considering seeking treatment
-    time_consider_treatment = draw_time_treatment_chronic();
+    // draw time to becoming unwell
+    time_become_unwell = draw_time_treatment_chronic() + 1;
     
-    // if consider seeking treatment before infection clears naturally,
-    // determine whether host actively seeks treatment
-    if (time_consider_treatment <= dur_chronic) {
-      seek_treatment = rbernoulli1(treatment_seeking);
-    }
+    // keep track of whether infection clears naturally before becoming unwell
+    become_unwell = (time_become_unwell <= dur_chronic);
     
     // schedule change of state
     new_infection_event(t3, Event_Ch_to_Sh, this_slot);
@@ -488,17 +488,47 @@ void Host::infection(int t, int &next_infection_ID, int mosquito_ID, int mosquit
     
   }
   
-  // schedule treatment
-  if (seek_treatment) {
-    int t2 = t1 + time_consider_treatment;
-    new_infection_event(t2, Event_treatment, this_slot);
+  // schedule becoming unwell
+  if (become_unwell) {
+    int t2 = t1 + time_become_unwell;
+    new_infection_event(t2, Event_become_unwell, this_slot);
   }
   
 }
 
 //------------------------------------------------
+// become unwell enough to require treatment
+void Host::become_unwell(int t) {
+  if (rbernoulli1(treatment_seeking)) {
+    treatment(t);
+  }
+}
+
+//------------------------------------------------
 // treatment
 void Host::treatment(int t) {
+  
+  // store treatment time
+  t_treatment = t;
+  
+  // get positivity at treatment
+  double prob_pos_microscopy = 0.0;
+  if (get_host_state() == Host_Ah) {
+    prob_pos_microscopy = get_detectability_microscopy_acute(t);
+  } else if (get_host_state() == Host_Ch) {
+    prob_pos_microscopy = get_detectability_microscopy_chronic(t);
+  }
+  microscopy_positive_at_treatment = rbernoulli1(prob_pos_microscopy);
+  
+  double prob_pos_PCR = 0.0;
+  if (get_host_state() == Host_Ah) {
+    prob_pos_PCR = get_detectability_PCR_acute(t);
+  } else if (get_host_state() == Host_Ch) {
+    prob_pos_PCR = get_detectability_PCR_chronic(t);
+  } else {
+    Rcpp::stop("treatment of host not in acute or chronic state");
+  }
+  PCR_positive_at_treatment = rbernoulli1(prob_pos_PCR);
   
   // draw duration of prophylaxis
   int dur_prophylaxis = draw_duration_prophylaxis();
@@ -612,11 +642,11 @@ void Host::end_prophylaxis() {
 }
 
 
-// #############################################################################
-// #                                                                           #
-// #   INOCULATION-LEVEL EVENTS                                                #
-// #                                                                           #
-// #############################################################################
+// ###########################################################################
+// #                                                                         #
+// #   INFECTION-LEVEL EVENTS                                                #
+// #                                                                         #
+// ###########################################################################
 
 
 //------------------------------------------------
@@ -1131,7 +1161,7 @@ int Host::get_age(int t) {
 // #############################################################################
 
 //------------------------------------------------
-// return prevalence/incidence/counts output
+// return prevalence/incidence/counts output for daily and sweep outputs
 double Host::get_output(Measure measure, 
                         Model_state state,
                         Diagnostic diagnostic,
@@ -1177,7 +1207,7 @@ double Host::get_output(Measure measure,
   // incidence
   } else if (measure == Measure_incidence) {
     
-     if ( (state == Model_A) && (host_state == Host_Ah) && (host_state_previous != Host_Ah) && (time_host_state_change == t) ) {
+     if ( (state == Model_A) && (host_state == Host_Ah) && (host_state_previous == Host_Eh) && (time_host_state_change == t) ) {
       if (diagnostic == Diagnostic_true) {
         ret += 1.0;
       } else if (diagnostic == Diagnostic_microscopy) {
@@ -1185,7 +1215,7 @@ double Host::get_output(Measure measure,
       } else if (diagnostic == Diagnostic_PCR) {
         ret += get_detectability_PCR_acute(t);
       }
-    }  else if ( (state == Model_C) && (host_state == Host_Ch) && (host_state_previous != Host_Ch) && (time_host_state_change == t) ) {
+     }  else if ( (state == Model_C) && (host_state == Host_Ch) && (host_state_previous == Host_Eh) && (time_host_state_change == t) ) {
       if (diagnostic == Diagnostic_true) {
         ret += 1.0;
       } else if (diagnostic == Diagnostic_microscopy) {
@@ -1205,6 +1235,98 @@ double Host::get_output(Measure measure,
   
   return ret;
 }
+
+//------------------------------------------------
+// return flag whether this individual should be included in individual-level
+// output. diagnostic_result is passed by reference and stores whether the
+// individual is malaria positive
+bool Host::get_indiv_output(Measure measure, 
+                            Sampling sampling,
+                            Diagnostic diagnostic,
+                            int age_min,
+                            int age_max,
+                            int t,
+                            bool &true_positive,
+                            bool &microscopy_positive,
+                            bool &PCR_positive) {
+  
+  // check that age within range
+  int this_age = get_age(t);
+  if ((this_age < age_min) || (this_age > age_max)) {
+    return false;
+  }
+  
+  // if prevalence survey then host should be included in output irrespective of
+  // malaria status
+  if (measure == Measure_prevalence) {
+    
+    // get whether true positive
+    true_positive = (get_n_bloodstage() > 0);
+    
+    // get whether positive by microscopy
+    double prob_pos_microscopy = 0.0;
+    if (get_host_state() == Host_Ah) {
+      prob_pos_microscopy = get_detectability_microscopy_acute(t);
+    } else if (get_host_state() == Host_Ch) {
+      prob_pos_microscopy = get_detectability_microscopy_chronic(t);
+    }
+    microscopy_positive = rbernoulli1(prob_pos_microscopy);
+    
+    // get whether positive by PCR
+    double prob_pos_PCR = 0.0;
+    if (get_host_state() == Host_Ah) {
+      prob_pos_PCR = get_detectability_PCR_acute(t);
+    } else if (get_host_state() == Host_Ch) {
+      prob_pos_PCR = get_detectability_PCR_chronic(t);
+    }
+    PCR_positive = rbernoulli1(prob_pos_PCR);
+    
+    return true;
+  }
+  
+  // if incidence survey then only include in output if host meets criteria
+  if (measure == Measure_incidence) {
+    
+    // for active case detection, check that entered acute or chronic state today
+    if (sampling == Sampling_ACD) {
+      if ( !(((host_state == Host_Ah) || (host_state == Host_Ch)) && (host_state_previous == Host_Eh) && (time_host_state_change == t)) ) {
+        return false;
+      }
+    }
+    
+    // for passive case detection, check that sought treatment today
+    if (sampling == Sampling_PCD) {
+      if (t_treatment != t) {
+        return false;
+      }
+    }
+    
+    // get positivity at time of treatment
+    true_positive = true;
+    microscopy_positive = microscopy_positive_at_treatment;
+    PCR_positive = PCR_positive_at_treatment;
+    
+    // check that positive by chosen diagnostic
+    bool pos_diagnostic = false;
+    if (diagnostic == Diagnostic_true) {
+      pos_diagnostic = true_positive;
+    } else if (diagnostic == Diagnostic_microscopy) {
+      pos_diagnostic = microscopy_positive;
+    } else if (diagnostic == Diagnostic_PCR) {
+      pos_diagnostic = PCR_positive;
+    }
+    if (!pos_diagnostic) {
+      return false;
+    }
+    
+    return true;
+  }
+  
+  // should never reach this point
+  Rcpp::stop("reached end of get_indiv_output()");
+  return false;
+}
+  
 
 
 // #############################################################################

@@ -69,6 +69,8 @@ public:
   // objects for storing results
   std::vector<std::vector<double>> daily_output;
   std::vector<double> sweep_output;
+  Rcpp::List surveys_indlevel_output;
+  Rcpp::List surveys_indlevel_output_infection_IDs;
   
   // misc
   std::vector<double> daily_EIR;

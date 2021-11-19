@@ -49,7 +49,7 @@ test_that("default epi model runs and maintains expected project structure", {
   expect_equal(names(p), expected_names)
   
   # check that expected elements are present in output
-  expect_equal(names(p$epi_output), c("daily", "sweeps", "surveys"))
+  expect_equal(names(p$epi_output), c("daily", "sweeps", "surveys_indlevel", "surveys_summary"))
   
 })
 

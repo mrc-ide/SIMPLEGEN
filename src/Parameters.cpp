@@ -210,11 +210,11 @@ void Parameters::print_daily_maps() {
   print("DAILY MAP:");
   for (auto it = daily_map.cbegin(); it != daily_map.cend(); ++it) {
     pair<int, int> map_key = it->first;
-    cout << "deme" << map_key.first << " age" << map_key.second << ": ";
+    Rcpp::Rcout << "deme" << map_key.first << " age" << map_key.second << ": ";
     for (int i = 0; i < it->second.size(); ++i) {
-      cout << it->second[i] << " ";
+      Rcpp::Rcout << it->second[i] << " ";
     }
-    cout << "\n";
+    Rcpp::Rcout << "\n";
   }
   
   // deme-level mep
@@ -269,37 +269,53 @@ void Parameters::load_sampling_params_sweep(Rcpp::List args) {
 }
 
 //------------------------------------------------
-// load syrvey sampling strategy parameter values
+// load survey sampling strategy parameter values
 void Parameters::load_sampling_params_survey(Rcpp::List args) {
   
-  // return if no sweep outputs
+  // return if no survey outputs
   any_survey_outputs = args["any_survey_outputs"];
   if (!any_survey_outputs) {
     n_survey_outputs = 0;
     return;
   }
   
-  // extract dataframe
-  Rcpp::List survey_df = args["surveys"];
+  // extract dataframes
+  Rcpp::List surveys_df = args["surveys"];
+  Rcpp::List surveys_expanded_df = args["surveys_expanded"];
   
-  // extract columns into vectors
-  survey_t_start = rcpp_to_vector_int(survey_df["t_start"]);
-  survey_t_start = rcpp_to_vector_int(survey_df["t_start"]);
-  n_survey_outputs = survey_t_start.size();
+  // extract surveys info
+  surveys_t_start = rcpp_to_vector_int(surveys_df["t_start"]);
+  surveys_t_end = rcpp_to_vector_int(surveys_df["t_end"]);
+  surveys_deme = rcpp_to_vector_int(surveys_df["deme"]);
+  n_survey_outputs = surveys_deme.size();
   
-  survey_interval = rcpp_to_vector_int(survey_df["interval"]);
-  
-  vector<int> survey_measure_int = rcpp_to_vector_int(survey_df["measure"]);
-  survey_measure = std::vector<Measure>(survey_measure_int.size());
-  for (unsigned int i = 0; i < survey_measure_int.size(); ++i) {
-    sweep_measure[i] = static_cast<Measure>(survey_measure_int[i]);
+  vector<int> surveys_measure_int = rcpp_to_vector_int(surveys_df["measure"]);
+  surveys_measure = std::vector<Measure>(surveys_measure_int.size());
+  for (unsigned int i = 0; i < n_survey_outputs; ++i) {
+    surveys_measure[i] = static_cast<Measure>(surveys_measure_int[i]);
   }
   
-  survey_sampling = rcpp_to_vector_int(survey_df["sampling"]);
-  survey_deme = rcpp_to_vector_int(survey_df["deme"]);
+  vector<int> surveys_sampling_int = rcpp_to_vector_int(surveys_df["sampling"]);
+  surveys_sampling = std::vector<Sampling>(surveys_sampling_int.size());
+  for (unsigned int i = 0; i < n_survey_outputs; ++i) {
+    surveys_sampling[i] = static_cast<Sampling>(surveys_sampling_int[i]);
+  }
   
-  survey_age_min = Rcpp::as<vector<int>>(survey_df["age_min"]);
-  survey_age_max = Rcpp::as<vector<int>>(survey_df["age_max"]);
+  vector<int> surveys_diagnostic_int = Rcpp::as<vector<int>>(surveys_df["diagnostic"]);
+  surveys_diagnostic = std::vector<Diagnostic>(surveys_diagnostic_int.size());
+  for (unsigned int i = 0; i < n_survey_outputs; ++i) {
+    surveys_diagnostic[i] = static_cast<Diagnostic>(surveys_diagnostic_int[i]);
+  }
+  
+  surveys_age_min = rcpp_to_vector_int(surveys_df["age_min"]);
+  surveys_age_max = rcpp_to_vector_int(surveys_df["age_max"]);
+  surveys_sample_size = rcpp_to_vector_double(surveys_df["sample_size"]);
+  surveys_n_days = rcpp_to_vector_int(surveys_df["n_days"]);
+  
+  // extract expanded surveys info
+  surveys_expanded_study_ID = rcpp_to_vector_int(surveys_expanded_df["study_ID"]);
+  surveys_expanded_sampling_time = rcpp_to_vector_int(surveys_expanded_df["sampling_time"]);
+  surveys_expanded_reporting_time = rcpp_to_vector_int(surveys_expanded_df["reporting_time"]);
   
 }
 

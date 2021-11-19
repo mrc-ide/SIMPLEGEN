@@ -139,6 +139,11 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
   
   // initialise indices that increment throughout simulation
   int sweep_index = 0;
+  int surveys_expanded_index = 0;
+  
+  // initialise temporary objects used in survey output
+  vector<set<int>> study_sampled_IDs(params->n_survey_outputs);
+  vector<int> surveys_sample_size_remaining(params->n_survey_outputs);
   
   // loop through daily time steps
   for (int t = 0; t < params->max_time; ++t) {
@@ -503,25 +508,152 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
       }
     }  // end sweep outputs
     
-    
-    /*
-    // sample inoc IDs
-    if (params->obtain_samples) {
-      while (params->ss_time[index_survey] == t+1) {
+    // survey outputs
+    if (params->any_survey_outputs) {
+      
+      // all required surveys for this day
+      while (params->surveys_expanded_sampling_time[surveys_expanded_index] == (t + 1)) {
         
-        // get sampling parameters
-        int this_deme = params->ss_deme[index_survey];
-        int this_n = params->ss_n[index_survey];
-        Diagnostic this_diagnosis = params->ss_diagnosis[index_survey];
+        // get reporting time
+        int reporting_time = params->surveys_expanded_reporting_time[surveys_expanded_index];
         
-        // obtain samples
-        get_sample_details(t, this_deme, this_n, this_diagnosis);
+        // get corresponding row in survey dataframe
+        int survey_index = params->surveys_expanded_study_ID[surveys_expanded_index] - 1;
         
-        // increment index
-        index_survey++;
+        // get survey parameters
+        int surveys_t_start = params->surveys_t_start[survey_index];
+        int surveys_t_end = params->surveys_t_end[survey_index];
+        int surveys_deme = params->surveys_deme[survey_index];
+        Measure surveys_measure = params->surveys_measure[survey_index];
+        Sampling surveys_sampling = params->surveys_sampling[survey_index];
+        Diagnostic surveys_diagnostic = params->surveys_diagnostic[survey_index];
+        int surveys_age_min = params->surveys_age_min[survey_index];
+        int surveys_age_max = params->surveys_age_max[survey_index];
+        double surveys_sample_size = params->surveys_sample_size[survey_index];
+        bool surveys_sample_proportion = (surveys_sample_size <= 1.0);
+        int surveys_n_days_remaining = surveys_t_end - (t + 1) + 1;
+        
+        // if first day of survey then finalise sample sizes
+        if (surveys_t_start == (t + 1)) {
+          if (surveys_measure == Measure_prevalence) {
+            if (surveys_sample_proportion) {
+              if (surveys_deme == -1) {
+                surveys_sample_size_remaining[survey_index] = round(surveys_sample_size * sum(H));
+              } else {
+                surveys_sample_size_remaining[survey_index] = round(surveys_sample_size * H[surveys_deme]);
+              }
+            } else {
+              surveys_sample_size_remaining[survey_index] = (int)surveys_sample_size;
+            }
+          } else if (surveys_measure == Measure_incidence) {
+            if (!surveys_sample_proportion) {
+              surveys_sample_size_remaining[survey_index] = (int)surveys_sample_size;
+            }
+          }
+        }
+        
+        // if prevalence study then spread sampling out evenly over days. If
+        // incidence study then sampling continues on any given day until we
+        // reach the total
+        int max_samples_today = surveys_sample_size_remaining[survey_index];
+        if (surveys_measure == Measure_prevalence) {
+          max_samples_today = round(surveys_sample_size_remaining[survey_index] / double(surveys_n_days_remaining));
+        }
+        
+        // hosts will be sampled by looping through a list of target host
+        // indices and querying whether they meet study criteria. Get this list
+        // differently depending on whether sampling one deme or all demes
+        vector<int> query_indices;
+        if (surveys_deme == -1) {
+          query_indices = seq_int(0, sum(H) - 1);
+        } else {
+          query_indices = host_index[surveys_deme];
+        }
+        reshuffle(query_indices);
+        
+        // loop through query list until sampled enough hosts
+        int n_sampled = 0;
+        for (int i = 0; i < query_indices.size(); ++i) {
+          
+          // break if no remaining samples required
+          if ((surveys_measure == Measure_prevalence) || 
+              ((surveys_measure == Measure_incidence) && !surveys_sample_proportion)) {
+            if (n_sampled == max_samples_today) {
+              break;
+            }
+          }
+          
+          // skip if host already sampled in this study
+          int this_host_ID = host_pop[query_indices[i]].host_ID;
+          if (study_sampled_IDs[survey_index].count(this_host_ID)) {
+            continue;
+          }
+          
+          // establish whether host meets study criteria and simultaneously get
+          // malaria positive status by various diagnostics
+          bool true_positive = false;
+          bool microscopy_positive = false;
+          bool PCR_positive = false;
+          bool include_host = host_pop[query_indices[i]].get_indiv_output(surveys_measure,
+                                                                          surveys_sampling,
+                                                                          surveys_diagnostic,
+                                                                          surveys_age_min,
+                                                                          surveys_age_max,
+                                                                          t,
+                                                                          true_positive,
+                                                                          microscopy_positive,
+                                                                          PCR_positive);
+          
+          // if sampling a proportion of incident cases then draw whether to
+          // keep or discard this sample
+          if ((surveys_measure == Measure_incidence) && surveys_sample_proportion) {
+            if (!rbernoulli1(surveys_sample_size)) {
+              continue;
+            }
+          }
+          
+          // if host to be included
+          if (include_host) {
+            Host this_host = host_pop[query_indices[i]];
+            
+            // save individual-level output to list
+            Rcpp::List this_sample;
+            this_sample["study_ID"] = survey_index + 1;
+            this_sample["sampling_time"] = t + 1;
+            this_sample["reporting_time"] = reporting_time;
+            this_sample["sample_ID"] = this_host.host_ID;
+            this_sample["home_deme"] = this_host.home_deme + 1;
+            this_sample["sampled_deme"] = this_host.deme + 1;
+            this_sample["true_positive"] = true_positive;
+            this_sample["PCR_positive"] = PCR_positive;
+            this_sample["microscopy_positive"] = microscopy_positive;
+            this_sample["age"] = this_host.get_age(t);
+            surveys_indlevel_output.push_back(this_sample);
+            
+            // store infection IDs in separate object
+            vector<int> infection_IDs;
+            for (int j = 0; j < this_host.inoc_ID_vec.size(); ++j) {
+              if (this_host.inoc_active[j]) {
+                infection_IDs.push_back(this_host.inoc_ID_vec[j]);
+              }
+            }
+            surveys_indlevel_output_infection_IDs.push_back(infection_IDs);
+            //this_sample["infection_ID"] = infection_IDs;
+            
+            // add to list of sampled hosts
+            study_sampled_IDs[survey_index].insert(this_host_ID);
+            
+            // update number of samples taken and remaining
+            n_sampled++;
+            surveys_sample_size_remaining[survey_index]--;
+          }
+          
+        }  // end loop through query list
+        
+        // increment row of expanded surveys dataframe
+        surveys_expanded_index++;
       }
-    }
-    */
+    }  // end survey outputs
     
   }  // end main loop through daily time steps
   
