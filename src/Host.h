@@ -23,7 +23,7 @@ enum Event {Event_Eh_to_Ah, Event_Eh_to_Ch,
             Event_Ah_to_Ch, Event_Ah_to_Sh,
             Event_Ch_to_Sh,
             Event_begin_infective_acute, Event_begin_infective_chronic, Event_end_infective,
-            Event_treatment};
+            Event_become_unwell};
 
 //------------------------------------------------
 // class defining human host
@@ -66,9 +66,12 @@ public:
   int birth_day;
   int death_day;
   
-  // prophylactic status
+  // treatment status
+  int t_treatment;
   bool prophylaxis_on;
   int t_prophylaxis_stop;
+  bool microscopy_positive_at_treatment;
+  bool PCR_positive_at_treatment;
   
   // host status now, previously, and time at which it changed
   State_host host_state;
@@ -120,6 +123,7 @@ public:
   void migrate(int new_deme);
   void denovo_infection(int t, int &next_infection_ID, std::ofstream &transmission_record);
   void infection(int t, int &next_infection_ID, int mosquito_ID, int mosquito_infection_ID, std::ofstream &transmission_record);
+  void become_unwell(int t);
   void treatment(int t);
   void end_prophylaxis();
   
@@ -168,6 +172,16 @@ public:
                     int age_min,
                     int age_max,
                     int t);
+  
+  bool get_indiv_output(Measure measure,
+                        Sampling sampling,
+                        Diagnostic diagnostic,
+                        int age_min,
+                        int age_max,
+                        int t,
+                        bool &true_positive,
+                        bool &microscopy_positive,
+                        bool &PCR_positive);
   
   // diagnostics and checks
   void print_inoc_events();

@@ -7,8 +7,9 @@
 
 //------------------------------------------------
 // enumerate sampling strategy methods
-enum Measure {Measure_count, Measure_prevalence, Measure_incidence, Measure_EIR};
 enum Model_state {Model_S, Model_E, Model_A, Model_C, Model_P, Model_H, Model_Sv, Model_Ev, Model_Iv, Model_M};
+enum Measure {Measure_count, Measure_prevalence, Measure_incidence, Measure_EIR};
+enum Sampling {Sampling_none, Sampling_ACD, Sampling_PCD};
 enum Diagnostic {Diagnostic_true, Diagnostic_microscopy, Diagnostic_PCR};
 enum Case_detection {Case_active, Case_passive};
 
@@ -82,6 +83,7 @@ public:
   std::vector<double> age_stable;
   
   // sampling parameters
+  bool any_daily_outputs;
   std::map<std::pair<int, int>, std::vector<int>> daily_map;
   std::vector<bool> daily_flag_deme;
   std::vector<int> daily_deme;
@@ -91,8 +93,8 @@ public:
   std::vector<int> daily_age_min;
   std::vector<int> daily_age_max;
   int n_daily_outputs;
-  bool any_daily_outputs;
   
+  bool any_sweep_outputs;
   std::vector<int> sweep_time;
   std::vector<int> sweep_time_ordered;
   std::vector<int> sweep_deme;
@@ -102,18 +104,23 @@ public:
   std::vector<int> sweep_age_min;
   std::vector<int> sweep_age_max;
   int n_sweep_outputs;
-  bool any_sweep_outputs;
   
-  std::vector<int> survey_t_start;
-  std::vector<int> survey_t_end;
-  std::vector<int> survey_interval;
-  std::vector<Measure> survey_measure;
-  std::vector<int> survey_sampling;
-  std::vector<int> survey_deme;
-  std::vector<int> survey_age_min;
-  std::vector<int> survey_age_max;
-  int n_survey_outputs;
   bool any_survey_outputs;
+  std::vector<int> surveys_t_start;
+  std::vector<int> surveys_t_end;
+  std::vector<int> surveys_deme;
+  std::vector<Measure> surveys_measure;
+  std::vector<Sampling> surveys_sampling;
+  std::vector<Diagnostic> surveys_diagnostic;
+  std::vector<int> surveys_age_min;
+  std::vector<int> surveys_age_max;
+  std::vector<double> surveys_sample_size;
+  std::vector<int> surveys_n_days;
+  int n_survey_outputs;
+  
+  std::vector<int> surveys_expanded_study_ID;
+  std::vector<int> surveys_expanded_sampling_time;
+  std::vector<int> surveys_expanded_reporting_time;
   
   // run parameters
   int max_time;

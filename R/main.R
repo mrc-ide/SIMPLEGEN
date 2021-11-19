@@ -645,39 +645,86 @@ check_epi_sampling_params_surveys <- function(x) {
   
   # check dataframe column names
   assert_dataframe(x, message = "survey sampling parameters must be a dataframe")
-  col_titles <- c("t_start", "t_end", "interval", "measure", "sampling", "deme", "age_min", "age_max")
+  col_titles <- c("t_start", "t_end", "reporting_interval", "deme", "measure", "sampling", "diagnostic", "age_min", "age_max", "sample_size")
   assert_in(col_titles, names(x), message = sprintf("survey sampling parameters dataframe must contain the following columns: {%s}",
                                                     paste0(col_titles, collapse = ", ") ))
   
   # check times
-  assert_vector_pos_int(x$t_start, zero_allowed = FALSE, message = "t_start must be a positive integer")
-  assert_vector_pos_int(x$t_end, zero_allowed = FALSE, message = "t_end must be a positive integer")
-  assert_greq(x$t_end, x$t_start, message = "t_end must be greater than or equal to t_start")
+  assert_vector_pos_int(x$t_start, zero_allowed = FALSE, name = "t_start")
+  assert_vector_pos_int(x$t_end, zero_allowed = FALSE, name = "t_end")
+  assert_greq(x$t_end, x$t_start, name_x = "t_end", name_y = "t_start")
   
-  # check interval
-  assert_vector_pos_int(x$interval, zero_allowed = FALSE, message = "interval must be a positive integer")
+  # check reporting interval
+  assert_vector_pos_int(x$reporting_interval, zero_allowed = FALSE, name = "reporting_interval")
+  
+  # check deme
+  deme_mssg <- "deme must be a positive integer or -1"
+  assert_vector_int(x$deme, message = deme_mssg)
+  assert_greq(x$deme, -1, message = deme_mssg)
+  assert_greq(x$deme[x$deme != -1], 1, message = deme_mssg)
   
   # check measure
-  assert_in(x$measure, c("prevalence", "incidence", "EIR"), name_x = "survey measures")
+  assert_in(x$measure, c("prevalence", "incidence"), name_x = "measure")
   
   # check sampling
   x %>%
+    dplyr::filter(.data$measure == "prevalence") %>%
+    dplyr::pull(.data$sampling) %>%
+    assert_NA(message = "survey sampling method for prevalence output must be NA")
+  x %>%
     dplyr::filter(.data$measure == "incidence") %>%
     dplyr::pull(.data$sampling) %>%
-    assert_in(c("ACD", "PCD"), message = "survey sampling not formatted correctly")
-  x %>%
-    dplyr::filter(.data$measure != "incidence") %>%
-    dplyr::pull(.data$sampling) %>%
-    assert_NA(message = "survey sampling not formatted correctly")
+    assert_in(c("ACD", "PCD"), message = "survey sampling method for incidence output must be ACD or PCD")
   
-  # check deme
-  assert_vector_pos_int(x$deme, zero_allowed = FALSE, message = "deme must be a positive integer")
+  # check diagnostic
+  assert_in(x$diagnostic, c("true", "microscopy", "PCR"), name_x = "diagnostic")
   
   # check age range
-  assert_vector_pos_int(x$age_min, zero_allowed = TRUE, message = "age_min must be a positive integer or zero")
-  assert_vector_pos_int(x$age_max, zero_allowed = TRUE, message = "age_max must be a positive integer or zero")
-  assert_greq(x$age_max, x$age_min, message = "age_max must be greater than or equal to age_min")
+  assert_vector_pos_int(x$age_min, zero_allowed = TRUE, name = "age_min")
+  assert_vector_pos_int(x$age_max, zero_allowed = TRUE, name = "age_max")
+  assert_greq(x$age_max, x$age_min, name_x = "age_max", name_y = "age_min")
+  
+  # check sample size
+  assert_vector_pos(x$sample_size, zero_allowed = FALSE, name = "sample_size")
 }
+
+#------------------------------------------------
+# expand surveys dataframe to give precise number of samples needed on each day
+# of study
+#' @importFrom utils tail
+#' @noRd
+expand_surveys <- function(x) {
+  
+  # return if null
+  if (is.null(x)) {
+    return()
+  }
+  
+  # apply over all rows of survey dataframe
+  ret <- mapply(function(i) {
+    
+    # get sequence of breaks corresponding to reporting times
+    break_vec <- seq(x$t_start[i] - 1, x$t_end[i], x$reporting_interval[i])
+    if (tail(break_vec, 1) != x$t_end[i]) {
+      break_vec <- c(break_vec, x$t_end[i])
+    }
+    
+    # make dataframe with sample times and reporting times
+    ret <- data.frame(study_ID = i,
+                      sampling_time = x$t_start[i]:x$t_end[i]) %>%
+      dplyr::mutate(reporting_time = cut(.data$sampling_time, breaks = break_vec)) %>%
+      dplyr::mutate(reporting_time = break_vec[as.numeric(.data$reporting_time) + 1])
+    
+    return(ret)
+  }, seq_len(nrow(x)), SIMPLIFY = FALSE) %>%
+    dplyr::bind_rows()
+  
+  # sort by increasing sampling time
+  ret <- dplyr::arrange(ret, .data$sampling_time)
+  
+  return(ret)
+}
+
 
 #------------------------------------------------
 # check that at least one of daily, sweeps or survey output is specified
@@ -783,7 +830,9 @@ sim_epi <- function(project,
   args$any_survey_outputs <- !is.null(args$surveys)
   
   # replace "proportion" with "prevalence", as this uses the same calculation
-  args$daily$measure <- replace(args$daily$measure, args$daily$measure == "proportion", "prevalence")
+  if (args$any_daily_outputs) {
+    args$daily$measure <- replace(args$daily$measure, args$daily$measure == "proportion", "prevalence")
+  }
   
   # get sampling strategy indices into 0-indexed numerical format
   sampling_to_cpp_format <- function(x) {
@@ -806,10 +855,22 @@ sim_epi <- function(project,
   }
   args$daily <- sampling_to_cpp_format(args$daily)
   args$sweeps <- sampling_to_cpp_format(args$sweeps)
+  surveys_raw <- args$surveys
   args$surveys <- sampling_to_cpp_format(args$surveys)
   
-  # unique times at which sweeps happen
-  args$sweep_time_ordered <- sort(unique(args$sweeps$time))
+  # get unique times at which sweeps happen
+  args$sweep_time_ordered <- NULL
+  if (args$any_sweep_outputs) {
+    args$sweep_time_ordered <- sort(unique(args$sweeps$time))
+  }
+  
+  # add columns to surveys
+  if (args$any_survey_outputs) {
+    args$surveys$n_days <- args$surveys$t_end - args$surveys$t_start + 1
+  }
+  
+  # get expanded version of surveys dataframe
+  args$surveys_expanded <- expand_surveys(args$surveys)
   
   # functions
   args_functions <- list(update_progress = update_progress)
@@ -851,15 +912,85 @@ sim_epi <- function(project,
   }
   
   # wrangle surveys output
-  surveys_output <- NULL
+  surveys_indlevel_output <- surveys_summary_output <- NULL
+  if (args$any_survey_outputs) {
+    
+    # make individual-level output dataframe
+    surveys_indlevel_output <- mapply(as.data.frame, output_raw$survey_output, SIMPLIFY = FALSE) %>%
+      dplyr::bind_rows()
+    surveys_indlevel_output$infection_IDs <- output_raw$survey_output_infection_IDs
+    surveys_indlevel_output <- dplyr::arrange(.data$surveys_indlevel_output, .data$study_ID)
+    
+    # get summary output from individual-level
+    surveys_summary_output <- get_survey_summary(surveys_indlevel_output,
+                                                 surveys_raw,
+                                                 args$surveys_expanded)
+    
+  }
   
   # append to project
   project$epi_output <- list(daily = daily_output,
                              sweeps = sweeps_output,
-                             surveys = surveys_output)
+                             surveys_indlevel = surveys_indlevel_output,
+                             surveys_summary = surveys_summary_output)
   
   # return
   invisible(project)
+}
+
+#------------------------------------------------
+# get summary survey output from individual-level
+#' @noRd
+get_survey_summary <- function(surveys_indlevel,
+                               surveys_raw,
+                               surveys_expanded) {
+  
+  # get skeleton dataframe of all possible reporting days for each study
+  df_skeleton <- surveys_expanded %>%
+    dplyr::group_by(.data$study_ID, .data$reporting_time) %>%
+    dplyr::summarise(reporting_interval = .data$n()) %>%
+    dplyr::ungroup()
+  
+  # get counts over individual-level output
+  df_counts <- surveys_indlevel %>%
+    dplyr::group_by(.data$study_ID, .data$reporting_time) %>%
+    dplyr::summarise(n_sampled = .data$n(),
+                     n_true_pos = sum(.data$true_positive),
+                     n_micro_pos = sum(.data$microscopy_positive),
+                     n_PCR_pos = sum(.data$PCR_positive)) %>%
+    dplyr::ungroup()
+  
+  # merge back with skeleton dataframe, get into long format over diagnostics and replace
+  # NAs with 0s
+  df_long <- df_counts %>%
+    dplyr::full_join(df_skeleton, by = c("study_ID", "reporting_time")) %>%
+    dplyr::arrange(.data$study_ID, .data$reporting_time) %>%
+    tidyr::pivot_longer(cols = c(.data$n_true_pos, .data$n_micro_pos, .data$n_PCR_pos), names_to = "observed_diagnostic", values_to = "n_pos") %>%
+    dplyr::mutate(n_sampled = ifelse(is.na(.data$n_sampled), 0, .data$n_sampled),
+                  n_pos = ifelse(is.na(.data$n_pos), 0, .data$n_pos)) %>%
+    dplyr::mutate(observed_diagnostic = match(.data$observed_diagnostic, c("n_true_pos", "n_micro_pos", "n_PCR_pos"))) %>%
+    dplyr::mutate(observed_diagnostic = c("true", "microscopy", "PCR")[.data$observed_diagnostic])
+  
+  # merge back with original survey dataframe and subset to chosen diagnostic
+  df_filtered <- surveys_raw %>%
+    dplyr::mutate(study_ID = seq_along(.data$t_start)) %>%
+    dplyr::select(.data$study_ID, .data$deme, .data$measure, .data$sampling, .data$diagnostic, .data$age_min, .data$age_max) %>%
+    dplyr::left_join(df_long, by = "study_ID") %>%
+    dplyr::filter(.data$observed_diagnostic == .data$diagnostic) %>%
+    dplyr::select(-.data$observed_diagnostic) %>%
+    dplyr::relocate(c("study_ID", "reporting_time", "reporting_interval", "deme", "measure", "sampling", "diagnostic", "age_min", "age_max", 
+                      "n_pos", "n_sampled"))
+  
+  # finalise incidence and prevalence units
+  df_final <- df_filtered %>%
+    dplyr::rename(numerator = .data$n_pos,
+                  denominator = .data$n_sampled) %>%
+    dplyr::mutate(denominator = ifelse(.data$measure == "incidence", NA, .data$denominator)) %>%
+    dplyr::mutate(value = ifelse(.data$measure == "prevalence",
+                                 .data$numerator / .data$denominator * 100,
+                                 .data$numerator / .data$reporting_interval * 365))
+  
+  return(df_final)
 }
 
 #------------------------------------------------
