@@ -919,7 +919,7 @@ sim_epi <- function(project,
     surveys_indlevel_output <- mapply(as.data.frame, output_raw$survey_output, SIMPLIFY = FALSE) %>%
       dplyr::bind_rows()
     surveys_indlevel_output$infection_IDs <- output_raw$survey_output_infection_IDs
-    surveys_indlevel_output <- dplyr::arrange(.data$surveys_indlevel_output, .data$study_ID)
+    surveys_indlevel_output <- dplyr::arrange(surveys_indlevel_output, .data$study_ID)
     
     # get summary output from individual-level
     surveys_summary_output <- get_survey_summary(surveys_indlevel_output,
@@ -948,13 +948,13 @@ get_survey_summary <- function(surveys_indlevel,
   # get skeleton dataframe of all possible reporting days for each study
   df_skeleton <- surveys_expanded %>%
     dplyr::group_by(.data$study_ID, .data$reporting_time) %>%
-    dplyr::summarise(reporting_interval = .data$n()) %>%
+    dplyr::summarise(reporting_interval = dplyr::n()) %>%
     dplyr::ungroup()
   
   # get counts over individual-level output
   df_counts <- surveys_indlevel %>%
     dplyr::group_by(.data$study_ID, .data$reporting_time) %>%
-    dplyr::summarise(n_sampled = .data$n(),
+    dplyr::summarise(n_sampled = dplyr::n(),
                      n_true_pos = sum(.data$true_positive),
                      n_micro_pos = sum(.data$microscopy_positive),
                      n_PCR_pos = sum(.data$PCR_positive)) %>%
