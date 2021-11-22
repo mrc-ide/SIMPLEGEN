@@ -40,17 +40,14 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List 
 //------------------------------------------------
 // read in transmission record and prune to only those events that run up to the
 // final sample
-#ifdef RCPP_ACTIVE
 void prune_transmission_record_cpp(Rcpp::List args) {
-  
-  // start timer
-  chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
   
   // extract input args
   string transmission_record_location = rcpp_to_string(args["transmission_record_location"]);
   string pruned_record_location = rcpp_to_string(args["pruned_record_location"]);
+  vector<int> focal_IDs_vec = rcpp_to_vector_int(args["infection_IDs"]);
+  set<int> focal_IDs(focal_IDs_vec.begin(), focal_IDs_vec.end());
   bool silent = rcpp_to_bool(args["silent"]);
-  vector<int> inoc_IDs = rcpp_to_vector_int(args["inoc_IDs"]);
   
   // open filestream to transmission record and check that opened
   if (!silent) {
@@ -59,7 +56,7 @@ void prune_transmission_record_cpp(Rcpp::List args) {
   ifstream infile;
   infile.open(transmission_record_location);
   if (!infile.is_open()) {
-    Rcpp::stop("unable to open filestream at specified location. Check the path exists, and that you have read access");
+    Rcpp::stop("unable to open filestream at specified location. Check the path exists and that you have read access");
   }
   
   // open filestream to pruned record and check that opened
@@ -69,143 +66,104 @@ void prune_transmission_record_cpp(Rcpp::List args) {
   ofstream outfile;
   outfile.open(pruned_record_location);
   if (!outfile.is_open()) {
-    Rcpp::stop("unable to open filestream at specified location. Check the path exists, and that you have write access");
+    Rcpp::stop("unable to open filestream at specified location. Check the path exists and that you have write access");
   }
   
-  // start by getting positions of all line breaks, and the first ID in every
-  // line
-  vector<int> line_starts(1);
-  vector<pair<int, int>> first_IDs;
-  stringstream ss;
-  int ID;
-  bool new_line = true;
+  if (!silent) {
+    print("Pruning transmission record");
+  }
+  
+  // initialise vectors for storing transmission record values
+  vector<int> time;
+  vector<int> event;
+  vector<int> human_ID;
+  vector<int> mosquito_ID;
+  vector<int> child_infection_ID;
+  vector<vector<int>> parent_infection_ID;
+  vector<int> deme;
+  
+  // read in transmission record to memory
+  string line;
   int i = 0;
-  int t = 0;
-  char c;
-  while (infile.get(c)) {
-    i++;
-    if (c == '\n') {
-      line_starts.push_back(i);
-      new_line = true;
-      t++;
+  while (getline(infile, line)) {
+    
+    // skip first line
+    if (i == 0) {
+      i++;
+      continue;
     }
-    if (new_line) {
-      if (c == ' ' || c == ';') {
-        ss >> ID;
-        first_IDs.push_back(make_pair(t, ID));
-        ss.clear();
-        ss.str(std::string());
-        new_line = false;
-      } else {
-        ss << c;
+    
+    // read line elements
+    istringstream s(line);
+    string field;
+    int j = 0;
+    while (getline(s, field,',')) {
+      if (j == 0) {
+        time.push_back(stoi(field));
+      } else if (j == 1) {
+        event.push_back(stoi(field));
+      } else if (j == 2) {
+        human_ID.push_back(stoi(field));
+      } else if (j == 3) {
+        mosquito_ID.push_back(stoi(field));
+      } else if (j == 4) {
+        child_infection_ID.push_back(stoi(field));
+      } else if (j == 5) {
+        // read in elements delimited by ;
+        stringstream ss(field);
+        string ss_segment;
+        vector<int> tmp;
+        while (std::getline(ss, ss_segment, ';')) {
+          tmp.push_back(stoi(ss_segment));
+        }
+        parent_infection_ID.push_back(tmp);
+      } else if (j == 6) {
+        deme.push_back(stoi(field));
+      }
+      j++;
+    }
+    i++;
+  }
+  
+  // initialise vectors for storing pruned values
+  vector<int> time_pruned;
+  vector<int> event_pruned;
+  vector<int> human_ID_pruned;
+  vector<int> mosquito_ID_pruned;
+  vector<int> child_infection_ID_pruned;
+  vector<vector<int>> parent_infection_ID_pruned;
+  vector<int> deme_pruned;
+  
+  // search backwards through transmission record
+  for (int i = time.size() - 1; i >= 0; --i) {
+    if (focal_IDs.count(child_infection_ID[i])) {
+      
+      // add to pruned record
+      time_pruned.push_back(time[i]);
+      event_pruned.push_back(event[i]);
+      human_ID_pruned.push_back(human_ID[i]);
+      mosquito_ID_pruned.push_back(mosquito_ID[i]);
+      child_infection_ID_pruned.push_back(child_infection_ID[i]);
+      parent_infection_ID_pruned.push_back(parent_infection_ID[i]);
+      deme_pruned.push_back(deme[i]);
+      
+      // drop child ID from focal set and add parental IDs
+      focal_IDs.erase(child_infection_ID[i]);
+      for (int j = 0; j < parent_infection_ID[i].size(); ++j) {
+        focal_IDs.insert(parent_infection_ID[i][j]);
       }
     }
   }
-  
-  // count the number of generations. Note that the line_starts vector contains
-  // (max_time+1) elements, as the final element represents the newlinw at the
-  // end of the file
-  int max_time = int(line_starts.size()) - 1;
-  
-  // create a vector of vectors for storing IDs we are interested in at each
-  // time point. Initialise with inoc_IDs
-  vector<vector<int>> pop(max_time);
-  add_to_pop(inoc_IDs, first_IDs, pop);
-  
-  // create a map for storing final results. First value in the vector will
-  // store the time
-  map<int, vector<int>> pruned;
-  
-  // loop through the file again, this time reading lines in reverse order
-  infile.clear();
-  infile.seekg(0, ios::beg);
-  ss.clear();
-  ss.str(std::string());
-  for (int t = (max_time-1); t >= 0; --t) {
-    
-    // some housekeeping
-    int this_line_start = line_starts[t];
-    int this_line_end = line_starts[t+1] - 1;
-    int popsize = int(pop[t].size());
-    inoc_IDs.clear();
-    
-    // go to start of line t
-    infile.seekg(this_line_start, ios::beg);
-    
-    // loop through characters until reach end of line
-    bool save_IDs_on = false;
-    bool new_block = true;
-    int ID_key;
-    for (int i = this_line_start; i < this_line_end; ++i) {
-      infile.get(c);
-      
-      // process character, either storing or discarding
-      if (new_block) {
-        if (c == ' ' || c == ';') {
-          ss >> ID_key;
-          ss.clear();
-          ss.str(std::string());
-          if (c == ' ') {
-            new_block = false;
-          }
-          
-          // if ID_key is in pop[t] then store time, and activate ID saving for
-          // remainder of this block
-          save_IDs_on = false;
-          for (int j = 0; j < popsize; ++j) {
-            if (pop[t][j] == ID_key) {
-              pruned[ID_key].push_back(t);
-              save_IDs_on = true;
-              break;
-            }
-          }
-          
-        } else {
-          ss << c;
-        }
-      } else {
-        if (save_IDs_on) {
-          if (c == ' ' || c == ';') {
-            ss >> ID;
-            pruned[ID_key].push_back(ID);
-            ss.clear();
-            ss.str(std::string());
-            inoc_IDs.push_back(ID);
-            if (c == ';') {
-              new_block = true;
-            }
-          } else {
-            ss << c;
-          }
-        } else if (c == ';') {
-          ss.clear();
-          ss.str(std::string());
-          new_block = true;
-        }
-      }
-      
-      
-    }  // end i loop
-    
-    // add new inoc_IDs to pop
-    add_to_pop(inoc_IDs, first_IDs, pop);
-    
-  }  // end t loop
   
   // write pruned record to file
-  t = 0;
-  for (const auto & x : pruned) {
-    while (x.second[0] > t) {
-      outfile << "\n";
-      t++;
+  outfile << "time,event,human_ID,mosquito_ID,child_infection_ID,parent_infection_ID,deme\n";
+  for (int i = time_pruned.size() - 1; i >= 0; --i) {
+    outfile << time_pruned[i] << "," << event_pruned[i] << "," << human_ID_pruned[i] << "," << mosquito_ID_pruned[i] << "," << child_infection_ID_pruned[i] << "," << parent_infection_ID_pruned[i][0];
+    for (int j = 1; j < parent_infection_ID_pruned[i].size(); ++j) {
+      outfile << ";" << parent_infection_ID_pruned[i][j];
     }
-    outfile << x.first;
-    for (int i = 1; i < int(x.second.size()); ++i) {
-      outfile << " " << x.second[i];
-    }
-    outfile << ";";
+    outfile << "," << deme_pruned[i] << "\n";
   }
-  outfile << "\n";
   
   // close filestreams
   if (!silent) {
@@ -214,11 +172,7 @@ void prune_transmission_record_cpp(Rcpp::List args) {
   infile.close();
   outfile.close();
   
-  // end timer
-  chrono_timer(t1);
-  
 }
-#endif
 
 //------------------------------------------------
 // read in a vector of inoc_IDs. These are put in ascending order, and searched

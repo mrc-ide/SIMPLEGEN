@@ -999,7 +999,7 @@ get_survey_summary <- function(surveys_indlevel,
 #' @description Reads in a saved transmission record from file. Combines this
 #'   with sampling information in the project to produce a pruned version of the
 #'   transmission record containing only the events relevant to the final
-#'   sample. This is also saved to file.
+#'   sample. The pruned record is also saved to file.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
@@ -1026,13 +1026,24 @@ prune_transmission_record <- function(project,
   assert_single_logical(overwrite_pruned_record)
   assert_single_logical(silent)
   
-  # check that project contains survey output
-  assert_non_null(project$epi_output$surveys, message = "no survey output detected")
+  # check that project contains individual-level info
+  df_indlevel <- project$epi_output$surveys_indlevel
+  indlevel_error <- "project must contain a dataframe in project$epi_output$surveys_indlevel slot, and this dataframe must contain columns study_ID and infection_IDs"
+  assert_dataframe(df_indlevel, message = indlevel_error)
+  assert_in(c("study_ID", "infection_IDs"), names(df_indlevel), message = indlevel_error)
+  assert_vector_pos_int(df_indlevel$study_ID, name = "study_ID")
+  assert_vector_pos_int(unlist(df_indlevel$infection_IDs), name = "infection_IDs")
   
   # check transmission record exists
   if (!file.exists(transmission_record_location)) {
     stop(sprintf("could not find file at %s", transmission_record_location))
   }
+  
+  # check that headers formatted correctly
+  first_row <- read.csv(transmission_record_location, nrows = 1)
+  assert_dim(first_row, c(1, 7), message = "transmission record must have 7 columns")
+  assert_eq(names(first_row), c("time", "event", "human_ID", "mosquito_ID", "child_infection_ID",
+                                "parent_infection_ID", "deme"), name_x = "transmission record headers")
   
   # optionally return warning if will overwrite pruned transmission record file
   if (!overwrite_pruned_record) {
@@ -1041,16 +1052,16 @@ prune_transmission_record <- function(project,
     }
   }
   
-  # subset sample details to a vector of inoc_IDs
-  inoc_IDs <- unlist(project$epi_output$surveys$inoc_IDs)
-  if (length(inoc_IDs) == 0) {
+  # extract starting infection IDs from sample info
+  infection_IDs <- unlist(project$epi_output$surveys_indlevel$infection_IDs)
+  if (length(infection_IDs) == 0) {
     stop("no malaria positive hosts in survey")
   }
   
   # define argument list
   args <- list(transmission_record_location = transmission_record_location,
                pruned_record_location = pruned_record_location,
-               inoc_IDs = inoc_IDs,
+               infection_IDs = infection_IDs,
                silent = silent)
   
   # run efficient C++ code
