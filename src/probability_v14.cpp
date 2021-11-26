@@ -1,6 +1,6 @@
 
-#include "probability_v11.h"
-#include "misc_v10.h"
+#include "probability_v14.h"
+#include "misc_v11.h"
 
 using namespace std;
 
@@ -51,7 +51,11 @@ bool rbernoulli1(double p) {
 // draw from binomial(N,p) distribution
 #ifdef RCPP_ACTIVE
 int rbinom1(int N, double p) {
-  return R::rbinom(N, p);
+  int ret = N;
+  if (p < 1) {
+    ret = R::rbinom(N, p);
+  }
+  return ret;
 }
 #else
 int rbinom1(int N, double p) {
@@ -65,17 +69,37 @@ int rbinom1(int N, double p) {
 std::vector<int> rmultinom1(int N, const std::vector<double> &p, double p_sum) {
   int k = int(p.size());
   std::vector<int> ret(k);
-  for (int i = 0; i < (k-1); ++i) {
-    ret[i] = rbinom1(N, p[i]/p_sum);
+  for (int i = 0; i < (k - 1); ++i) {
+    ret[i] = rbinom1(N, p[i] / p_sum);
     N -= ret[i];
     if (N == 0) {
       break;
     }
     p_sum -= p[i];
   }
-  ret[k-1] = N;
+  ret[k - 1] = N;
   return ret;
 }
+
+//------------------------------------------------
+// draw from hypergeometric distribution. Follows the parameterisation in base
+// R, in which k balls are drawn from an urn containing m white balls and n
+// black balls. Returns the number of white balls observed.
+#ifdef RCPP_ACTIVE
+int rhyper1(int m, int n, int k) {
+  return R::rhyper(m, n, k);
+}
+#endif
+
+//------------------------------------------------
+// density of hypergeometric distribution. Follows the parameterisation in base
+// R, in which k balls are drawn from an urn containing m white balls and n
+// black balls. Returns the probability of seeing x white balls.
+#ifdef RCPP_ACTIVE
+double dhyper1(double x, int m, int n, int k, bool return_log) {
+  return R::dhyper(x, m, n, k, return_log);
+}
+#endif
 
 //------------------------------------------------
 // get density of multinomial(x,p) distribution, where x sums to x_sum and p
@@ -84,8 +108,8 @@ std::vector<int> rmultinom1(int N, const std::vector<double> &p, double p_sum) {
 double dmultinom1(const std::vector<int> &x, int x_sum, const std::vector<double> &p, double p_sum) {
   int k = int(p.size());
   double ret = 0;
-  for (int i = 0; i < (k-1); ++i) {
-    ret += R::dbinom(x[i], x_sum, p[i]/p_sum, true);
+  for (int i = 0; i < (k - 1); ++i) {
+    ret += R::dbinom(x[i], x_sum, p[i] / p_sum, true);
     x_sum -= x[i];
     p_sum -= p[i];
   }
@@ -165,6 +189,104 @@ void rmnorm1(std::vector<double> &x, const std::vector<double> &mu,
 }
 
 //------------------------------------------------
+// density of multivariate normal distribution given mean vector mu, double
+// logdet, and matrix chol_inverse. logdet is the logarithm of the determinant
+// of the covariance matrix, chol_inverse is the inverse of the Cholesky
+// decomposition of the covariance matrix.
+double dmnorm1(const vector<double> &x,
+               const vector<double> &mu,
+               double logdet,
+               const vector< vector<double> > &chol_inverse) {
+  
+  int d = int(x.size());
+  double ret = -0.5*d*log(2*M_PI) - 0.5*logdet;
+  double tmp;
+  for (int i = 0; i < d; i++) {
+    tmp = 0;
+    for (int j = 0; j < (i + 1); j++) {
+      tmp += (x[j] - mu[j]) * chol_inverse[i][j];
+    }
+    ret += -0.5*tmp*tmp;
+  }
+  
+  return ret;
+}
+
+//------------------------------------------------
+// equivalent to dmnorm1, but computes determinants etc. internally rather than
+// as inputs. More convenient in terms of inputs, but less efficient if the same
+// input matrices will be used a large number of times.
+double dmnorm2(const vector<double> &x,
+               const vector<double> &mu,
+               const vector<vector<double>> &sigma) {
+  
+  // calculate determinants etc.
+  int d = int(x.size());
+  vector<vector<double>> sigma_chol(d, vector<double>(d));
+  cholesky(sigma_chol, sigma);
+  double logdet = log_determinant(sigma_chol);
+  vector<vector<double>> sigma_chol_inverse = inverse(sigma_chol);
+  
+  // run dmnorm1 function
+  double ret = dmnorm1(x, mu, logdet, sigma_chol_inverse);
+  
+  return ret;
+}
+
+//------------------------------------------------
+// density of inverse Wishart distribution on matrix sigma given scale matrix
+// psi and degrees of freedom nu. Sigma and psi are input pre-transformed to
+// save time when running this function many times with the same inputs.
+// sigma_inv is the inverse of sigma. sigma_chol and psi_chol are the Cholesky
+// decompositions of sigma and psi, respectively.
+double dinvwish1(const vector<vector<double>> &sigma_inv,
+                 const vector<vector<double>> &sigma_chol,
+                 const vector<vector<double>> &psi,
+                 const vector<vector<double>> &psi_chol,
+                 double nu) {
+  
+  // get basic properties
+  int d = sigma_inv.size();
+  
+  // get matrix determinants
+  double sigma_logdet = log_determinant(sigma_chol);
+  double psi_logdet = log_determinant(psi_chol);
+  
+  // calculate probability density
+  double ret = 0.5*nu*psi_logdet - 0.5*nu*d*log(2.0) - lmvgamma_func(0.5*nu, d) - 0.5*(nu + d + 1)*sigma_logdet;
+  for (int i = 0; i < d; i++) {
+    for (int j = 0; j < d; j++) {
+      ret -= 0.5 * psi[i][j] * sigma_inv[i][j];
+    }
+  }
+  
+  return ret;
+}
+
+//------------------------------------------------
+// equivalent to dinvwish1, but computes inverse and Cholesky decomposition
+// matrices internally rather than as inputs. More convenient in terms of
+// inputs, but less efficient if the same input matrices will be used a large
+// number of times.
+double dinvwish2(const vector<vector<double>> &sigma,
+                 const vector<vector<double>> &psi,
+                 double nu) {
+  
+  // get basic properties
+  int d = sigma.size();
+  
+  // get matrix inverses and cholesky decompositions
+  vector<vector<double>> sigma_inv = inverse(sigma);
+  vector<vector<double>> sigma_chol(d, vector<double>(d));
+  vector<vector<double>> psi_chol(d, vector<double>(d));
+  cholesky(sigma_chol, sigma);
+  cholesky(psi_chol, psi);
+  
+  // calculate and return
+  return dinvwish1(sigma_inv, sigma_chol, psi, psi_chol, nu);
+}
+
+//------------------------------------------------
 // resample a vector without replacement
 // reshuffle
 // DEFINED IN HEADER
@@ -176,7 +298,7 @@ void rmnorm1(std::vector<double> &x, const std::vector<double> &mu,
 int sample1(const std::vector<double> &p, double p_sum) {
   double rand = p_sum*runif_0_1();
   double z = 0;
-  for (int i=0; i<int(p.size()); i++) {
+  for (int i = 0; i < int(p.size()); i++) {
     z += p[i];
     if (rand < z) {
       return i;
@@ -190,9 +312,9 @@ int sample1(const std::vector<double> &p, double p_sum) {
   return 0;
 }
 int sample1(const std::vector<int> &p, int p_sum) {
-  int rand = sample2(1,p_sum);
+  int rand = sample2(1, p_sum);
   int z = 0;
-  for (int i=0; i<int(p.size()); i++) {
+  for (int i = 0; i < int(p.size()); i++) {
     z += p[i];
     if (rand <= z) {
       return i;
@@ -222,9 +344,9 @@ void sample3(std::vector<int> &ret, const std::vector<double> &p, double p_sum, 
   int n = int(ret.size());
   int j = 0;
   for (int i = 0; i < int(p.size()); ++i) {
-    int n_i = rbinom1(n, p[i]/p_sum);
+    int n_i = rbinom1(n, p[i] / p_sum);
     if (n_i > 0) {
-      fill(ret.begin()+j, ret.begin()+j+n_i, i);
+      fill(ret.begin() + j, ret.begin() + j + n_i, i);
       j += n_i;
       n -= n_i;
       if (n == 0) {
@@ -248,7 +370,7 @@ std::vector<int> sample4(int n, int a, int b) {
     Rcpp::stop("error in sample4(), attempt to sample more elements than are available");
   }
   for (int i = 0; i < N; ++i) {
-    if (sample2(1, N-t) <= (n-m)) {
+    if (sample2(1, N - t) <= (n - m)) {
       ret[m] = a + i;
       m++;
       if (m == n) {
@@ -275,7 +397,7 @@ double rgamma1(double shape, double rate) {
   if (x == 0) {
     x = UNDERFLO_DOUBLE;
   }
-  if ((1.0/x) == 0) {
+  if ((1.0 / x) == 0) {
     x = 1.0/UNDERFLO_DOUBLE;
   }
 
@@ -333,7 +455,7 @@ double dpois1(int n, double lambda, bool return_log) {
 }
 #else
 double dpois1(int n, double lambda, bool return_log) {
-  double ret = n*log(lambda) - lambda - lgamma(n+1);
+  double ret = n*log(lambda) - lambda - lgamma(n + 1);
   if (!return_log) {
     ret = exp(ret);
   }
@@ -344,15 +466,20 @@ double dpois1(int n, double lambda, bool return_log) {
 //------------------------------------------------
 // draw from symmetric dichlet(alpha) distribution of length n
 std::vector<double> rdirichlet1(double alpha, int n) {
+  // use stick-breaking construction. Although this is marginally slower than
+  // the gamma random variable method, it is robust to small values of alpha
   std::vector<double> ret(n);
-  double retSum = 0;
-  for (int i=0; i<n; i++) {
-    ret[i] = rgamma1(alpha,1.0);
-    retSum += ret[i];
+  double stick_remaining = 1.0;
+  for (int i = 0; i < (n - 1); ++i) {
+    double x = rbeta1(alpha, (n - 1 - i)*alpha);
+    ret[i] = stick_remaining * x;
+    stick_remaining -= x;
+    if (stick_remaining <= 0) {
+      stick_remaining = 0;
+      break;
+    }
   }
-  for (int i=0; i<n; i++) {
-    ret[i] /= retSum;
-  }
+  ret[n - 1] = stick_remaining;
   return ret;
 }
 
@@ -373,7 +500,7 @@ int rgeom1(const double p) {
 // draw from exponential(r) distribution
 #ifdef RCPP_ACTIVE
 double rexp1(const double r) {
-  return R::rexp(1/r);
+  return R::rexp(1 / r);
 }
 #else
 double rexp1(const double r) {
@@ -385,11 +512,11 @@ double rexp1(const double r) {
 //------------------------------------------------
 // binomial coeffiient n choose k
 int choose(int n, int k) {
-  return int(exp(lgamma(n+1) - lgamma(n-k+1) - lgamma(k+1)));
+  return int(exp(lgamma(n + 1) - lgamma(n - k + 1) - lgamma(k + 1)));
 }
 
 //------------------------------------------------
 // binomial coeffiient n choose k, returned in log space
 double lchoose(int n, int k) {
-  return lgamma(n+1) - lgamma(n-k+1) - lgamma(k+1);
+  return lgamma(n + 1) - lgamma(n - k + 1) - lgamma(k + 1);
 }

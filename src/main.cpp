@@ -2,10 +2,13 @@
 #include "main.h"
 #include "Parameters.h"
 #include "Dispatcher.h"
-#include "Tree_node.h"
-#include "probability_v11.h"
+#include "probability_v14.h"
+#include "genmodel_Host.h"
+#include "genmodel_Mosquito.h"
+#include "genmodel_Infection.h"
 
 #include <chrono>
+#include <map>
 
 using namespace std;
 
@@ -40,11 +43,10 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List 
 //------------------------------------------------
 // read in transmission record and prune to only those events that run up to the
 // final sample
-void prune_transmission_record_cpp(Rcpp::List args) {
+Rcpp::List prune_transmission_record_cpp(Rcpp::List args) {
   
   // extract input args
   string transmission_record_location = rcpp_to_string(args["transmission_record_location"]);
-  string pruned_record_location = rcpp_to_string(args["pruned_record_location"]);
   vector<int> focal_IDs_vec = rcpp_to_vector_int(args["infection_IDs"]);
   set<int> focal_IDs(focal_IDs_vec.begin(), focal_IDs_vec.end());
   bool silent = rcpp_to_bool(args["silent"]);
@@ -57,16 +59,6 @@ void prune_transmission_record_cpp(Rcpp::List args) {
   infile.open(transmission_record_location);
   if (!infile.is_open()) {
     Rcpp::stop("unable to open filestream at specified location. Check the path exists and that you have read access");
-  }
-  
-  // open filestream to pruned record and check that opened
-  if (!silent) {
-    print("Opening filestream to pruned transmission record");
-  }
-  ofstream outfile;
-  outfile.open(pruned_record_location);
-  if (!outfile.is_open()) {
-    Rcpp::stop("unable to open filestream at specified location. Check the path exists and that you have write access");
   }
   
   if (!silent) {
@@ -155,194 +147,182 @@ void prune_transmission_record_cpp(Rcpp::List args) {
     }
   }
   
-  // write pruned record to file
-  outfile << "time,event,human_ID,mosquito_ID,child_infection_ID,parent_infection_ID,deme\n";
-  for (int i = time_pruned.size() - 1; i >= 0; --i) {
-    outfile << time_pruned[i] << "," << event_pruned[i] << "," << human_ID_pruned[i] << "," << mosquito_ID_pruned[i] << "," << child_infection_ID_pruned[i] << "," << parent_infection_ID_pruned[i][0];
-    for (int j = 1; j < parent_infection_ID_pruned[i].size(); ++j) {
-      outfile << ";" << parent_infection_ID_pruned[i][j];
-    }
-    outfile << "," << deme_pruned[i] << "\n";
-  }
-  
   // close filestreams
   if (!silent) {
     print("Closing filestreams");
   }
   infile.close();
-  outfile.close();
   
+  // return as list
+  return Rcpp::List::create(Rcpp::Named("time") = time_pruned,
+                            Rcpp::Named("event") = event_pruned,
+                            Rcpp::Named("human_ID") = human_ID_pruned,
+                            Rcpp::Named("mosquito_ID") = mosquito_ID_pruned,
+                            Rcpp::Named("child_infection_ID") = child_infection_ID_pruned,
+                            Rcpp::Named("parent_infection_ID") = parent_infection_ID_pruned,
+                            Rcpp::Named("deme") = deme_pruned);
 }
 
 //------------------------------------------------
-// read in a vector of inoc_IDs. These are put in ascending order, and searched
-// for using the information in first_IDs to find the time at which each inoc_ID
-// is first created. Finally, inoc_IDs are added to the population array at
-// these time points. IDs are only added if they are not already present in the
-// population array at that time point.
-void add_to_pop(vector<int> &inoc_IDs, const vector<pair<int, int>> &first_IDs,
-                vector<vector<int>> &pop, bool print_pop) {
-  
-  // sort inoc_IDs
-  sort(inoc_IDs.begin(), inoc_IDs.end());
-  
-  // push back IDs to population at correct time
-  int j = 0;
-  bool break_i = false;
-  for (int i = 0; i < (int(first_IDs.size()) - 1); ++i) {
-    if (break_i) {
-      break;
-    }
-    while (inoc_IDs[j] < first_IDs[i+1].second) {
-      int t = first_IDs[i].first;
-      if (find(pop[t].begin(), pop[t].end(), inoc_IDs[j]) == pop[t].end()) {
-        pop[t].push_back(inoc_IDs[j]);
-      }
-      j++;
-      if (j > (int(inoc_IDs.size()) - 1)) {
-        break_i = true;
-        break;
-      }
-    }
-  }
-  
-  // any leftover IDs must be beyond the end of first_IDs, and so are added to
-  // final timepoint
-  for (int i = j; i < int(inoc_IDs.size()); ++i) {
-    int t = first_IDs[first_IDs.size()-1].first;
-    if (find(pop[t].begin(), pop[t].end(), inoc_IDs[i]) == pop[t].end()) {
-      pop[t].push_back(inoc_IDs[i]);
-    }
-  }
-  
-  // optionally print pop array
-  if (print_pop) {
-    for (int t = 0; t < int(pop.size()); ++t) {
-      Rcpp::Rcout << "t = " << t << ": ";
-      for (int i = 0; i < int(pop[t].size()); ++i) {
-        Rcpp::Rcout << pop[t][i] << " ";
-      }
-      Rcpp::Rcout << "\n";
-    }
-  }
-  
-}
-
-//------------------------------------------------
-// read in a pruned transmission record and simulate relatedness intervals
-// forwards-in-time through this tree
-Rcpp::List sim_relatedness_cpp(Rcpp::List args) {
+// read in a pruned transmission record and simulate tree connecting haplotypes
+// from genetic model
+Rcpp::List sim_haplotype_tree_cpp(Rcpp::List args) {
   
   // start timer
   chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
   
   // extract input args
-  string pruned_record_location = rcpp_to_string(args["pruned_record_location"]);
-  double r = rcpp_to_double(args["r"]);
-  double alpha = rcpp_to_double(args["alpha"]);
+  vector<int> sample_human_IDs = rcpp_to_vector_int(args["sample_human_IDs"]);
+  vector<vector<int>> sample_infection_IDs = rcpp_to_matrix_int(args["sample_infection_IDs"]);
+  
   vector<double> oocyst_distribution = rcpp_to_vector_double(args["oocyst_distribution"]);
   vector<double> hepatocyte_distribution = rcpp_to_vector_double(args["hepatocyte_distribution"]);
-  vector<int> contig_lengths = rcpp_to_vector_int(args["contig_lengths"]);
+  double alpha = rcpp_to_double(args["alpha"]);
+  bool defined_densities = rcpp_to_bool(args["defined_densities"]);
+  bool defined_deme = rcpp_to_bool(args["defined_deme"]);
   bool silent = rcpp_to_bool(args["silent"]);
   
-  // open filestream to pruned record and check that opened
-  if (!silent) {
-    print("Opening filestream to pruned transmission record");
+  Rcpp::List pruned_record = args["pruned_record"];
+  vector<int> time = rcpp_to_vector_int(pruned_record["time"]);
+  vector<int> event = rcpp_to_vector_int(pruned_record["event"]);
+  vector<int> human_ID = rcpp_to_vector_int(pruned_record["human_ID"]);
+  vector<int> mosquito_ID = rcpp_to_vector_int(pruned_record["mosquito_ID"]);
+  vector<int> child_infection_ID = rcpp_to_vector_int(pruned_record["child_infection_ID"]);
+  vector<vector<int>> parent_infection_ID = rcpp_to_matrix_int(pruned_record["parent_infection_ID"]);
+  vector<vector<double>> parent_infection_density;
+  if (defined_densities) {
+    parent_infection_density = rcpp_to_matrix_double(pruned_record["parent_infection_density"]);
   }
-  ifstream infile;
-  infile.open(pruned_record_location);
-  if (!infile.is_open()) {
-    Rcpp::stop("unable to open filestream at specified location. Check the path exists, and that you have read access");
+  vector<vector<int>> deme;
+  if (defined_deme) {
+    deme = rcpp_to_matrix_int(pruned_record["deme"]);
   }
   
   // create samplers for drawing number of oocysts and hepatocytes
   Sampler sampler_oocyst(oocyst_distribution, 1000);
   Sampler sampler_hepatocyte(hepatocyte_distribution, 1000);
   
-  // read pruned record into an array. For each row, first value gives innoc_ID,
-  // second value gives time of creation, and any subsequent values give
-  // parental inoc_IDs that are ancestral
-  vector<vector<int>> pruned_array;
-  vector<int> this_line;
-  string line, block, element;
-  int t = 0;
-  while (getline(infile, line)) {
-    istringstream iss(line);
-    while (getline(iss, block, ';')) {
-      bool new_block = true;
-      istringstream iss2(block);
-      while (getline(iss2, element, ' ')) {
+  // create dynamic populations of host and mosquito objects
+  map<int, genmodel_Host> host_pop;
+  map<int, genmodel_Mosquito> mosquito_pop;
+  
+  // initialise next haplo ID
+  int next_haplo_ID = 1;
+  
+  // objects for storing results
+  vector<int> output_record_row;
+  vector<int> output_child_haplo_ID;
+  vector<vector<int>> output_parent_haplo_ID;
+  
+  if (!silent) {
+    print("Simulating haplotype tree");
+  }
+  
+  // loop through pruned transmission record
+  for (int i = 0; i < time.size(); ++i) {
+    
+    if (event[i] == 1) {
+      // human receives parasites from mosquito
+      
+      // add host to population if doesn't exist
+      if (host_pop.count(human_ID[i]) == 0) {
+        host_pop[human_ID[i]] = genmodel_Host();
+      }
+      
+      // pass in haplos from mosquito, or alternatively create de novo
+      if (mosquito_ID[i] == -1) {
+        host_pop[human_ID[i]].denovo_infection(i, child_infection_ID[i], next_haplo_ID, alpha, output_record_row,
+                                               output_child_haplo_ID, output_parent_haplo_ID);
+      } else {
         
-        if (new_block) {
-          this_line.clear();
-          int ID_key = stoi(element);
-          this_line.push_back(ID_key);
-          this_line.push_back(t);
-          new_block = false;
-        } else {
-          int ID_val = stoi(element);
-          this_line.push_back(ID_val);
+        // check that mosquito exists in population
+        if (mosquito_pop.count(mosquito_ID[i]) == 0) {
+          Rcpp::stop("human host receives infectious bite from mosquito that has not yet been infected");
         }
         
+        // pass in haplos from mosquito
+        host_pop[human_ID[i]].infection(i, child_infection_ID[i], sampler_hepatocyte, next_haplo_ID, alpha,
+                                        mosquito_pop[mosquito_ID[i]], parent_infection_ID[i],
+                                        output_record_row, output_child_haplo_ID, output_parent_haplo_ID);
       }
-      pruned_array.push_back(this_line);
-    }
-    t++;
-  }
-  
-  // create a map, where each element represents an inoculation in the pruned
-  // transmission tree
-  map<int, Tree_node> inoc_tree;
-  
-  // populate map
-  int lineage_ID = 1;
-  for (int i = 0; i < int(pruned_array.size()); ++i) {
-    
-    // create node for this inoc_ID
-    int inoc_ID = pruned_array[i][0];
-    int t = pruned_array[i][1];
-    inoc_tree[inoc_ID] = Tree_node(t, contig_lengths, sampler_oocyst, sampler_hepatocyte, inoc_tree);
-    
-    // draw lineages de novo or by recombination from ancestral inoculations
-    if (pruned_array[i].size() == 2) {
-      inoc_tree[inoc_ID].draw_lineages_denovo(lineage_ID, alpha);
-    } else {
-      inoc_tree[inoc_ID].draw_lineages_recombine(lineage_ID, pruned_array[i], r, alpha);
-    }
-  }
-  
-  // get into more convenient output format
-  Rcpp::List ret;
-  for (int i = 0; i < int(pruned_array.size()); ++i) {
-    int inoc_ID = pruned_array[i][0];
-    
-    // get descriptive details of this node
-    Rcpp::List ret_details;
-    ret_details["inoc_ID"] = inoc_ID;
-    ret_details["time"] = inoc_tree[inoc_ID].t;
-    ret_details["lineage_IDs"] = inoc_tree[inoc_ID].lineage_ID_vec;
-    ret_details["lineage_densities"] = inoc_tree[inoc_ID].lineage_density;
-    
-    // get lineage intervals
-    Rcpp::List ret_lineages;
-    for (int j = 0; j < inoc_tree[inoc_ID].n_lineages; ++j) {
-      ret_lineages.push_back(inoc_tree[inoc_ID].intervals[j]);
+      
+      //host_pop[human_ID[i]].print_status();
+      
+    } else if (event[i] == 2) {
+      // mosquito receives parasites from human
+      
+      // mosquito should not already exist in population as no superinfection
+      // allowed in this model
+      if (mosquito_pop.count(mosquito_ID[i]) != 0) {
+        Rcpp::stop("same mosquito infected multiple times, which is not allowed in no-mosquito-superinfection model");
+      }
+      
+      // corresponding host should exist in population
+      if (host_pop.count(human_ID[i]) == 0) {
+        Rcpp::stop("mosquito receives infectious bite from host who has not themselves been infected");
+      }
+      
+      // add new mosquito to population
+      mosquito_pop[mosquito_ID[i]] = genmodel_Mosquito();
+      
+      // get infection densities
+      vector<double> this_infection_density;
+      if (defined_densities) {
+        this_infection_density = parent_infection_density[i];
+      } else {
+        this_infection_density = vector<double>(parent_infection_ID[i].size(), 1.0);
+      }
+      
+      // infect mosquito from host
+      mosquito_pop[mosquito_ID[i]].infection(i, child_infection_ID[i], sampler_oocyst,
+                                             host_pop[human_ID[i]], parent_infection_ID[i], this_infection_density);
+      
+      //mosquito_pop[mosquito_ID[i]].print_status();
     }
     
-    // push to return list
-    ret.push_back(Rcpp::List::create(Rcpp::Named("details") = ret_details,
-                                     Rcpp::Named("lineages") = ret_lineages));
+  }  // end loop through transmission record
+  
+  // get haplo IDs in final sample
+  vector<vector<vector<int>>> sample_haplo_IDs(sample_human_IDs.size());
+  vector<vector<vector<double>>> sample_haplo_densities(sample_human_IDs.size());
+  for (int i = 0; i < sample_human_IDs.size(); ++i) {
+    
+    // check that host exists in population
+    if (host_pop.count(sample_human_IDs[i]) == 0) {
+      Rcpp::stop("Host requested from sample details is not impled by pruned transmission record");
+    }
+    genmodel_Host this_host = host_pop[sample_human_IDs[i]];
+    
+    // initialise output objects
+    sample_haplo_IDs[i] = vector<vector<int>>(sample_infection_IDs[i].size());
+    sample_haplo_densities[i] = vector<vector<double>>(sample_infection_IDs[i].size());
+    
+    // loop through infection IDs
+    for (int j = 0; j < sample_infection_IDs[i].size(); ++j) {
+      int this_infection_ID = sample_infection_IDs[i][j];
+      
+      // check that this infection ID present in host
+      if (this_host.infections_map.count(this_infection_ID) == 0) {
+        Rcpp::stop("Infection ID requested from sample details not present in host");
+      }
+      
+      // get haplos and densities
+      genmodel_Infection this_infection = this_host.infections_map[this_infection_ID];
+      sample_haplo_IDs[i][j] = this_infection.haplo_IDs;
+      sample_haplo_densities[i][j] = this_infection.haplo_densities;
+      
+    }
   }
   
-  // close filestreams
-  if (!silent) {
-    print("Closing filestream");
-  }
-  infile.close();
   
   // end timer
-  chrono_timer(t1);
+  if (!silent) {
+    chrono_timer(t1);
+  }
   
-  
-  return ret;
+  return Rcpp::List::create(Rcpp::Named("record_row") = output_record_row,
+                            Rcpp::Named("child_haplo_ID") = output_child_haplo_ID,
+                            Rcpp::Named("parent_haplo_ID") = output_parent_haplo_ID,
+                            Rcpp::Named("sample_haplo_IDs") = sample_haplo_IDs,
+                            Rcpp::Named("sample_haplo_densities") = sample_haplo_densities);
 }

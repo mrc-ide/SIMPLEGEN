@@ -28,7 +28,8 @@ test_that("default epi model runs and maintains expected project structure", {
   
   # check for expected project slot names throughout
   expected_names <- c("epi_model_parameters", "epi_sampling_parameters", "epi_output", 
-                      "genetic_parameters", "relatedness", "true_genotypes", "observed_genotypes")
+                      "sample_details", "pruned_record", "genetic_parameters", "haplotype_tree", "block_tree",
+                      "true_genotypes", "observed_genotypes")
   expect_equal(names(p), expected_names)
   
   # load default epi parameters
@@ -49,7 +50,7 @@ test_that("default epi model runs and maintains expected project structure", {
   expect_equal(names(p), expected_names)
   
   # check that expected elements are present in output
-  expect_equal(names(p$epi_output), c("daily", "sweeps", "surveys_indlevel", "surveys_summary"))
+  expect_equal(names(p$epi_output), c("daily", "sweeps", "surveys"))
   
 })
 

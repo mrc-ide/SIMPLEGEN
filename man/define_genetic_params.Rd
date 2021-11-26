@@ -23,8 +23,7 @@ single recombinant block is 1/r.}
 
 \item{alpha}{parameter dictating the skew of lineage densities. Small
 values of \code{alpha} create a large skew, and hence make it likely that
-an oocyst will be produced from the same parents. Large values of
-\code{alpha} tend toward more even densities.}
+an oocyst will be produced from the same parents.}
 
 \item{oocyst_distribution}{vector specifying the probability distribution of
 each number of oocysts within the mosquito midgut.}

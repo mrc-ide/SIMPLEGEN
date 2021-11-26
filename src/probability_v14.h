@@ -21,6 +21,12 @@ int rbinom1(int N, double p);
 std::vector<int> rmultinom1(int N, const std::vector<double> &p, double p_sum = 1.0);
 
 //------------------------------------------------
+int rhyper1(int m, int n, int k);
+
+//------------------------------------------------
+double dhyper1(double x, int m, int n, int k, bool return_log = true);
+
+//------------------------------------------------
 double rnorm1(double mean = 0.0, double sd = 1.0);
 
 //------------------------------------------------
@@ -32,6 +38,29 @@ double rnorm1_interval(double mean, double sd, double a, double b);
 //------------------------------------------------
 void rmnorm1(std::vector<double> &x, const std::vector<double> &mu,
              const std::vector<std::vector<double>> &sigma_chol, double scale = 1.0);
+
+//------------------------------------------------
+double dmnorm1(const std::vector<double> &x,
+               const std::vector<double> &mu,
+               double logdet,
+               const std::vector<std::vector<double>> &chol_inverse);
+
+//------------------------------------------------
+double dmnorm2(const std::vector<double> &x,
+               const std::vector<double> &mu,
+               const std::vector<std::vector<double>> &sigma);
+
+//------------------------------------------------
+double dinvwish1(const std::vector<std::vector<double>> &sigma_inv,
+                 const std::vector<std::vector<double>> &sigma_chol,
+                 const std::vector<std::vector<double>> &psi,
+                 const std::vector<std::vector<double>> &psi_chol,
+                 double nu);
+
+//------------------------------------------------
+double dinvwish2(const std::vector<std::vector<double>> &sigma,
+                 const std::vector<std::vector<double>> &psi,
+                 double nu);
 
 //------------------------------------------------
 template<class TYPE>
@@ -53,6 +82,7 @@ void reshuffle(std::vector<TYPE> &x) {
 
 //------------------------------------------------
 int sample1(const std::vector<double> &p, double p_sum = 1.0);
+int sample1(const std::vector<int> &p, int p_sum);
 
 //------------------------------------------------
 int sample2(int a, int b);

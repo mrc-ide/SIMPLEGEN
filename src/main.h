@@ -1,26 +1,16 @@
 
-#include "misc_v10.h"
+#include "misc_v11.h"
 
 #include <vector>
 
 //------------------------------------------------
-#ifdef RCPP_ACTIVE
 // [[Rcpp::export]]
 Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List args_progress);
-#endif
 
 //------------------------------------------------
-#ifdef RCPP_ACTIVE
 // [[Rcpp::export]]
-void prune_transmission_record_cpp(Rcpp::List args);
-#endif
+Rcpp::List prune_transmission_record_cpp(Rcpp::List args);
 
 //------------------------------------------------
-void add_to_pop(std::vector<int> &inoc_IDs, const std::vector<std::pair<int, int>> &first_IDs,
-                std::vector<std::vector<int>> &pop, bool print_pop = false);
-
-//------------------------------------------------
-#ifdef RCPP_ACTIVE
 // [[Rcpp::export]]
-Rcpp::List sim_relatedness_cpp(Rcpp::List args);
-#endif
+Rcpp::List sim_haplotype_tree_cpp(Rcpp::List args);
