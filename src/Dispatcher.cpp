@@ -633,12 +633,11 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
             // store infection IDs in separate object
             vector<int> infection_IDs;
             for (int j = 0; j < this_host.inoc_ID_vec.size(); ++j) {
-              if (this_host.inoc_active[j]) {
+              if ((this_host.inoc_state_asexual[j] == Acute_asexual) || (this_host.inoc_state_asexual[j] == Chronic_asexual)) {
                 infection_IDs.push_back(this_host.inoc_ID_vec[j]);
               }
             }
             surveys_indlevel_output_infection_IDs.push_back(infection_IDs);
-            //this_sample["infection_ID"] = infection_IDs;
             
             // add to list of sampled hosts
             study_sampled_IDs[survey_index].insert(this_host_ID);
