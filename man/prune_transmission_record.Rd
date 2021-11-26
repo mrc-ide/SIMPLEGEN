@@ -7,8 +7,6 @@
 prune_transmission_record(
   project,
   transmission_record_location = "",
-  pruned_record_location = "",
-  overwrite_pruned_record = FALSE,
   silent = FALSE
 )
 }
@@ -19,17 +17,11 @@ prune_transmission_record(
 \item{transmission_record_location}{the file path to a transmission record
 already written to file.}
 
-\item{pruned_record_location}{the file path that the pruned transmission
-record will be written to.}
-
-\item{overwrite_pruned_record}{if \code{TRUE} the pruned transmission record
-will overwrite any existing file by the same name. \code{FALSE} by default.}
-
 \item{silent}{whether to suppress written messages to the console.}
 }
 \description{
 Reads in a saved transmission record from file. Combines this
   with sampling information in the project to produce a pruned version of the
-  transmission record containing only the events relevant to the final
-  sample. This is also saved to file.
+  transmission record that contains only the events relevant to the final
+  sample. This pruned record is saved to the project.
 }

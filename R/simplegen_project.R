@@ -14,8 +14,11 @@ simplegen_project <- function() {
   project <- list(epi_model_parameters = NULL,
                   epi_sampling_parameters = NULL,
                   epi_output = NULL,
+                  sample_details = NULL,
+                  pruned_record = NULL,
                   genetic_parameters = NULL,
-                  relatedness = NULL,
+                  haplotype_tree = NULL,
+                  block_tree = NULL,
                   true_genotypes = NULL,
                   observed_genotypes = NULL)
   
@@ -77,7 +80,7 @@ summary.simplegen_project <- function(object, ...) {
     
     df_surveys <- p$epi_sampling_parameters$surveys
     n_survey_outputs <- ifelse(is.null(df_surveys), 0, nrow(df_surveys))
-    message(sprintf("  survey outputs: %s", n_survey_outputs))
+    message(sprintf("  surveys: %s", n_survey_outputs))
     
     message("")
   }
@@ -87,21 +90,25 @@ summary.simplegen_project <- function(object, ...) {
     message("Output:")
     max_time <- max(c(p$epi_output$daily$time, p$epi_output$sweeps$time))
     message(sprintf("  simulation days: %s", max_time))
+    
+    message("")
   }
   
   # print genetic parameters
   if (!is.null(p$genetic_parameters)) {
     message("Genetic model:")
     
+    alpha <- p$genetic_parameters$alpha
     oo_dist <- p$genetic_parameters$oocyst_distribution
     mean_oocysts <- sum(seq_along(oo_dist)*oo_dist) / sum(oo_dist)
     
     hep_dist <- p$genetic_parameters$hepatocyte_distribution
     mean_hepatocytes <- sum(seq_along(hep_dist)*hep_dist) / sum(hep_dist)
     
-    message(sprintf("  recombination rate: %s", p$genetic_parameters$r))
+    message(sprintf("  alpha: %s", signif(alpha, digits = 2)))
     message(sprintf("  mean oocysts: %s", signif(mean_oocysts, digits = 2)))
     message(sprintf("  mean hepatocytes: %s", signif(mean_hepatocytes, digits = 2)))
+    message(sprintf("  recombination rate: %s", p$genetic_parameters$r))
     message(sprintf("  contigs: %s", length(p$genetic_parameters$contig_lengths)))
   }
   

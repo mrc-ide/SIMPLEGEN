@@ -6,10 +6,10 @@ indiv_sim_cpp <- function(args, args_functions, args_progress) {
 }
 
 prune_transmission_record_cpp <- function(args) {
-    invisible(.Call(`_SIMPLEGEN_prune_transmission_record_cpp`, args))
+    .Call(`_SIMPLEGEN_prune_transmission_record_cpp`, args)
 }
 
-sim_relatedness_cpp <- function(args) {
-    .Call(`_SIMPLEGEN_sim_relatedness_cpp`, args)
+sim_haplotype_tree_cpp <- function(args) {
+    .Call(`_SIMPLEGEN_sim_haplotype_tree_cpp`, args)
 }
 

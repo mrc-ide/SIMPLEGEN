@@ -24,23 +24,24 @@ BEGIN_RCPP
 END_RCPP
 }
 // prune_transmission_record_cpp
-void prune_transmission_record_cpp(Rcpp::List args);
+Rcpp::List prune_transmission_record_cpp(Rcpp::List args);
 RcppExport SEXP _SIMPLEGEN_prune_transmission_record_cpp(SEXP argsSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
-    prune_transmission_record_cpp(args);
-    return R_NilValue;
-END_RCPP
-}
-// sim_relatedness_cpp
-Rcpp::List sim_relatedness_cpp(Rcpp::List args);
-RcppExport SEXP _SIMPLEGEN_sim_relatedness_cpp(SEXP argsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
-    rcpp_result_gen = Rcpp::wrap(sim_relatedness_cpp(args));
+    rcpp_result_gen = Rcpp::wrap(prune_transmission_record_cpp(args));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sim_haplotype_tree_cpp
+Rcpp::List sim_haplotype_tree_cpp(Rcpp::List args);
+RcppExport SEXP _SIMPLEGEN_sim_haplotype_tree_cpp(SEXP argsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
+    rcpp_result_gen = Rcpp::wrap(sim_haplotype_tree_cpp(args));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -48,7 +49,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_SIMPLEGEN_indiv_sim_cpp", (DL_FUNC) &_SIMPLEGEN_indiv_sim_cpp, 3},
     {"_SIMPLEGEN_prune_transmission_record_cpp", (DL_FUNC) &_SIMPLEGEN_prune_transmission_record_cpp, 1},
-    {"_SIMPLEGEN_sim_relatedness_cpp", (DL_FUNC) &_SIMPLEGEN_sim_relatedness_cpp, 1},
+    {"_SIMPLEGEN_sim_haplotype_tree_cpp", (DL_FUNC) &_SIMPLEGEN_sim_haplotype_tree_cpp, 1},
     {NULL, NULL, 0}
 };
 

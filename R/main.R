@@ -912,27 +912,30 @@ sim_epi <- function(project,
   }
   
   # wrangle surveys output
-  surveys_indlevel_output <- surveys_summary_output <- NULL
+  sample_details <- surveys_output <- NULL
   if (args$any_survey_outputs) {
     
     # make individual-level output dataframe
-    surveys_indlevel_output <- mapply(as.data.frame, output_raw$survey_output, SIMPLIFY = FALSE) %>%
+    sample_details <- mapply(as.data.frame, output_raw$survey_output, SIMPLIFY = FALSE) %>%
       dplyr::bind_rows()
-    surveys_indlevel_output$infection_IDs <- output_raw$survey_output_infection_IDs
-    surveys_indlevel_output <- dplyr::arrange(surveys_indlevel_output, .data$study_ID)
+    sample_details$infection_IDs <- output_raw$survey_output_infection_IDs
+    sample_details <- dplyr::arrange(sample_details, .data$study_ID)
     
     # get summary output from individual-level
-    surveys_summary_output <- get_survey_summary(surveys_indlevel_output,
-                                                 surveys_raw,
-                                                 args$surveys_expanded)
+    surveys_output <- get_survey_summary(sample_details,
+                                         surveys_raw,
+                                         args$surveys_expanded)
     
   }
   
   # append to project
   project$epi_output <- list(daily = daily_output,
                              sweeps = sweeps_output,
-                             surveys_indlevel = surveys_indlevel_output,
-                             surveys_summary = surveys_summary_output)
+                             surveys = surveys_output)
+  
+  if (!is.null(sample_details)) {
+    project$sample_details <- sample_details
+  }
   
   # return
   invisible(project)
@@ -998,65 +1001,71 @@ get_survey_summary <- function(surveys_indlevel,
 #'
 #' @description Reads in a saved transmission record from file. Combines this
 #'   with sampling information in the project to produce a pruned version of the
-#'   transmission record containing only the events relevant to the final
-#'   sample. This is also saved to file.
+#'   transmission record that contains only the events relevant to the final
+#'   sample. This pruned record is saved to the project.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
 #' @param transmission_record_location the file path to a transmission record
 #'   already written to file.
-#' @param pruned_record_location the file path that the pruned transmission
-#'   record will be written to.
-#' @param overwrite_pruned_record if \code{TRUE} the pruned transmission record
-#'   will overwrite any existing file by the same name. \code{FALSE} by default.
 #' @param silent whether to suppress written messages to the console.
 #' 
+#' @importFrom  utils read.csv
 #' @export
 
 prune_transmission_record <- function(project,
                                       transmission_record_location = "",
-                                      pruned_record_location = "",
-                                      overwrite_pruned_record = FALSE,
                                       silent = FALSE) {
   
   # check inputs
   assert_class(project, "simplegen_project")
   assert_string(transmission_record_location)
-  assert_string(pruned_record_location)
-  assert_single_logical(overwrite_pruned_record)
   assert_single_logical(silent)
   
-  # check that project contains survey output
-  assert_non_null(project$epi_output$surveys, message = "no survey output detected")
+  # check that project contains individual-level info
+  sample_details <- project$sample_details
+  indlevel_error <- "project must contain a dataframe in project$sample_details slot, and this dataframe must contain the columns 'study_ID' and 'infection_IDs'"
+  assert_dataframe(sample_details, message = indlevel_error)
+  assert_in(c("study_ID", "infection_IDs"), names(sample_details), message = indlevel_error)
+  assert_vector_pos_int(sample_details$study_ID, name = "study_ID")
+  assert_vector_pos_int(unlist(sample_details$infection_IDs), name = "infection_IDs")
   
   # check transmission record exists
   if (!file.exists(transmission_record_location)) {
     stop(sprintf("could not find file at %s", transmission_record_location))
   }
   
-  # optionally return warning if will overwrite pruned transmission record file
-  if (!overwrite_pruned_record) {
-    if (file.exists(pruned_record_location)) {
-      stop(sprintf("file already exists at %s. Change target location, or use argument `overwrite_pruned_record = TRUE` to manually override this warning", pruned_record_location))
-    }
-  }
+  # check that headers formatted correctly
+  first_row <- read.csv(transmission_record_location, nrows = 1)
+  required_names <- c("time", "event", "human_ID", "mosquito_ID", "child_infection_ID", "parent_infection_ID")
+  assert_in(required_names, names(first_row), message = sprintf("transmission record must contain the following column headers: {%s}", paste(required_names, collapse = ", ")))
   
-  # subset sample details to a vector of inoc_IDs
-  inoc_IDs <- unlist(project$epi_output$surveys$inoc_IDs)
-  if (length(inoc_IDs) == 0) {
-    stop("no malaria positive hosts in survey")
+  # extract starting infection IDs from sample info
+  infection_IDs <- unlist(project$sample_details$infection_IDs)
+  if (length(infection_IDs) == 0) {
+    stop("no infection_IDs found in sample details. Check that there is at least one malaria positive host")
   }
   
   # define argument list
   args <- list(transmission_record_location = transmission_record_location,
-               pruned_record_location = pruned_record_location,
-               inoc_IDs = inoc_IDs,
+               infection_IDs = infection_IDs,
                silent = silent)
   
   # run efficient C++ code
-  prune_transmission_record_cpp(args)
+  output_raw <- prune_transmission_record_cpp(args)
   
-  # return project unchanged
+  # process output into dataframe
+  output_processed <- output_raw[-which(names(output_raw) == "parent_infection_ID")] %>%
+    as.data.frame() %>%
+    dplyr::mutate(parent_infection_ID = output_raw$parent_infection_ID, .after = "child_infection_ID")
+  
+  # reverse order so same as original transmission record
+  output_processed <- output_processed[rev(seq_len(nrow(output_processed))),]
+  
+  # add to project
+  project$pruned_record <- output_processed
+  
+  # return project
   invisible(project)
 }
 
@@ -1071,18 +1080,17 @@ prune_transmission_record <- function(project,
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
-#' @param r the rate of recombination. The expected number of base pairs in a
-#'   single recombinant block is 1/r.
-#' @param alpha parameter dictating the skew of lineage densities. Small
-#'   values of \code{alpha} create a large skew, and hence make it likely that
-#'   an oocyst will be produced from the same parents. Large values of
-#'   \code{alpha} tend toward more even densities.
 #' @param oocyst_distribution vector specifying the probability distribution of
 #'   each number of oocysts within the mosquito midgut.
 #' @param hepatocyte_distribution vector specifying the probability distribution
 #'   of the number of infected hepatocytes in a human host. More broadly, this
 #'   defines the number of independent draws from the oocyst products that make
 #'   it into the host bloodstream upon a bite from an infectious mosquito.
+#' @param alpha parameter dictating the skew of lineage densities. Small
+#'   values of \code{alpha} create a large skew, and hence make it likely that
+#'   an oocyst will be produced from the same parents.
+#' @param r the rate of recombination. The expected number of base pairs in a
+#'   single recombinant block is 1/r.
 #' @param contig_lengths vector of lengths (in bp) of each contig.
 #' 
 #' @export
@@ -1104,19 +1112,22 @@ define_genetic_params <- function(project,
   # carried out later)
   assert_class(project, "simplegen_project")
   
-  # if there are no defined genetic parameters then create all parameters from
-  # scratch using default values where not specified by user
+  # get list of all input values, including those set by default
+  all_args <- within(as.list(environment()), rm(project))
+  
+  # get list of only input values defined by user
+  user_arg_names <- names(as.list(match.call()))
+  user_arg_names <- setdiff(user_arg_names, c("", "project"))
+  user_args <- all_args[user_arg_names]
+  
+  # if there are no defined parameters then create all parameters from
+  # scratch using default values
   if (is.null(project$genetic_parameters)) {
-    project$genetic_parameters <- as.list(environment())
-    invisible(project)
+    project$genetic_parameters <- all_args
   }
   
-  # find which parameters are user-defined
-  userlist <- as.list(match.call())
-  userlist <- userlist[!(names(userlist) %in% c("", "project"))]
-  
-  # replace project parameters with user-defined
-  project$genetic_parameters[names(userlist)] <- mapply(eval, userlist, SIMPLIFY = FALSE)
+  # otherwise overwrite parameters defined by user
+  project$genetic_parameters[user_arg_names] <- user_args
   
   # perform checks on parameters
   check_genetic_params(project$genetic_parameters)
@@ -1131,97 +1142,79 @@ define_genetic_params <- function(project,
 check_genetic_params <- function(x) {
   
   # perform checks
-  assert_single_pos(x$r, zero_allowed = TRUE)
-  assert_single_pos(x$alpha, zero_allowed = FALSE)
   assert_vector_pos(x$oocyst_distribution)
   assert_vector_pos(x$hepatocyte_distribution)
+  assert_single_pos(x$alpha, zero_allowed = FALSE)
+  assert_single_pos(x$r, zero_allowed = TRUE)
   assert_vector_pos_int(x$contig_lengths, zero_allowed = FALSE)
   
 }
 
 #------------------------------------------------
-#' @title Draw tree of genome-wide relatedness from pruned transmission record
+#' @title Simulate haplotype tree
 #'
-#' @description Reads in the pruned transmission record from file and uses this
-#'   information to simulate relatedness between parasite lineages from a
-#'   genetic model. The map of relatedness output by this step can be used to
-#'   generate genotypic information of various types.
-#'   
-#'
-#' @details Reads in the pruned transmission record and creates a new node for
-#'   each inoculation ID. Nodes at time zero are initialised with a single
-#'   unique lineage created de novo. In subsequent generations the children of
-#'   any given node are known from the pruned transmission record. The lineages
-#'   from parental nodes are sampled at random, and brought together in pairs to
-#'   produce oocysts. The recombinant products of these oocysts are then sampled
-#'   down to produce a new generation of lineage IDs for this node, along with
-#'   the relative densities of each lineage.
+#' @description Reads in the pruned transmission record from file and uses this,
+#'   along with a specified genetic model, to simulate a tree relating
+#'   haplotypes to one another.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
-#' @param pruned_record_location the file path from which the pruned
-#'   transmission record will be read.
 #' @param silent whether to suppress written messages to the console.
 #'
 #' @importFrom stats dpois
 #' @export
 
-sim_relatedness <- function(project,
-                            pruned_record_location = "",
-                            silent = FALSE) {
+sim_haplotype_tree <- function(project,
+                               silent = FALSE) {
   
   # check inputs
   assert_class(project, "simplegen_project")
-  assert_string(pruned_record_location)
-  assert_neq(pruned_record_location, "", message = "pruned_record_location cannot be empty")
   assert_single_logical(silent)
   
   # check pruned record exists
-  if (!file.exists(pruned_record_location)) {
-    stop(sprintf("could not find file at %s", pruned_record_location))
-  }
+  assert_non_null(project$pruned_record,
+                  message = "no pruned transmission record found in project")
+  
+  # check sample details exist
+  assert_non_null(project$sample_details,
+                  message = "no sample details dataframe found in project")
   
   # check for defined genetic params
-  assert_non_null(project$genetic_parameters, message = "no genetic parameters defined. See ?define_genetic_params")
+  assert_non_null(project$genetic_parameters,
+                  message = "no genetic parameters defined. See ?define_genetic_params")
+  
+  # subset sample to those with infections
+  sample_positive <- project$sample_details %>%
+    dplyr::filter(.data$true_positive)
   
   # define arguments
   args <- append(project$genetic_parameters,
-                 list(pruned_record_location = pruned_record_location,
+                 list(sample_human_IDs = sample_positive$sample_ID,
+                      sample_infection_IDs = sample_positive$infection_IDs,
+                      pruned_record = project$pruned_record,
+                      defined_densities = ("parent_infection_density" %in% names(project$pruned_record)),
+                      defined_deme = ("deme" %in% names(project$pruned_record)),
                       silent = silent))
   
   # run efficient C++ code
-  output_raw <- sim_relatedness_cpp(args)
+  output_raw <- sim_haplotype_tree_cpp(args)
   
-  # get the inoculation IDs of every node in the pruned transmission record
-  inoc_IDs <- mapply(function(x) x$details$inoc_ID, output_raw)
+  # get haplotype tree into dataframe by ading columns to pruned transmission
+  # record
+  haplotype_tree <- project$pruned_record[output_raw$record_row + 1, ] %>%
+    dplyr::mutate(child_haplo_ID = output_raw$child_haplo_ID,
+                  parent_haplo_ID = output_raw$parent_haplo_ID)
   
-  # get the lineage IDs of the sampled hosts
-  sample_lineage_IDs <- list()
-  for (i in seq_len(nrow(project$sample_output))) {
-    
-    # get lineage IDs from inoculation IDs
-    node_inoc_IDs <- project$sample_output$inoc_IDs[[i]]
-    if (length(node_inoc_IDs) == 0) {
-      sample_lineage_IDs[[i]] <- integer()
-    } else {
-      # which output elements are we interested in
-      w <- match(node_inoc_IDs, inoc_IDs)
-      
-      # concatenate all lineage IDs over these elements
-      sample_lineage_IDs[[i]] <- unlist(mapply(function(x) x$details$lineage_IDs, output_raw[w], SIMPLIFY = FALSE))
-    }
-  }
+  # append haplotype IDs and densities to sample_details dataframe
+  sample_details <- project$sample_details
+  w <- which(sample_details$true_positive)
+  haplo_ID_list <- replicate(nrow(sample_details), integer())
+  haplo_ID_list[w] <- output_raw$sample_haplo_IDs
+  sample_details$haplo_IDs <- haplo_ID_list
   
-  # add sampled lineage IDs back into project
-  project$sample_output$lineage_IDs <- sample_lineage_IDs
-  
-  # get list over lineages, ignoring hosts
-  lineage_list <- unlist(mapply(function(k) {
-    ret <- output_raw[[k]]$lineages
-  }, seq_along(output_raw), SIMPLIFY = FALSE), recursive = FALSE)
-  
-  # add lineage list back into project
-  project$relatedness <- lineage_list
+  # save objects back into project
+  project$haplotype_tree <- haplotype_tree
+  project$sample_details <- sample_details
   
   # return project
   invisible(project)
