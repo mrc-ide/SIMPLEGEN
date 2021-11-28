@@ -10,12 +10,14 @@ get_haplotype_relatedness(project, haplo_IDs, generations = 3, silent = FALSE)
 \item{project}{a SIMPLEGEN project, as produced by the
 \code{simplegen_project()} function.}
 
-\item{haplo_IDs}{a vector of haplotype IDs on which to calculate relatedness.}
+\item{haplo_IDs}{a vector of haplotype IDs on which to calculate pairwise
+relatedness.}
 
 \item{generations}{number of generations back to search.}
 
 \item{silent}{whether to suppress written messages to the console.}
 }
 \description{
-TODO.
+Calculates the relatedness up to a defined number of generations
+  between all pairs of input haplotypes.
 }

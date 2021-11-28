@@ -44,9 +44,15 @@ update_progress <- function(pb_list, name, i, max_i, close = TRUE) {
 #------------------------------------------------
 # produce all unique pairwise comparisons from 1 to n in long dataframe format
 #' @noRd
-pairwise_long <- function(n) {
-  data.frame(x = rep(seq_len(n - 1), times = rev(seq_len(n - 1))),
-             y = unlist(mapply(function(x) x:n, 2:n, SIMPLIFY = FALSE)))
+pairwise_long <- function(n, include_diagonal = FALSE) {
+  if (include_diagonal) {
+    ret <- data.frame(x = rep(seq_len(n), times = rev(seq_len(n))),
+                      y = unlist(mapply(function(x) x:n, 1:n, SIMPLIFY = FALSE)))
+  } else {
+    ret <- data.frame(x = rep(seq_len(n - 1), times = rev(seq_len(n - 1))),
+                      y = unlist(mapply(function(x) x:n, 2:n, SIMPLIFY = FALSE)))
+  }
+  return(ret)
 }
 
 #-----------------------------

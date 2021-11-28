@@ -1223,11 +1223,13 @@ sim_haplotype_tree <- function(project,
 #------------------------------------------------
 #' @title Get the relatedness between a series of haplotypes
 #'
-#' @description TODO.
+#' @description Calculates the relatedness up to a defined number of generations
+#'   between all pairs of input haplotypes.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
-#' @param haplo_IDs a vector of haplotype IDs on which to calculate relatedness.
+#' @param haplo_IDs a vector of haplotype IDs on which to calculate pairwise
+#'   relatedness.
 #' @param generations number of generations back to search.
 #' @param silent whether to suppress written messages to the console.
 #'
@@ -1270,6 +1272,102 @@ get_haplotype_relatedness <- function(project,
   ret <- data.frame(haplo_ID_1 = haplo_IDs[pair_df$x],
                     haplo_ID_2 = haplo_IDs[pair_df$y],
                     relatedness = output_raw$pairwise_relatedness)
+  
+  return(ret)
+}
+
+#------------------------------------------------
+#' @title Get the relatedness between a series of samples
+#'
+#' @description TODO
+#'
+#' @param project a SIMPLEGEN project, as produced by the
+#'   \code{simplegen_project()} function.
+#' @param sample_IDs a vector of sample IDs on which to calculate pairwise
+#'   relatedness.
+#' @param generations number of generations back to search.
+#' @param silent whether to suppress written messages to the console.
+#'
+#' @export
+
+get_sample_relatedness <- function(project,
+                                   sample_IDs,
+                                   generations = 3,
+                                   silent = FALSE) {
+  
+  # check inputs
+  assert_class(project, "simplegen_project")
+  assert_vector_pos_int(sample_IDs, zero_allowed = FALSE)
+  assert_greq(length(sample_IDs), 2, message = "must input at least 2 sample IDs")
+  assert_single_pos_int(generations, zero_allowed = FALSE)
+  assert_single_logical(silent)
+  
+  # check that project has sample details loaded
+  assert_dataframe(project$sample_details, message = "project has no sample_details object")
+  
+  # check that sample_IDs are within sample dataframe
+  if (!all(sample_IDs %in% c(project$sample_details$sample_ID))) {
+    stop("not all sample_IDs could be found within sample_details dataframe")
+  }
+  
+  # subset to target samples and columns
+  sample_target <- project$sample_details %>%
+    dplyr::filter(.data$sample_ID %in% sample_IDs) %>%
+    dplyr::select(.data$sample_ID, .data$haplo_IDs)
+  
+  # check that all samples are positive (contain at least one haplotype)
+  n_haplos <- mapply(function(x) {
+    length(unlist(x))
+  }, sample_target$haplo_IDs)
+  if (!all(n_haplos > 0)) {
+    stop("not all sample_IDs were positive (contained at least one haplotype)")
+  }
+  
+  # get dataframe of all pairwise comparisons between rows
+  df_pairwise <- pairwise_long(nrow(sample_target), include_diagonal = TRUE)
+  
+  # get dataframe of all pairwise comparisons between samples
+  tmp <- sample_target %>%
+    dplyr::rename(sample_ID_1 = .data$sample_ID,
+                  haplo_ID_1 = .data$haplo_IDs)
+  sample_pairs <- tmp[df_pairwise$x,] %>%
+    dplyr::bind_cols(sample_target[df_pairwise$y,]) %>%
+    dplyr::rename(sample_ID_2 = .data$sample_ID,
+                  haplo_ID_2 = .data$haplo_IDs)
+  
+  # get similar dataframe but with haplotypes expanded over rows
+  sample_haplo_pairs <- apply(sample_pairs, 1, function(x) {
+    ret <- tidyr::expand_grid(haplo_ID_1 = unlist(x$haplo_ID_1),
+                              haplo_ID_2 = unlist(x$haplo_ID_2)) %>%
+      dplyr::mutate(sample_ID_1 = x$sample_ID_1,
+                    sample_ID_2 = x$sample_ID_2, .before = 1)
+    ret
+  }) %>%
+    dplyr::bind_rows()
+  
+  # calculate relatedness between all pairs of haplotypes. NB, this will not
+  # compare haplotypes against themselves
+  haplo_relatedness <- get_haplotype_relatedness(project = project,
+                                                 haplo_IDs = unlist(sample_target$haplo_IDs),
+                                                 generations = generations,
+                                                 silent = TRUE)
+  
+  # get similar dataframe but at the sample level, with relatedness averaged
+  # over all haplos
+  sample_relatedness <- sample_haplo_pairs %>%
+    dplyr::left_join(haplo_relatedness, by = c("haplo_ID_1", "haplo_ID_2")) %>%
+    dplyr::filter(!is.na(.data$relatedness)) %>%
+    dplyr::group_by(.data$sample_ID_1, .data$sample_ID_2) %>%
+    dplyr::summarise(relatedness = mean(.data$relatedness), .groups = "keep") %>%
+    dplyr::ungroup()
+  
+  # merge back with complete list of pairwise samples. For comparisons where a
+  # monogenomic sample is compaired against itself, set relatedness to 1 by
+  # convension
+  ret <- sample_pairs %>%
+    dplyr::select(-c(.data$haplo_ID_1, .data$haplo_ID_2)) %>%
+    dplyr::full_join(sample_relatedness, by = c("sample_ID_1", "sample_ID_2")) %>%
+    dplyr::mutate(relatedness = ifelse(is.na(.data$relatedness), 1.0, .data$relatedness))
   
   return(ret)
 }
