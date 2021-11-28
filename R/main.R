@@ -1221,150 +1221,153 @@ sim_haplotype_tree <- function(project,
 }
 
 #------------------------------------------------
-#' @title Get coalescent time of two lineages
+#' @title Get the relatedness between a series of haplotypes
 #'
-#' @description TODO.
+#' @description Calculates the relatedness up to a defined number of generations
+#'   between all pairs of input haplotypes.
 #'
 #' @param project a SIMPLEGEN project, as produced by the
 #'   \code{simplegen_project()} function.
-#' @param lineage_IDs a vector of two lineage IDs with which to calculate coalescent times.
-#' @param max_reps maximum number of steps when searching for coalescent times.
+#' @param haplo_IDs a vector of haplotype IDs on which to calculate pairwise
+#'   relatedness.
+#' @param generations number of generations back to search.
 #' @param silent whether to suppress written messages to the console.
 #'
 #' @export
 
-get_coalescent_times <- function(project,
-                                 lineage_IDs,
-                                 max_reps = 1e3,
-                                 silent = FALSE) {
-  
+get_haplotype_relatedness <- function(project,
+                                      haplo_IDs,
+                                      generations = 3,
+                                      silent = FALSE) {
   
   # check inputs
   assert_class(project, "simplegen_project")
-  assert_vector_int(lineage_IDs)
-  assert_length(lineage_IDs, 2)
-  assert_single_pos_int(max_reps, zero_allowed = FALSE)
+  assert_vector_pos_int(haplo_IDs, zero_allowed = FALSE)
+  assert_greq(length(haplo_IDs), 2, message = "must input at least 2 haplo IDs")
+  assert_single_pos_int(generations, zero_allowed = FALSE)
   assert_single_logical(silent)
   
-  # check lineage_IDs can be found in project output
-  assert_in("lineage_IDs", names(project$sample_output),
-            message = paste0("column 'lineage_IDs' not found in project$sample_output.",
-                             "Check you have run all necessary steps in the pipeline up to this point."))
-  assert_in(lineage_IDs, unlist(project$sample_output$lineage_IDs),
-            message = "lineage_IDs not found in project$sample_output$lineage_IDs")
+  # check that project has a haplotype tree computed
+  assert_non_null(project$haplotype_tree, message = "project has no haplotype_tree object")
   
-  # check project contains relatedness info
-  assert_non_null(project$relatedness, message = "project contains no relatedness information")
-  
-  #------------------------------------------------
-  
-  # function replaces element x[[i]] with ancestral intervals
-  # defined inside function as hard-coded for project$relatedness
-  get_ancestor <- function(x, i, contig) {
-    parent <- x[[i]][length(x[[i]])]
-    if (parent == -1) {
-      return(x)
-    }
-    x_ancestor <- project$relatedness[[parent]][[contig]]
-    x_replace <- list()
-    for (j in seq_along(x_ancestor)) {
-      if (interval_intersect(x_ancestor[[j]], x[[i]])) {
-        left <- max(x[[i]][1], x_ancestor[[j]][1])
-        right <- min(x[[i]][2], x_ancestor[[j]][2])
-        x_replace <- append(x_replace, list(c(left, right, x[[i]][-(1:2)], x_ancestor[[j]][3])))
-      }
-    }
-    ret <- append(x[-i], x_replace, i-1)
-    return(ret)
+  # check that all haplo_IDs are within the haplotype tree
+  if (!all(haplo_IDs %in% project$haplotype_tree$child_haplo_ID)) {
+    stop("haplo_IDs could not be found within haplotype_tree child_haplo_ID column")
   }
   
-  # loop through contigs
-  contigs <- length(project$relatedness[[lineage_IDs[1]]])
-  ret_list <- list()
-  for (contig in seq_len(contigs)) {
-    message(sprintf("contig %s of %s", contig, contigs))
-    
-    # get starting relatedness info for both lineages
-    x1 <- project$relatedness[[lineage_IDs[1]]][[contig]]
-    x2 <- project$relatedness[[lineage_IDs[2]]][[contig]]
-    
-    # loop back through ancestry, splitting intervals and checking for coalescence
-    for (rep in 1:max_reps) {
-      
-      # get complete list of breakpoints over both x1 and x2
-      all_breaks <- c(mapply(function(x) x[1], x1),
-                      mapply(function(x) x[1], x2))
-      all_breaks <- sort(unique(all_breaks))
-      all_breaks <- c(all_breaks, x1[[length(x1)]][2] + 1)
-      
-      # make intervals the same between x1 and x2
-      for (i in 1:(length(all_breaks) - 1)) {
-        if (x1[[i]][2] != all_breaks[i+1] - 1) {
-          x1 <- append(x1, list(c(x1[[i]][1], all_breaks[i+1] - 1, x1[[i]][-(1:2)])), i - 1)
-          x1[[i+1]][1] <- all_breaks[i+1]
-        }
-        if (x2[[i]][2] != all_breaks[i+1] - 1) {
-          x2 <- append(x2, list(c(x2[[i]][1], all_breaks[i+1] - 1, x2[[i]][-(1:2)])), i - 1)
-          x2[[i+1]][1] <- all_breaks[i+1]
-        }
-      }
-      
-      # find next element of x1/x2 that has not already coalesced
-      all_coal <- TRUE
-      for (i in seq_along(x1)) {
-        if (length(intersect(x1[[i]][-(1:2)], x2[[i]][-(1:2)])) == 0) {
-          all_coal <- FALSE
-          break
-        }
-      }
-      if (all_coal) {
-        break
-      }
-      
-      # split uncoalesced elements of x1 and x2 based on ancestry 
-      x1 <- get_ancestor(x1, i, contig)
-      x2 <- get_ancestor(x2, i, contig)
-      
-    }  # end rep loop
-    
-    # check that didn't time out
-    if (rep == max_reps) {
-      stop("max_reps reached")
-    }
-    
-    # make dataframe of coalescent intervals and timings
-    x_coal <- x1
-    for (i in seq_along(x_coal)) {
-      coal_lineage <- intersect(x1[[i]][-(1:2)], x2[[i]][-(1:2)])
-      gen1 <- which(x1[[i]][-(1:2)] == coal_lineage)
-      gen2 <- which(x2[[i]][-(1:2)] == coal_lineage)
-      x_coal[[i]] <- c(x_coal[[i]][1:2], coal_lineage, gen1, gen2)
-    }
-    x_coal <- as.data.frame(do.call(rbind, x_coal))
-    names(x_coal) <- c("start", "end", "ancestor", "generations1", "generations2")
-    
-    # simplify by merging adjacent intervals with same ancestor
-    i <- 2
-    while (i <= nrow(x_coal)) {
-      if (x_coal$ancestor[i] == x_coal$ancestor[i-1]) {
-        x_coal$end[i-1] <- x_coal$end[i]
-        x_coal <- x_coal[-i,]
-      } else {
-        i <- i + 1
-      }
-    }
-    
-    # add to list over contigs
-    ret_list[[contig]] <- x_coal
+  # define arguments
+  args <- list(time = project$haplotype_tree$time,
+               child_haplo_ID = project$haplotype_tree$child_haplo_ID,
+               parent_haplo_ID = project$haplotype_tree$parent_haplo_ID,
+               target_haplo_IDs = haplo_IDs,
+               generations = generations,
+               silent = silent)
+  
+  # run efficient C++ function
+  output_raw <- get_haplotype_relatedness_cpp(args)
+  
+  # process output
+  n_haplo_IDs <- length(haplo_IDs)
+  pair_df <- pairwise_long(n_haplo_IDs)
+  ret <- data.frame(haplo_ID_1 = haplo_IDs[pair_df$x],
+                    haplo_ID_2 = haplo_IDs[pair_df$y],
+                    relatedness = output_raw$pairwise_relatedness)
+  
+  return(ret)
+}
+
+#------------------------------------------------
+#' @title Get the relatedness between a series of samples
+#'
+#' @description TODO
+#'
+#' @param project a SIMPLEGEN project, as produced by the
+#'   \code{simplegen_project()} function.
+#' @param sample_IDs a vector of sample IDs on which to calculate pairwise
+#'   relatedness.
+#' @param generations number of generations back to search.
+#' @param silent whether to suppress written messages to the console.
+#'
+#' @export
+
+get_sample_relatedness <- function(project,
+                                   sample_IDs,
+                                   generations = 3,
+                                   silent = FALSE) {
+  
+  # check inputs
+  assert_class(project, "simplegen_project")
+  assert_vector_pos_int(sample_IDs, zero_allowed = FALSE)
+  assert_greq(length(sample_IDs), 2, message = "must input at least 2 sample IDs")
+  assert_single_pos_int(generations, zero_allowed = FALSE)
+  assert_single_logical(silent)
+  
+  # check that project has sample details loaded
+  assert_dataframe(project$sample_details, message = "project has no sample_details object")
+  
+  # check that sample_IDs are within sample dataframe
+  if (!all(sample_IDs %in% c(project$sample_details$sample_ID))) {
+    stop("not all sample_IDs could be found within sample_details dataframe")
   }
   
-  # convert to dataframe
-  ret_df <- do.call(rbind, mapply(function(i) {
-    cbind(contig = i, ret_list[[i]])
-  }, seq_along(ret_list), SIMPLIFY = FALSE))
+  # subset to target samples and columns
+  sample_target <- project$sample_details %>%
+    dplyr::filter(.data$sample_ID %in% sample_IDs) %>%
+    dplyr::select(.data$sample_ID, .data$haplo_IDs)
   
-  # add segment length column
-  ret_df <- as.data.frame(append(as.list(ret_df), list(length = ret_df$end - ret_df$start + 1), 3))
+  # check that all samples are positive (contain at least one haplotype)
+  n_haplos <- mapply(function(x) {
+    length(unlist(x))
+  }, sample_target$haplo_IDs)
+  if (!all(n_haplos > 0)) {
+    stop("not all sample_IDs were positive (contained at least one haplotype)")
+  }
   
-  return(ret_df)
+  # get dataframe of all pairwise comparisons between rows
+  df_pairwise <- pairwise_long(nrow(sample_target), include_diagonal = TRUE)
+  
+  # get dataframe of all pairwise comparisons between samples
+  tmp <- sample_target %>%
+    dplyr::rename(sample_ID_1 = .data$sample_ID,
+                  haplo_ID_1 = .data$haplo_IDs)
+  sample_pairs <- tmp[df_pairwise$x,] %>%
+    dplyr::bind_cols(sample_target[df_pairwise$y,]) %>%
+    dplyr::rename(sample_ID_2 = .data$sample_ID,
+                  haplo_ID_2 = .data$haplo_IDs)
+  
+  # get similar dataframe but with haplotypes expanded over rows
+  sample_haplo_pairs <- apply(sample_pairs, 1, function(x) {
+    ret <- tidyr::expand_grid(haplo_ID_1 = unlist(x$haplo_ID_1),
+                              haplo_ID_2 = unlist(x$haplo_ID_2)) %>%
+      dplyr::mutate(sample_ID_1 = x$sample_ID_1,
+                    sample_ID_2 = x$sample_ID_2, .before = 1)
+    ret
+  }) %>%
+    dplyr::bind_rows()
+  
+  # calculate relatedness between all pairs of haplotypes. NB, this will not
+  # compare haplotypes against themselves
+  haplo_relatedness <- get_haplotype_relatedness(project = project,
+                                                 haplo_IDs = unlist(sample_target$haplo_IDs),
+                                                 generations = generations,
+                                                 silent = TRUE)
+  
+  # get similar dataframe but at the sample level, with relatedness averaged
+  # over all haplos
+  sample_relatedness <- sample_haplo_pairs %>%
+    dplyr::left_join(haplo_relatedness, by = c("haplo_ID_1", "haplo_ID_2")) %>%
+    dplyr::filter(!is.na(.data$relatedness)) %>%
+    dplyr::group_by(.data$sample_ID_1, .data$sample_ID_2) %>%
+    dplyr::summarise(relatedness = mean(.data$relatedness), .groups = "keep") %>%
+    dplyr::ungroup()
+  
+  # merge back with complete list of pairwise samples. For comparisons where a
+  # monogenomic sample is compaired against itself, set relatedness to 1 by
+  # convension
+  ret <- sample_pairs %>%
+    dplyr::select(-c(.data$haplo_ID_1, .data$haplo_ID_2)) %>%
+    dplyr::full_join(sample_relatedness, by = c("sample_ID_1", "sample_ID_2")) %>%
+    dplyr::mutate(relatedness = ifelse(is.na(.data$relatedness), 1.0, .data$relatedness))
+  
+  return(ret)
 }
