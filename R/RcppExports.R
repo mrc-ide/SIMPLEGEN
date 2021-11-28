@@ -13,3 +13,7 @@ sim_haplotype_tree_cpp <- function(args) {
     .Call(`_SIMPLEGEN_sim_haplotype_tree_cpp`, args)
 }
 
+get_haplotype_relatedness_cpp <- function(args) {
+    .Call(`_SIMPLEGEN_get_haplotype_relatedness_cpp`, args)
+}
+

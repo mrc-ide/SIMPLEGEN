@@ -42,11 +42,11 @@ update_progress <- function(pb_list, name, i, max_i, close = TRUE) {
 }
 
 #------------------------------------------------
-# does interval x intersect interval y
-# both integer vectors of length 2
+# produce all unique pairwise comparisons from 1 to n in long dataframe format
 #' @noRd
-interval_intersect <- function(x, y) {
-  (x[1] < y[2]) & (x[2] > y[1])
+pairwise_long <- function(n) {
+  data.frame(x = rep(seq_len(n - 1), times = rev(seq_len(n - 1))),
+             y = unlist(mapply(function(x) x:n, 2:n, SIMPLIFY = FALSE)))
 }
 
 #-----------------------------

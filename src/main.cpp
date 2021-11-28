@@ -6,6 +6,7 @@
 #include "genmodel_Host.h"
 #include "genmodel_Mosquito.h"
 #include "genmodel_Infection.h"
+#include "relatedness_Haplo.h"
 
 #include <chrono>
 #include <map>
@@ -44,6 +45,9 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List 
 // read in transmission record and prune to only those events that run up to the
 // final sample
 Rcpp::List prune_transmission_record_cpp(Rcpp::List args) {
+  
+  // start timer
+  chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
   
   // extract input args
   string transmission_record_location = rcpp_to_string(args["transmission_record_location"]);
@@ -152,6 +156,11 @@ Rcpp::List prune_transmission_record_cpp(Rcpp::List args) {
     print("Closing filestreams");
   }
   infile.close();
+  
+  // end timer
+  if (!silent) {
+    chrono_timer(t1);
+  }
   
   // return as list
   return Rcpp::List::create(Rcpp::Named("time") = time_pruned,
@@ -325,4 +334,186 @@ Rcpp::List sim_haplotype_tree_cpp(Rcpp::List args) {
                             Rcpp::Named("parent_haplo_ID") = output_parent_haplo_ID,
                             Rcpp::Named("sample_haplo_IDs") = sample_haplo_IDs,
                             Rcpp::Named("sample_haplo_densities") = sample_haplo_densities);
+}
+
+//------------------------------------------------
+// get
+Rcpp::List get_haplotype_relatedness_cpp(Rcpp::List args) {
+  
+  // start timer
+  chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
+  
+  // extract input args
+  vector<int> time = rcpp_to_vector_int(args["time"]);
+  vector<int> child_haplo_ID = rcpp_to_vector_int(args["child_haplo_ID"]);
+  vector<vector<int>> parent_haplo_ID = rcpp_to_matrix_int(args["parent_haplo_ID"]);
+  vector<int> target_haplo_IDs = rcpp_to_vector_int(args["target_haplo_IDs"]);
+  int generations = rcpp_to_double(args["generations"]);
+  bool silent = rcpp_to_bool(args["silent"]);
+  
+  // inialise map for storing a flexible population of haplotypes
+  map<int, relatedness_Haplo> haplo_pop;
+  
+  // populate map with target haplo IDs
+  for (int i = 0; i < target_haplo_IDs.size(); ++i) {
+    haplo_pop[target_haplo_IDs[i]] = relatedness_Haplo(target_haplo_IDs[i]);
+  }
+  
+  if (!silent) {
+    print("Traversing haplotype tree");
+  }
+  
+  // walk back up the tree
+  for (int i = time.size() - 1; i >= 0; --i) {
+    
+    // skip if not a haplo we are looking for
+    if (haplo_pop.count(child_haplo_ID[i]) == 0) {
+      continue;
+    }
+    
+    // skip if any descendent of this haplo exceeds generation limit
+    if (max(haplo_pop[child_haplo_ID[i]].generations) >= generations) {
+      continue;
+    }
+    
+    // if single parent (i.e. human sampling of mosquito recombinant product)
+    int this_child = child_haplo_ID[i];
+    if (parent_haplo_ID[i].size() == 1) {
+      int this_parent = parent_haplo_ID[i][0];
+      
+      // skip if no real parent (child haplo created de novo)
+      if (this_parent == -1) {
+        continue;
+      }
+      
+      // create parental haplo from child if it does not exist in
+      // population, otherwise merge child with existing
+      if (haplo_pop.count(this_parent) == 0) {
+        haplo_pop[this_parent] = haplo_pop[this_child];
+      } else {
+        haplo_pop[this_parent].merge(haplo_pop[this_child]);
+      }
+      
+      // drop child from pop
+      haplo_pop.erase(this_child);
+      
+    } else {
+    // if two parents (i.e. recombinant sampling of parental gametocytes)
+      
+      // if parents are clonal
+      if (parent_haplo_ID[i][0] == parent_haplo_ID[i][1]) {
+        int this_parent = parent_haplo_ID[i][0];
+        
+        // increment generations but not recombinations
+        haplo_pop[this_child].increment_generations();
+        
+        // create parental haplo from child if it does not exist in
+        // population, otherwise merge child with existing
+        if (haplo_pop.count(this_parent) == 0) {
+          haplo_pop[this_parent] = haplo_pop[this_child];
+        } else {
+          haplo_pop[this_parent].merge(haplo_pop[this_child]);
+        }
+        
+        // drop child from pop
+        haplo_pop.erase(this_child);
+        
+      } else {
+      // not clonal parents
+      
+        int parent1 = parent_haplo_ID[i][0];
+        int parent2 = parent_haplo_ID[i][1];
+        
+        // increment generations and recombinations
+        haplo_pop[this_child].increment_generations();
+        haplo_pop[this_child].increment_recombinations();
+        
+        // for each parent, create parental haplo from child if it does not
+        // exist in population, otherwise merge child with existing
+        if (haplo_pop.count(parent1) == 0) {
+          haplo_pop[parent1] = haplo_pop[this_child];
+        } else {
+          haplo_pop[parent1].merge(haplo_pop[this_child]);
+        }
+        if (haplo_pop.count(parent2) == 0) {
+          haplo_pop[parent2] = haplo_pop[this_child];
+        } else {
+          haplo_pop[parent2].merge(haplo_pop[this_child]);
+        }
+        
+        // drop child from pop
+        haplo_pop.erase(this_child);
+        
+      }
+      
+    }
+    
+    
+  }  // end loop up tree
+  
+  // print haplo pop
+  //for (auto &x : haplo_pop) {
+  //  print("Haplo:", x.first);
+  //  x.second.print_status();
+  //}
+  
+  //---------------------
+  // Calculate relatedness between target haplotypes
+  
+  // initialise objects for storing pairwise relatedness
+  int n_target_haplo_IDs = target_haplo_IDs.size();
+  vector<double> pairwise_relatedness(0.5 * n_target_haplo_IDs * (n_target_haplo_IDs - 1));
+  
+  // loop through all pairwise combos of target haplos
+  int i2 = 0;
+  for (int i = 0; i < (n_target_haplo_IDs - 1); ++i) {
+    for (int j = (i + 1); j < n_target_haplo_IDs; ++j) {
+      
+      // sum relatedness over all members of haplo_pop that have targets i and j
+      // as descendants
+      for (auto &x : haplo_pop) {
+        bool descendant_i = false;
+        bool descendant_j = false;
+        for (int k = 0; k < x.second.descendant_IDs.size(); ++k) {
+          if (x.second.descendant_IDs[k] == target_haplo_IDs[i]) {
+            descendant_i = true;
+          }
+          if (x.second.descendant_IDs[k] == target_haplo_IDs[j]) {
+            descendant_j = true;
+          }
+          if (descendant_i && descendant_j) {
+            break;
+          }
+        }
+        if (!(descendant_i && descendant_j)) {
+          continue;
+        }
+        
+        // sum relatedness to each descendant
+        double relatedness_i = 0.0;
+        double relatedness_j = 0.0;
+        for (int k = 0; k < x.second.descendant_IDs.size(); ++k) {
+          if (x.second.descendant_IDs[k] == target_haplo_IDs[i]) {
+            relatedness_i += pow(0.5, x.second.recombinations[k]);
+          }
+          if (x.second.descendant_IDs[k] == target_haplo_IDs[j]) {
+            relatedness_j += pow(0.5, x.second.recombinations[k]);
+          }
+        }
+        
+        // multiply to get relatedness i to j and add to running sum
+        pairwise_relatedness[i2] += relatedness_i * relatedness_j;
+        
+      }  // end loop through haplo_pop
+      
+      i2++;
+    }
+  }
+  
+  // end timer
+  if (!silent) {
+    chrono_timer(t1);
+  }
+  
+  return Rcpp::List::create(Rcpp::Named("pairwise_relatedness") = pairwise_relatedness);
 }
