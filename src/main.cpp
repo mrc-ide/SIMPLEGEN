@@ -337,7 +337,8 @@ Rcpp::List sim_haplotype_tree_cpp(Rcpp::List args) {
 }
 
 //------------------------------------------------
-// get
+// get relatedness between haplotypes by considering all possible paths through
+// haplotype tree
 Rcpp::List get_haplotype_relatedness_cpp(Rcpp::List args) {
   
   // start timer
@@ -516,4 +517,121 @@ Rcpp::List get_haplotype_relatedness_cpp(Rcpp::List args) {
   }
   
   return Rcpp::List::create(Rcpp::Named("pairwise_relatedness") = pairwise_relatedness);
+}
+
+//------------------------------------------------
+// simulate recombination blocks from haplotype tree
+Rcpp::List sim_block_tree_cpp(Rcpp::List args) {
+  
+  // start timer
+  chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
+  
+  // extract input args
+  double r = rcpp_to_double(args["r"]);
+  vector<int> contig_lengths = rcpp_to_vector_int(args["contig_lengths"]);
+  int n_contigs = contig_lengths.size();
+  vector<int> time = rcpp_to_vector_int(args["time"]);
+  vector<int> child_haplo_ID = rcpp_to_vector_int(args["child_haplo_ID"]);
+  vector<vector<int>> parent_haplo_ID = rcpp_to_matrix_int(args["parent_haplo_ID"]);
+  bool silent = rcpp_to_bool(args["silent"]);
+  
+  // define objects for storing output
+  vector<int> output_time;
+  vector<int> output_child_haplo_ID;
+  vector<int> output_contig;
+  vector<int> output_start;
+  vector<int> output_end;
+  vector<int> output_parent_haplo_ID;
+  
+  // step through haplotype tree
+  for (int i = 0; i < time.size(); ++i) {
+    
+    // establish if clonal
+    bool clonal = true;
+    if (parent_haplo_ID[i].size() == 2) {
+      if (parent_haplo_ID[i][0] != parent_haplo_ID[i][1]) {
+        clonal = false;
+      }
+    }
+    
+    // if clonal then same ancestor over all contigs
+    if (clonal) {
+      vector<int> this_time(n_contigs, time[i]);
+      vector<int> this_child(n_contigs, child_haplo_ID[i]);
+      vector<int> this_contig = seq_int(1, n_contigs);
+      vector<int> this_start(n_contigs, 1);
+      vector<int> this_parent(n_contigs, parent_haplo_ID[i][0]);
+      
+      push_back_multiple(output_time, this_time);
+      push_back_multiple(output_child_haplo_ID, this_child);
+      push_back_multiple(output_contig, this_contig);
+      push_back_multiple(output_start, this_start);
+      push_back_multiple(output_end, contig_lengths);
+      push_back_multiple(output_parent_haplo_ID, this_parent);
+    }
+    
+    // if not clonal then simulate recombination
+    if (!clonal) {
+      
+      // loop through contigs
+      vector<int> this_start;
+      vector<int> this_end;
+      vector<int> this_contig;
+      vector<int> this_parent;
+      for (int j = 0; j < n_contigs; ++j) {
+        
+        // draw starting parent
+        int parent_index = rbernoulli1(0.5);
+        
+        // draw blocks until reach end of contig
+        int block_start = 1;
+        while (block_start <= contig_lengths[j]) {
+          
+          // draw end position
+          int block_end = block_start + round(rexp1(r));
+          if (block_end > contig_lengths[j]) {
+            block_end = contig_lengths[j];
+          }
+          
+          // add to output
+          this_start.push_back(block_start);
+          this_end.push_back(block_end);
+          this_contig.push_back(j + 1);
+          this_parent.push_back(parent_haplo_ID[i][parent_index]);
+          
+          // swap parent
+          parent_index = 1 - parent_index;
+          
+          // move block forward
+          block_start = block_end + 1;
+        }
+        
+      }  // end loop through contigs
+      
+      // fill in other output vectors
+      int n_blocks = this_start.size();
+      vector<int> this_time(n_blocks, time[i]);
+      vector<int> this_child(n_blocks, child_haplo_ID[i]);
+      
+      push_back_multiple(output_time, this_time);
+      push_back_multiple(output_child_haplo_ID, this_child);
+      push_back_multiple(output_contig, this_contig);
+      push_back_multiple(output_start, this_start);
+      push_back_multiple(output_end, this_end);
+      push_back_multiple(output_parent_haplo_ID, this_parent);
+    }
+    
+  }  // end loop through haplotype tree
+  
+  // end timer
+  if (!silent) {
+    chrono_timer(t1);
+  }
+  
+  return Rcpp::List::create(Rcpp::Named("time") = output_time,
+                            Rcpp::Named("child_haplo_ID") = output_child_haplo_ID,
+                            Rcpp::Named("contig") = output_contig,
+                            Rcpp::Named("start") = output_start,
+                            Rcpp::Named("end") = output_end,
+                            Rcpp::Named("parent_haplo_ID") = output_parent_haplo_ID);
 }

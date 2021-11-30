@@ -1093,6 +1093,7 @@ prune_transmission_record <- function(project,
 #'   single recombinant block is 1/r.
 #' @param contig_lengths vector of lengths (in bp) of each contig.
 #' 
+#' @importFrom stats dpois
 #' @export
 
 define_genetic_params <- function(project,
@@ -1161,7 +1162,6 @@ check_genetic_params <- function(x) {
 #'   \code{simplegen_project()} function.
 #' @param silent whether to suppress written messages to the console.
 #'
-#' @importFrom stats dpois
 #' @export
 
 sim_haplotype_tree <- function(project,
@@ -1323,6 +1323,11 @@ get_sample_relatedness <- function(project,
     stop("not all sample_IDs were positive (contained at least one haplotype)")
   }
   
+  if (!silent) {
+    message("Calculating relatedness between samples")
+  }
+  t0 <- Sys.time()
+  
   # get dataframe of all pairwise comparisons between rows
   df_pairwise <- pairwise_long(nrow(sample_target), include_diagonal = TRUE)
   
@@ -1369,5 +1374,61 @@ get_sample_relatedness <- function(project,
     dplyr::full_join(sample_relatedness, by = c("sample_ID_1", "sample_ID_2")) %>%
     dplyr::mutate(relatedness = ifelse(is.na(.data$relatedness), 1.0, .data$relatedness))
   
+  if (!silent) {
+    t1 <- Sys.time()
+    message(sprintf("completed in %s seconds", signif(t1 - t0, 3)))
+  }
+  
   return(ret)
+}
+
+#------------------------------------------------
+#' @title Simulate recombinant block tree
+#'
+#' @description Starting with the haplotype tree stored within the project,
+#'   simulates the relatedness of lengths of the genome from a recombination
+#'   model.
+#'
+#' @param project a SIMPLEGEN project, as produced by the
+#'   \code{simplegen_project()} function.
+#' @param silent whether to suppress written messages to the console.
+#'
+#' @export
+
+sim_block_tree <- function(project,
+                           silent = FALSE) {
+  
+  # check inputs
+  assert_class(project, "simplegen_project")
+  assert_single_logical(silent)
+  
+  # check haplotype tree exists
+  assert_non_null(project$haplotype_tree, message = "no haplotype tree found in project")
+  
+  # check for defined genetic params
+  assert_non_null(project$genetic_parameters,
+                  message = "no genetic parameters defined. See ?define_genetic_params")
+  
+  # define genetic model arguments
+  args <- list(r = project$genetic_parameters$r,
+               contig_lengths = project$genetic_parameters$contig_lengths,
+               silent = silent)
+  
+  # append haplotype tree to arguments
+  args <- append(args,
+                 list(time = project$haplotype_tree$time,
+                      child_haplo_ID = project$haplotype_tree$child_haplo_ID,
+                      parent_haplo_ID = project$haplotype_tree$parent_haplo_ID))
+  
+  # run efficient C++ code
+  output_raw <- sim_block_tree_cpp(args)
+  
+  # process output
+  output_processed <- as.data.frame(output_raw)
+  
+  # add to project
+  project$block_tree <- output_processed
+  
+  # return project
+  invisible(project)
 }

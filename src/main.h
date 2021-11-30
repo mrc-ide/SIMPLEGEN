@@ -18,3 +18,7 @@ Rcpp::List sim_haplotype_tree_cpp(Rcpp::List args);
 //------------------------------------------------
 // [[Rcpp::export]]
 Rcpp::List get_haplotype_relatedness_cpp(Rcpp::List args);
+
+//------------------------------------------------
+// [[Rcpp::export]]
+Rcpp::List sim_block_tree_cpp(Rcpp::List args);
