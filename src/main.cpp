@@ -7,6 +7,9 @@
 #include "genmodel_Mosquito.h"
 #include "genmodel_Infection.h"
 #include "relatedness_Haplo.h"
+#include "relatedness_Block.h"
+#include "relatedness_Block2.h"
+#include "relatedness_Coaltracker.h"
 
 #include <chrono>
 #include <map>
@@ -634,4 +637,344 @@ Rcpp::List sim_block_tree_cpp(Rcpp::List args) {
                             Rcpp::Named("start") = output_start,
                             Rcpp::Named("end") = output_end,
                             Rcpp::Named("parent_haplo_ID") = output_parent_haplo_ID);
+}
+
+//------------------------------------------------
+// Get coalescence times from block tree. This is a tricky algorithm and so
+// deserves a more detailed description so I don't have to work out what it's
+// doing again in future.
+//
+// There are two main classes in this algorithm; the relatedness_Coaltracker
+// (hereafter coaltracker), and the relatedness_Block (hereafter fragment, which
+// might be a better name).
+// The coaltracker is designed to keep track of how many extant lineages remain
+// at every point along the genome. The reason being that once we reach a single
+// lineage we no longer care about events further back in time. This information
+// would not be obvious from the fragments alone, as each fragment is
+// independent and has no knowledge of how many other fragments exist at the
+// same genomic position. The coaltracker is made up of a series of contiguous
+// blocks that together span the entire contig (e.g. chromosome). Each block has
+// a number of extant lineages, and on coalescence these blocks are modified to
+// decrease the number of lineages over the desired range. The coaltracker is
+// used to filter the information as it comes in from the block tree - we only
+// care about the input block over the interval in which there is >1 extant
+// lineage.
+// The fragments represent the genetic material in a given ancestor+contig
+// combination. This material is described in blocks, but unlike the coaltracker
+// these blocks do not need to span the whole contig, and instead can be broken
+// up and even contain gaps. This is because we do not care about all the
+// genetic material in every ancestor - we only care about that material that is
+// ancestral to the sample. Each block has a child_haplo_ID, which should really
+// be renamed descendant_haplo_ID as it stores the haplo_ID of the sample that
+// this block is ancestral to.
+//
+// The algorithm works as follows:
+// 1. Initialise a series of framents representing the sample. The descendants
+// of these fragments are themselves. This forms the fragment map (called
+// block_map in code).
+// 1. Read in the block tree from end to start one row at a time
+// 2. We are only interested in cases where the child_haplo_ID is part of the
+// fragment map, meaning it is either part of the final sample or it is an
+// ancestor of the sample.
+// 3. compare the input block against the coaltracker. Return the interval(s)
+// over which there is >1 extant lineage. This can result in the original block
+// being returned, but in more complex cases it can result in a vector of
+// multple blocks separated by gaps. Each of these new blocks is taken forward
+// in order.
+// 4. For each block, look for overlap within the child_haplo_ID element of the
+// fragment map. It is possible that this block is from a member of our map, but
+// it in a part of the genome that we don't care about (i.e. not ancestral to
+// the sample), so we have to check for overlap. Loop through each chunk of the
+// fragment and compare for overlap. If so, we have to explore the parent of
+// this chunk within the fragment map (from parent_haplo_ID in the block tree).
+// 5. If the parent does not exist within the fragment map then we need to
+// create it and carry over the genetic material. If the parent does exist then
+// we have a common ancestor event, and hence the potential (but not the
+// certainty) of a coalescent event. Check for overlap between the proposed
+// block and the chunks of the parental fragment. Where they overlap we have
+// coalescence, and where they do not overlap we need to add new chunks.
+// 6. Where there is coalescence, record this event in the output and also
+// update the coaltracker as needed - decreasing the extant lineages over this
+// region.
+//
+// This algorithm runs until the beginning of the block tree, although once the
+// coaltracker reaches a single lineage over the entire genome every row will be
+// skipped over.
+//
+// TODO - there are a number of changes that could improve this algorithm:
+// 1. Catch to break if coaltracker consists of a single lineage everywhere (no
+// need to carry on searching through block tree).
+// 2. Improve notation. Make a distinction between the different fragments,
+// blocks, chunks etc. as described above. Ensure terms like child, parent,
+// descendant are used appropriately.
+// 3. Debugging currenly consists of a series of commented out print statements.
+// Change this to a more formal system, using e.g. hash-defines.
+// 4. The method for looking for overlap configurations is shared between
+// multiple functions, and even between classes (relatedness_Coaltracker and
+// relatedness_Blcok). Consider breaking this out into separate function.
+// 5. Would be interesting to profile this code to work out where spending most
+// of the time and look for efficiency gains as needed.
+// 6. Ultimately we may want a single algorithm similar to this one, but
+// returning information in a structure that can be used to quickly calcualte
+// coalescent blocks OR add mutations and produce genomes. This may be something
+// along the lines of the succinct tree sequences of Kelleher.
+Rcpp::List get_haplotype_coalescence_cpp(Rcpp::List args) {
+  
+  // start timer
+  chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
+  
+  // extract input args
+  vector<int> time = rcpp_to_vector_int(args["time"]);
+  vector<int> child_haplo_ID = rcpp_to_vector_int(args["child_haplo_ID"]);
+  vector<int> contig = rcpp_to_vector_int(args["contig"]);
+  vector<int> left = rcpp_to_vector_int(args["contig_start"]);
+  vector<int> right = rcpp_to_vector_int(args["contig_end"]);
+  vector<int> parent_haplo_ID = rcpp_to_vector_int(args["parent_haplo_ID"]);
+  vector<int> target_haplo_IDs = rcpp_to_vector_int(args["target_haplo_IDs"]);
+  vector<int> contig_lengths = rcpp_to_vector_int(args["contig_lengths"]);
+  int generations = rcpp_to_double(args["generations"]);
+  bool silent = rcpp_to_bool(args["silent"]);
+  int n_targets = target_haplo_IDs.size();
+  int n_contigs = contig_lengths.size();
+  
+  // object for storing coalescent output
+  Rcpp::List store_output;
+  Rcpp::List* store_output_ptr = &store_output;
+  
+  // initialise coalescent trackers for each contig to keep track of events and
+  // terminate once a single lineage remains at any given genomic position
+  vector<relatedness_Coaltracker> coaltracker(n_contigs);
+  for (int i = 0; i < n_contigs; ++i) {
+    coaltracker[i].init(i, 1, contig_lengths[i], n_targets);
+  }
+  vector<relatedness_Coaltracker>* coaltracker_ptr = &coaltracker;
+  
+  // initalise map to store blocks. Key is <haplo_ID, contig>
+  map<pair<int, int>, relatedness_Block> block_map;
+  map<pair<int, int>, relatedness_Block>* block_map_ptr = &block_map;
+  
+  // initialise map with target haplo IDs. The "child" of these targets are
+  // set to themselves
+  for (int i = 0; i < n_targets; ++i) {
+    for (int j = 0; j < n_contigs; ++j) {
+      block_map[{target_haplo_IDs[i], j}] = relatedness_Block(target_haplo_IDs[i], j, 0, 1, contig_lengths[j],
+                                                              target_haplo_IDs[i], block_map_ptr,
+                                                              coaltracker_ptr, store_output_ptr);
+    }
+  }
+  
+  // walk backwards through block tree
+  for (int i = time.size() - 1; i >= 0; --i) {
+    
+    // if parent is -1 then skip
+    if (parent_haplo_ID[i] == -1) {
+      continue;
+    }
+    
+    // check that child_haplo_ID & contig is in the map
+    if (block_map.count({child_haplo_ID[i], contig[i]}) != 0) {
+      
+      // skip if exceeds generation limit
+      if (block_map[{child_haplo_ID[i], contig[i]}].generation >= generations) {
+        continue;
+      }
+      
+      // compare against coalescent tracker to get blocks that we are interested
+      // in exploring
+      vector<int> block_left;
+      vector<int> block_right;
+      coaltracker[contig[i]].get_overlap(left[i], right[i], block_left, block_right);
+      
+      //print("\nmain loop, child_ID =", child_haplo_ID[i]);
+      //coaltracker[contig[i]].print_status();
+      
+      // look for overlap and eventual coalescence of each block
+      for (int j = 0; j < block_left.size(); ++j) {
+        //print("coaltracker, block", j + 1, "of", block_left.size());
+        block_map[{child_haplo_ID[i], contig[i]}].get_overlap(block_left[j], block_right[j], parent_haplo_ID[i], time[i]);
+      }
+      
+    }
+    
+  }
+  
+  //for (auto x : block_map) {
+  //  x.second.print_status();
+  //}
+  
+  // end timer
+  if (!silent) {
+    chrono_timer(t1);
+  }
+  
+  return Rcpp::List::create(Rcpp::Named("coalescence_events") = store_output);
+}
+
+//------------------------------------------------
+// Temporary fix - alternate version of previous function with different return
+// format
+Rcpp::List get_haplotype_coalescence2_cpp(Rcpp::List args) {
+  
+  // start timer
+  chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
+  
+  // extract input args
+  vector<int> time = rcpp_to_vector_int(args["time"]);
+  vector<int> child_haplo_ID = rcpp_to_vector_int(args["child_haplo_ID"]);
+  vector<int> contig = rcpp_to_vector_int(args["contig"]);
+  vector<int> left = rcpp_to_vector_int(args["contig_start"]);
+  vector<int> right = rcpp_to_vector_int(args["contig_end"]);
+  vector<int> parent_haplo_ID = rcpp_to_vector_int(args["parent_haplo_ID"]);
+  vector<int> target_haplo_IDs = rcpp_to_vector_int(args["target_haplo_IDs"]);
+  vector<int> contig_lengths = rcpp_to_vector_int(args["contig_lengths"]);
+  int sampling_time = rcpp_to_int(args["sampling_time"]);
+  int generations = rcpp_to_double(args["generations"]);
+  bool silent = rcpp_to_bool(args["silent"]);
+  int n_targets = target_haplo_IDs.size();
+  int n_contigs = contig_lengths.size();
+  
+  // object for storing coalescent output
+  Rcpp::List store_output;
+  Rcpp::List* store_output_ptr = &store_output;
+  
+  // initialise coalescent trackers for each contig to keep track of events and
+  // terminate once a single lineage remains at any given genomic position
+  vector<relatedness_Coaltracker> coaltracker(n_contigs);
+  for (int i = 0; i < n_contigs; ++i) {
+    coaltracker[i].init(i, 1, contig_lengths[i], n_targets);
+  }
+  vector<relatedness_Coaltracker>* coaltracker_ptr = &coaltracker;
+  
+  // initalise map to store blocks. Key is <haplo_ID, contig>
+  map<pair<int, int>, relatedness_Block2> block_map;
+  map<pair<int, int>, relatedness_Block2>* block_map_ptr = &block_map;
+  
+  // initialise map with target haplo IDs. The "child" of these targets are
+  // set to themselves
+  for (int i = 0; i < n_targets; ++i) {
+    for (int j = 0; j < n_contigs; ++j) {
+      vector<int> tmp(1, target_haplo_IDs[i]);
+      block_map[{target_haplo_IDs[i], j}] = relatedness_Block2(target_haplo_IDs[i], j, 0,
+                                                               1, contig_lengths[j], sampling_time, tmp,
+                                                               block_map_ptr, coaltracker_ptr, store_output_ptr);
+    }
+  }
+  
+  // walk backwards through block tree
+  for (int i = time.size() - 1; i >= 0; --i) {
+    
+    // if parent is -1 then skip
+    if (parent_haplo_ID[i] == -1) {
+      continue;
+    }
+    
+    // check that child_haplo_ID & contig is in the map
+    if (block_map.count({child_haplo_ID[i], contig[i]}) != 0) {
+      
+      // skip if exceeds generation limit
+      if (block_map[{child_haplo_ID[i], contig[i]}].generation >= generations) {
+        continue;
+      }
+      
+      // compare against coalescent tracker to get blocks that we are interested
+      // in exploring
+      vector<int> block_left;
+      vector<int> block_right;
+      coaltracker[contig[i]].get_overlap(left[i], right[i], block_left, block_right);
+      
+      //print("\nmain loop, child_ID =", child_haplo_ID[i]);
+      //coaltracker[contig[i]].print_status();
+      
+      // look for overlap and eventual coalescence of each block
+      for (int j = 0; j < block_left.size(); ++j) {
+        //print("coaltracker, block", j + 1, "of", block_left.size());
+        block_map[{child_haplo_ID[i], contig[i]}].get_overlap(block_left[j], block_right[j], parent_haplo_ID[i], time[i]);
+      }
+      
+    }
+    
+  }
+  
+  //for (auto x : block_map) {
+  //  x.second.print_status();
+  //}
+  
+  // end timer
+  if (!silent) {
+    chrono_timer(t1);
+  }
+  
+  return Rcpp::List::create(Rcpp::Named("coalescence_events") = store_output);
+}
+
+//------------------------------------------------
+// Write vcf to file
+void write_vcf_cpp(Rcpp::List args) {
+  
+  // start timer
+  chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
+  
+  // extract input args
+  Rcpp::List mut_map = args["mut_map"];
+  string output_location = rcpp_to_string(args["output_location"]);
+  bool silent = rcpp_to_bool(args["silent"]);
+  int n_contigs = mut_map.size();
+  
+  // open filestream to write vcfs
+  if (!silent) {
+    print("Opening filestream to write vcfs");
+  }
+  ofstream outfile;
+  outfile.open(output_location);
+  if (!outfile.is_open()) {
+    Rcpp::stop("unable to open filestream at specified location. Check the path exists and that you have read access");
+  }
+  
+  // write meta-information lines
+  outfile << "##fileformat=VCFv4.3";
+  
+  // write main header line
+  outfile << "\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
+  
+  // loop through contigs and mutations
+  for (int i = 0; i < n_contigs; ++i) {
+    vector<int> contig = rcpp_to_vector_int(mut_map[i]);
+    if (contig[0] == -1) {
+      continue;
+    }
+    
+    for (int j = 0; j < contig.size(); ++j) {
+      
+      // CHROM
+      outfile << "\n" << i + 1;
+      
+      // POS
+      outfile << "\t" << contig[j];
+      
+      // ID
+      outfile << "\t.";
+      
+      // REF
+      outfile << "\tA";
+      
+      // ALT
+      outfile << "\tT";
+      
+      // QUAL
+      outfile << "\t.";
+      
+      // FILTER
+      outfile << "\t.";
+      
+      // INFO
+      outfile << "\t.";
+      
+    }
+  }
+  
+  // end timer
+  if (!silent) {
+    chrono_timer(t1);
+  }
+  
 }

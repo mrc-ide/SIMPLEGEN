@@ -1402,6 +1402,11 @@ sim_block_tree <- function(project,
   assert_class(project, "simplegen_project")
   assert_single_logical(silent)
   
+  # check sample exists and contains at least two haplotypes
+  assert_non_null(project$sample_details, message = "no sample details found in project")
+  target_haplos <- unlist(project$sample_details$haplo_IDs)
+  assert_greq(length(target_haplos), 2, message = "sample must contain at least two haplotype IDs within malaria-positive individuals")
+  
   # check haplotype tree exists
   assert_non_null(project$haplotype_tree, message = "no haplotype tree found in project")
   
@@ -1429,6 +1434,241 @@ sim_block_tree <- function(project,
   # add to project
   project$block_tree <- output_processed
   
+  # get coalescence between blocks
+  haplo_coalescence <- get_haplotype_coalescence(project, haplo_IDs = target_haplos, generations = )
+  
   # return project
   invisible(project)
+}
+
+#------------------------------------------------
+#' @title Get genome-wide coalescence times between haplotypes
+#'
+#' @description TODO
+#'
+#' @param project a SIMPLEGEN project, as produced by the
+#'   \code{simplegen_project()} function.
+#' @param haplo_IDs a vector of haplotype IDs on which to calculate coalescence
+#'   times.
+#' @param generations number of generations back to search.
+#' @param silent whether to suppress written messages to the console.
+#'
+#' @export
+
+get_haplotype_coalescence <- function(project,
+                                      haplo_IDs,
+                                      generations = 3,
+                                      silent = FALSE) {
+  
+  # check inputs
+  assert_class(project, "simplegen_project")
+  assert_vector_pos_int(haplo_IDs, zero_allowed = FALSE)
+  assert_greq(length(unique(haplo_IDs)), 2, message = "must input at least 2 different haplo IDs")
+  assert_single_pos_int(generations, zero_allowed = FALSE)
+  assert_single_logical(silent)
+  
+  # check that project has contig lengths defined
+  assert_non_null(project$genetic_parameters$contig_lengths)
+  
+  # check that project has a block tree computed
+  assert_non_null(project$block_tree, message = "project has no block_tree object")
+  
+  # check that all haplo_IDs are within the block tree
+  if (!all(haplo_IDs %in% unique(project$block_tree$child_haplo_ID))) {
+    stop("haplo_IDs could not be found within block_tree child_haplo_ID column")
+  }
+  
+  # check that contig values are within range specified by genetic parameters
+  if (!all(project$block_tree$contig <= length(project$genetic_parameters$contig_lengths))) {
+    stop("block_tree contains contig values that exceed the number of contigs found in genetic_parameters")
+  }
+  
+  # define arguments
+  args <- list(time = project$block_tree$time,
+               child_haplo_ID = project$block_tree$child_haplo_ID,
+               contig = project$block_tree$contig - 1,
+               contig_start = project$block_tree$start,
+               contig_end = project$block_tree$end,
+               parent_haplo_ID = project$block_tree$parent_haplo_ID,
+               target_haplo_IDs = haplo_IDs,
+               contig_lengths = project$genetic_parameters$contig_lengths,
+               generations = generations,
+               silent = silent)
+  
+  # run efficient C++ function
+  output_raw <- get_haplotype_coalescence_cpp(args)
+  
+  # process output
+  output_processed <- output_raw$coalescence_events %>%
+    dplyr::bind_rows()
+  
+  if (nrow(output_processed) > 0) {
+    output_processed <- output_processed %>%
+      dplyr::mutate(l1 = ifelse(.data$lineage1 < .data$lineage2, .data$lineage1, .data$lineage2),
+                    l2 = ifelse(.data$lineage1 < .data$lineage2, .data$lineage2, .data$lineage1),
+                    .before = 1) %>%
+      dplyr::select(-c(.data$lineage1, .data$lineage2)) %>%
+      dplyr::rename(lineage1 = .data$l1, lineage2 = .data$l2)
+  }
+  
+  return(output_processed)
+}
+
+#------------------------------------------------
+#' @title Get genome-wide coalescence times between haplotypes
+#'
+#' @description TODO
+#'
+#' @param project a SIMPLEGEN project, as produced by the
+#'   \code{simplegen_project()} function.
+#' @param haplo_IDs a vector of haplotype IDs on which to calculate coalescence
+#'   times.
+#' @param sampling_time time at which sample taken.
+#' @param generations number of generations back to search.
+#' @param silent whether to suppress written messages to the console.
+#'
+#' @export
+
+get_haplotype_coalescence2 <- function(project,
+                                      haplo_IDs,
+                                      sampling_time,
+                                      generations = 3,
+                                      silent = FALSE) {
+  
+  # check inputs
+  assert_class(project, "simplegen_project")
+  assert_vector_pos_int(haplo_IDs, zero_allowed = FALSE)
+  assert_greq(length(unique(haplo_IDs)), 2, message = "must input at least 2 different haplo IDs")
+  assert_single_pos_int(sampling_time, zero_allowed = TRUE)
+  assert_single_pos_int(generations, zero_allowed = FALSE)
+  assert_single_logical(silent)
+  
+  # check that project has contig lengths defined
+  assert_non_null(project$genetic_parameters$contig_lengths)
+  
+  # check that project has a block tree computed
+  assert_non_null(project$block_tree, message = "project has no block_tree object")
+  
+  # check that all haplo_IDs are within the block tree
+  if (!all(haplo_IDs %in% unique(project$block_tree$child_haplo_ID))) {
+    stop("haplo_IDs could not be found within block_tree child_haplo_ID column")
+  }
+  
+  # check that contig values are within range specified by genetic parameters
+  if (!all(project$block_tree$contig <= length(project$genetic_parameters$contig_lengths))) {
+    stop("block_tree contains contig values that exceed the number of contigs found in genetic_parameters")
+  }
+  
+  # define arguments
+  args <- list(time = project$block_tree$time,
+               child_haplo_ID = project$block_tree$child_haplo_ID,
+               contig = project$block_tree$contig - 1,
+               contig_start = project$block_tree$start,
+               contig_end = project$block_tree$end,
+               parent_haplo_ID = project$block_tree$parent_haplo_ID,
+               target_haplo_IDs = haplo_IDs,
+               sampling_time = sampling_time,
+               contig_lengths = project$genetic_parameters$contig_lengths,
+               generations = generations,
+               silent = silent)
+  
+  # run efficient C++ function
+  output_raw <- get_haplotype_coalescence2_cpp(args)
+  
+  # process output
+  output_processed <- NULL
+  if (length(output_raw) > 0) {
+    output_processed <- mapply(function(x) {
+      as.data.frame(x[1:5])
+    }, output_raw$coalescence_events, SIMPLIFY = FALSE) %>%
+      dplyr::bind_rows()
+    output_processed$descendants <- mapply(function(x) x$descendants, output_raw$coalescence_events)
+  }
+  
+  return(output_processed)
+}
+
+#------------------------------------------------
+#' @title Simulate mutations and write vcf to file
+#'
+#' @description TODO
+#'
+#' @param project a SIMPLEGEN project, as produced by the
+#'   \code{simplegen_project()} function.
+#' @param output_location where to write vcfs to file.
+#' @param sampling_time time of sample.
+#' @param generations how many generations to look back when computing ancestral
+#'   recombination graph.
+#' @param mu mutation rate per base per unit time.
+#' @param silent whether to suppress written messages to the console.
+#'
+#' @importFrom  stats rpois runif
+#' @export
+
+sim_vcf <- function(project,
+                    output_location,
+                    sampling_time,
+                    generations = 3,
+                    mu = 1e-7,
+                    silent = FALSE) {
+  
+  # check inputs
+  assert_class(project, "simplegen_project")
+  assert_single_string(output_location)
+  assert_single_pos_int(sampling_time, zero_allowed = TRUE)
+  assert_single_pos_int(generations, zero_allowed = FALSE)
+  assert_single_pos(mu, zero_allowed = FALSE)
+  assert_single_logical(silent)
+  
+  # check sample exists and contains at least two haplotypes
+  assert_non_null(project$sample_details, message = "no sample details found in project")
+  target_haplos <- unlist(project$sample_details$haplo_IDs)
+  assert_greq(length(target_haplos), 2, message = "sample must contain at least two haplotype IDs within malaria-positive individuals")
+  
+  # get coalescence tree between blocks in format2
+  message("Getting ancestral recombination graph")
+  haplo_coalescence <- get_haplotype_coalescence2(project, haplo_IDs = target_haplos,
+                                                  sampling_time = sampling_time,
+                                                  generations = generations,
+                                                  silent = silent)
+  
+  # simulate mutations
+  n_haplos <- length(target_haplos)
+  n_contigs <- length(project$genetic_parameters$contig_lengths)
+  mut_map <- replicate(n_haplos, replicate(n_contigs, NULL), simplify = FALSE)
+  
+  message("Simulating mutations")
+  for (i in 1:nrow(haplo_coalescence)) {
+    n_muts <- rpois(1, mu*(haplo_coalescence$time_new[i] - haplo_coalescence$time_old[i])*(haplo_coalescence$right[i] - haplo_coalescence$left[i]))
+    if (n_muts > 0) {
+      mut_pos <- floor(runif(n_muts, haplo_coalescence$left[i], haplo_coalescence$right[i] + 1))
+      w <- match(haplo_coalescence$descendants[i][[1]], target_haplos)
+      for (j in seq_along(w)) {
+        mut_map[[w[j]]][[haplo_coalescence$contig[i]]] <- c(mut_map[[w[j]]][[haplo_coalescence$contig[i]]], mut_pos)
+      }
+    }
+  }
+  
+  # replace NULL with -1 before C++
+  for (i in seq_along(mut_map)) {
+    for (j in seq_along(mut_map[[i]])) {
+      if (is.null(mut_map[[i]][[j]])) {
+        mut_map[[i]][[j]] <- -1
+      } else {
+        mut_map[[i]][[j]] <- sort(unique(mut_map[[i]][[j]]))
+      }
+    }
+  }
+  
+  # write each sequence to a different vcf
+  for (i in seq_along(mut_map)) {
+    
+    args <- list(mut_map = mut_map[[i]],
+                 output_location = sprintf("%s%s.vcf", output_location, i),
+                 silent = FALSE)
+    
+    write_vcf_cpp(args)
+  }
+  
+  
 }

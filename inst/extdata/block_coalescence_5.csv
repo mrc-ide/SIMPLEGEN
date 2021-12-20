@@ -1,0 +1,4 @@
+﻿time,child_haplo_ID,contig,start,end,parent_haplo_ID
+98,99,1,1,100,-1
+97,98,1,1,100,97
+99,100,1,51,60,98

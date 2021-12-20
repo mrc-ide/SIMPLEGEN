@@ -112,6 +112,50 @@ bool is_in_vector(TYPE x, const std::vector<TYPE> &v) {
 }
 
 //------------------------------------------------
+// get the order of a vector in terms of element indices. Equivalent to R
+// function order() except using zero-based indexing. Identical values are
+// returned in the order they are found, for example the order of {2,1,1} is
+// {1,2,0}.
+template <typename TYPE>
+std::vector<int> get_order(const std::vector<TYPE> &v) {
+  
+  // initialize original index locations
+  std::vector<int> idx(v.size());
+  iota(idx.begin(), idx.end(), 0);
+  
+  // sort indexes based on comparing values in v
+  // using std::stable_sort instead of std::sort
+  // to avoid unnecessary index re-orderings
+  // when v contains elements of equal values 
+  std::stable_sort(idx.begin(), idx.end(),
+                   [&v](int i1, int i2) {return v[i1] < v[i2];});
+  
+  return idx;
+}
+
+//------------------------------------------------
+// reorder a vector (passed by reference) according to another vector of indices
+template <typename TYPE>
+void apply_order(std::vector<TYPE>& v, const std::vector<int>& order_vec) {
+  
+  std::vector<bool> done(v.size());
+  for (std::size_t i = 0; i < v.size(); ++i) {
+    if (done[i]) {
+      continue;
+    }
+    done[i] = true;
+    std::size_t prev_j = i;
+    std::size_t j = order_vec[i];
+    while (i != j) {
+      std::swap(v[prev_j], v[j]);
+      done[j] = true;
+      prev_j = j;
+      j = order_vec[j];
+    }
+  }
+}
+
+//------------------------------------------------
 // return unique values in a vector
 template<class TYPE>
 std::vector<TYPE> unique(const std::vector<TYPE> &v) {

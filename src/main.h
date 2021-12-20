@@ -1,5 +1,5 @@
 
-#include "misc_v11.h"
+#include "misc_v12.h"
 
 #include <vector>
 
@@ -22,3 +22,15 @@ Rcpp::List get_haplotype_relatedness_cpp(Rcpp::List args);
 //------------------------------------------------
 // [[Rcpp::export]]
 Rcpp::List sim_block_tree_cpp(Rcpp::List args);
+
+//------------------------------------------------
+// [[Rcpp::export]]
+Rcpp::List get_haplotype_coalescence_cpp(Rcpp::List args);
+
+//------------------------------------------------
+// [[Rcpp::export]]
+Rcpp::List get_haplotype_coalescence2_cpp(Rcpp::List args);
+
+//------------------------------------------------
+// [[Rcpp::export]]
+void write_vcf_cpp(Rcpp::List args);
