@@ -249,11 +249,6 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
           // mosquito was infected before passing on infection.
           Iv_pop[k][rnd1].write_buffer(transmission_record);
           
-          if (Iv_pop[k][rnd1].mosquito_ID == 122) {
-            bar();
-            Iv_pop[k][rnd1].print_status();
-          }
-          
           // infect host, and write this event to transmission record
           host_pop[this_host].infection(t, next_infection_ID,
                                         Iv_pop[k][rnd1].mosquito_ID,
@@ -330,12 +325,6 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
             m.set_mosquito_ID(next_mosq_ID);
             m.infection(t, next_infection_ID, host_pop[this_host]);
             
-            if (m.mosquito_ID == 122) {
-              foo();
-              m.print_status();
-              host_pop[this_host].print_inoc_state();
-            }
-            
             // add to Ev_pop, scheduled to enter Iv_pop at future time
             Ev_pop[k][v_ringbuffer].emplace_back(m);
             
@@ -357,18 +346,6 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
     
     
     //-------- SCHEDULED HUMAN EVENTS --------
-    
-    // TODO - remove
-    for (unsigned int i = 0; i < host_pop.size(); ++i) {
-      Host h = host_pop[i];
-      for (int j = 0; j < params->max_inoculations; ++j) {
-        if (!h.inoc_active[j] && (h.inoc_state_sexual[j] != Inactive_sexual)) {
-          print(i, j);
-          foobar();
-          Rcpp::stop("");
-        }
-      }
-    }
     
     // loop through all hosts
     for (unsigned int i = 0; i < host_pop.size(); ++i) {

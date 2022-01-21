@@ -81,13 +81,6 @@ void Host::init(Parameters &params_,
   inoc_time_asexual = vector<int>(params->max_inoculations);
   inoc_time_sexual = vector<int>(params->max_inoculations);
   
-  //TODO - remove
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    if (!inoc_active[i] && (inoc_state_sexual[i] != Inactive_sexual)) {
-      foo(1);
-    }
-  }
-  
   // initialise events
   inoc_events = vector<map<Event, int>>(params->max_inoculations);
   t_next_inoc_event = params->max_time + 1;
@@ -317,13 +310,6 @@ void Host::death(int &host_ID, int t) {
   fill(inoc_time_asexual.begin(), inoc_time_asexual.end(), 0);
   fill(inoc_time_sexual.begin(), inoc_time_sexual.end(), 0);
   
-  //TODO - remove
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    if (!inoc_active[i] && (inoc_state_sexual[i] != Inactive_sexual)) {
-      foo(2);
-    }
-  }
-  
   // clear all scheduled inoc events
   for (int i = 0; i < params->max_inoculations; ++i) {
     inoc_events[i].clear();
@@ -389,10 +375,6 @@ void Host::denovo_infection(int t, int &next_infection_ID, std::ofstream &transm
 //------------------------------------------------
 // infection
 void Host::infection(int t, int &next_infection_ID, int mosquito_ID, int mosquito_infection_ID, std::ofstream &transmission_record) {
-  
-  if (mosquito_ID == 122) {
-    print(t, host_ID, mosquito_ID, next_infection_ID, mosquito_infection_ID, deme + 1);
-  }
   
   // update cumulative infective bites
   cumul_infective_bites++;
@@ -792,14 +774,6 @@ void Host::begin_infective_acute(int this_slot, int t) {
   // update inoculation state
   inoc_state_sexual[this_slot] = Acute_sexual;
   
-  //TODO - remove
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    if (!inoc_active[i] && (inoc_state_sexual[i] != Inactive_sexual)) {
-      bar(1);
-      Rcpp::stop("");
-    }
-  }
-  
   // store time
   inoc_time_sexual[this_slot] = t;
   
@@ -820,14 +794,6 @@ void Host::begin_infective_chronic(int this_slot, int t) {
   // update inoculation state
   inoc_state_sexual[this_slot] = Chronic_sexual;
   
-  //TODO - remove
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    if (!inoc_active[i] && (inoc_state_sexual[i] != Inactive_sexual)) {
-      bar(2);
-      Rcpp::stop("");
-    }
-  }
-  
   // store time
   inoc_time_sexual[this_slot] = t;
   
@@ -845,13 +811,6 @@ void Host::end_infective(int this_slot) {
   // update host state
   inoc_state_sexual[this_slot] = Inactive_sexual;
   inoc_active[this_slot] = false;
-  
-  //TODO - remove
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    if (!inoc_active[i] && (inoc_state_sexual[i] != Inactive_sexual)) {
-      foo(3);
-    }
-  }
   
   // reset times
   inoc_time_asexual[this_slot] = 0;
