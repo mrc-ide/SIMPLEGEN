@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Prune the transmission record — prune_transmission_record • SIMPLEGEN</title>
+<title>Simulate mutations and write vcf to file — sim_vcf • SIMPLEGEN</title>
 
 
 <!-- jquery -->
@@ -39,11 +39,8 @@
 
 
 
-<meta property="og:title" content="Prune the transmission record — prune_transmission_record" />
-<meta property="og:description" content="Reads in a saved transmission record from file. Combines this
-  with sampling information in the project to produce a pruned version of the
-  transmission record that contains only the events relevant to the final
-  sample. This pruned record is saved to the project." />
+<meta property="og:title" content="Simulate mutations and write vcf to file — sim_vcf" />
+<meta property="og:description" content="TODO" />
 
 
 
@@ -130,21 +127,21 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Prune the transmission record</h1>
+    <h1>Simulate mutations and write vcf to file</h1>
     <small class="dont-index">Source: <a href='https://github.com/mrc-ide/SIMPLEGEN/blob/master/R/main.R'><code>R/main.R</code></a></small>
-    <div class="hidden name"><code>prune_transmission_record.Rd</code></div>
+    <div class="hidden name"><code>sim_vcf.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Reads in a saved transmission record from file. Combines this
-  with sampling information in the project to produce a pruned version of the
-  transmission record that contains only the events relevant to the final
-  sample. This pruned record is saved to the project.</p>
+    <p>TODO</p>
     </div>
 
-    <pre class="usage"><span class='fu'>prune_transmission_record</span><span class='op'>(</span>
+    <pre class="usage"><span class='fu'>sim_vcf</span><span class='op'>(</span>
   <span class='va'>project</span>,
-  transmission_record_location <span class='op'>=</span> <span class='st'>""</span>,
+  <span class='va'>output_location</span>,
+  <span class='va'>sampling_time</span>,
+  generations <span class='op'>=</span> <span class='fl'>3</span>,
+  mu <span class='op'>=</span> <span class='fl'>1e-07</span>,
   silent <span class='op'>=</span> <span class='cn'>FALSE</span>
 <span class='op'>)</span></pre>
 
@@ -157,9 +154,21 @@
 <code><a href='simplegen_project.html'>simplegen_project()</a></code> function.</p></td>
     </tr>
     <tr>
-      <th>transmission_record_location</th>
-      <td><p>the file path to a transmission record
-already written to file.</p></td>
+      <th>output_location</th>
+      <td><p>where to write vcfs to file.</p></td>
+    </tr>
+    <tr>
+      <th>sampling_time</th>
+      <td><p>time of sample.</p></td>
+    </tr>
+    <tr>
+      <th>generations</th>
+      <td><p>how many generations to look back when computing ancestral
+recombination graph.</p></td>
+    </tr>
+    <tr>
+      <th>mu</th>
+      <td><p>mutation rate per base per unit time.</p></td>
     </tr>
     <tr>
       <th>silent</th>

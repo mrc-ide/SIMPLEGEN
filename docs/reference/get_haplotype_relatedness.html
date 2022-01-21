@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Prune the transmission record — prune_transmission_record • SIMPLEGEN</title>
+<title>Get the relatedness between a series of haplotypes — get_haplotype_relatedness • SIMPLEGEN</title>
 
 
 <!-- jquery -->
@@ -39,11 +39,9 @@
 
 
 
-<meta property="og:title" content="Prune the transmission record — prune_transmission_record" />
-<meta property="og:description" content="Reads in a saved transmission record from file. Combines this
-  with sampling information in the project to produce a pruned version of the
-  transmission record that contains only the events relevant to the final
-  sample. This pruned record is saved to the project." />
+<meta property="og:title" content="Get the relatedness between a series of haplotypes — get_haplotype_relatedness" />
+<meta property="og:description" content="Calculates the relatedness up to a defined number of generations
+  between all pairs of input haplotypes." />
 
 
 
@@ -130,23 +128,17 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Prune the transmission record</h1>
+    <h1>Get the relatedness between a series of haplotypes</h1>
     <small class="dont-index">Source: <a href='https://github.com/mrc-ide/SIMPLEGEN/blob/master/R/main.R'><code>R/main.R</code></a></small>
-    <div class="hidden name"><code>prune_transmission_record.Rd</code></div>
+    <div class="hidden name"><code>get_haplotype_relatedness.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Reads in a saved transmission record from file. Combines this
-  with sampling information in the project to produce a pruned version of the
-  transmission record that contains only the events relevant to the final
-  sample. This pruned record is saved to the project.</p>
+    <p>Calculates the relatedness up to a defined number of generations
+  between all pairs of input haplotypes.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>prune_transmission_record</span><span class='op'>(</span>
-  <span class='va'>project</span>,
-  transmission_record_location <span class='op'>=</span> <span class='st'>""</span>,
-  silent <span class='op'>=</span> <span class='cn'>FALSE</span>
-<span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>get_haplotype_relatedness</span><span class='op'>(</span><span class='va'>project</span>, <span class='va'>haplo_IDs</span>, generations <span class='op'>=</span> <span class='fl'>3</span>, silent <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -157,9 +149,13 @@
 <code><a href='simplegen_project.html'>simplegen_project()</a></code> function.</p></td>
     </tr>
     <tr>
-      <th>transmission_record_location</th>
-      <td><p>the file path to a transmission record
-already written to file.</p></td>
+      <th>haplo_IDs</th>
+      <td><p>a vector of haplotype IDs on which to calculate pairwise
+relatedness.</p></td>
+    </tr>
+    <tr>
+      <th>generations</th>
+      <td><p>number of generations back to search.</p></td>
     </tr>
     <tr>
       <th>silent</th>
