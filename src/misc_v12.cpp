@@ -1,5 +1,5 @@
 
-#include "misc_v11.h"
+#include "misc_v12.h"
 
 #include <math.h>
 #include <fstream>
@@ -98,6 +98,19 @@ vector<int> seq_int(int from, int to, int by) {
 //------------------------------------------------
 // test whether value can be found in vector
 // is_in_vector
+// DEFINED IN HEADER
+
+//------------------------------------------------
+// get the order of a vector in terms of element indices. Equivalent to R
+// function order() except using zero-based indexing. Identical values are
+// returned in the order they are found, for example the order of {2,1,1} is
+// {1,2,0}.
+// get_order
+// DEFINED IN HEADER
+
+//------------------------------------------------
+// reorder a vector (passed by reference) according to another vector of indices
+// apply_order
 // DEFINED IN HEADER
 
 //------------------------------------------------

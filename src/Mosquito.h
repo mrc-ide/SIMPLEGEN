@@ -29,6 +29,7 @@ public:
   // main events
   void infection(int t, int &next_infection_ID, Host &host);
   void write_buffer(std::ofstream &transmission_record);
+  void print_status();
   
   // getters and setters
   void set_mosquito_ID(int &mosquito_ID);

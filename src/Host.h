@@ -19,7 +19,7 @@ enum State_host {Host_Sh, Host_Eh, Host_Ah, Host_Ch, Host_Ph};
 
 //------------------------------------------------
 // enumerate possible events
-enum Event {Event_Eh_to_Ah, Event_Eh_to_Ch,
+enum Event {Event_Eh_to_Ah, Event_Eh_to_Ch, Event_Eh_to_Sh,
             Event_Ah_to_Ch, Event_Ah_to_Sh,
             Event_Ch_to_Sh,
             Event_begin_infective_acute, Event_begin_infective_chronic, Event_end_infective,
@@ -131,6 +131,7 @@ public:
   void new_Eh(int this_slot, int t, int &next_infection_ID);
   void Eh_to_Ah(int this_slot, int t);
   void Eh_to_Ch(int this_slot, int t);
+  void Eh_to_Sh(int this_slot, int t);
   void Ah_to_Ch(int this_slot, int t);
   void Ah_to_Sh(int this_slot, int t);
   void Ch_to_Sh(int this_slot, int t);

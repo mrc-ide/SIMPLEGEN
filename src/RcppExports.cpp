@@ -56,12 +56,59 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sim_block_tree_cpp
+Rcpp::List sim_block_tree_cpp(Rcpp::List args);
+RcppExport SEXP _SIMPLEGEN_sim_block_tree_cpp(SEXP argsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
+    rcpp_result_gen = Rcpp::wrap(sim_block_tree_cpp(args));
+    return rcpp_result_gen;
+END_RCPP
+}
+// get_haplotype_coalescence_cpp
+Rcpp::List get_haplotype_coalescence_cpp(Rcpp::List args);
+RcppExport SEXP _SIMPLEGEN_get_haplotype_coalescence_cpp(SEXP argsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_haplotype_coalescence_cpp(args));
+    return rcpp_result_gen;
+END_RCPP
+}
+// get_haplotype_coalescence2_cpp
+Rcpp::List get_haplotype_coalescence2_cpp(Rcpp::List args);
+RcppExport SEXP _SIMPLEGEN_get_haplotype_coalescence2_cpp(SEXP argsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_haplotype_coalescence2_cpp(args));
+    return rcpp_result_gen;
+END_RCPP
+}
+// write_vcf_cpp
+void write_vcf_cpp(Rcpp::List args);
+RcppExport SEXP _SIMPLEGEN_write_vcf_cpp(SEXP argsSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
+    write_vcf_cpp(args);
+    return R_NilValue;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_SIMPLEGEN_indiv_sim_cpp", (DL_FUNC) &_SIMPLEGEN_indiv_sim_cpp, 3},
     {"_SIMPLEGEN_prune_transmission_record_cpp", (DL_FUNC) &_SIMPLEGEN_prune_transmission_record_cpp, 1},
     {"_SIMPLEGEN_sim_haplotype_tree_cpp", (DL_FUNC) &_SIMPLEGEN_sim_haplotype_tree_cpp, 1},
     {"_SIMPLEGEN_get_haplotype_relatedness_cpp", (DL_FUNC) &_SIMPLEGEN_get_haplotype_relatedness_cpp, 1},
+    {"_SIMPLEGEN_sim_block_tree_cpp", (DL_FUNC) &_SIMPLEGEN_sim_block_tree_cpp, 1},
+    {"_SIMPLEGEN_get_haplotype_coalescence_cpp", (DL_FUNC) &_SIMPLEGEN_get_haplotype_coalescence_cpp, 1},
+    {"_SIMPLEGEN_get_haplotype_coalescence2_cpp", (DL_FUNC) &_SIMPLEGEN_get_haplotype_coalescence2_cpp, 1},
+    {"_SIMPLEGEN_write_vcf_cpp", (DL_FUNC) &_SIMPLEGEN_write_vcf_cpp, 1},
     {NULL, NULL, 0}
 };
 

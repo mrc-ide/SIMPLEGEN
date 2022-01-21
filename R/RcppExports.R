@@ -17,3 +17,19 @@ get_haplotype_relatedness_cpp <- function(args) {
     .Call(`_SIMPLEGEN_get_haplotype_relatedness_cpp`, args)
 }
 
+sim_block_tree_cpp <- function(args) {
+    .Call(`_SIMPLEGEN_sim_block_tree_cpp`, args)
+}
+
+get_haplotype_coalescence_cpp <- function(args) {
+    .Call(`_SIMPLEGEN_get_haplotype_coalescence_cpp`, args)
+}
+
+get_haplotype_coalescence2_cpp <- function(args) {
+    .Call(`_SIMPLEGEN_get_haplotype_coalescence2_cpp`, args)
+}
+
+write_vcf_cpp <- function(args) {
+    invisible(.Call(`_SIMPLEGEN_write_vcf_cpp`, args))
+}
+
