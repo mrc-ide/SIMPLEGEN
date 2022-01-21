@@ -48,3 +48,15 @@ void Mosquito::write_buffer(ofstream &transmission_record) {
 void Mosquito::set_mosquito_ID(int &mosquito_ID) {
   this->mosquito_ID = mosquito_ID++;
 }
+
+//------------------------------------------------
+// print status
+void Mosquito::print_status() {
+  print("mosquito_ID:", mosquito_ID);
+  print("infection_ID:", infection_ID);
+  print("source_time:", source_time);
+  print("source_deme:", source_deme);
+  print("source_host_ID:", source_host_ID);
+  print("source_infection_ID_vec:");
+  print_vector(source_infection_ID_vec);
+}

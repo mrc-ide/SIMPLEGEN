@@ -81,6 +81,13 @@ void Host::init(Parameters &params_,
   inoc_time_asexual = vector<int>(params->max_inoculations);
   inoc_time_sexual = vector<int>(params->max_inoculations);
   
+  //TODO - remove
+  for (int i = 0; i < params->max_inoculations; ++i) {
+    if (!inoc_active[i] && (inoc_state_sexual[i] != Inactive_sexual)) {
+      foo(1);
+    }
+  }
+  
   // initialise events
   inoc_events = vector<map<Event, int>>(params->max_inoculations);
   t_next_inoc_event = params->max_time + 1;
@@ -214,6 +221,9 @@ void Host::check_infection_event(int t) {
         case Event_Eh_to_Ch:
           Eh_to_Ch(i, t);
           break;
+        case Event_Eh_to_Sh:
+          Eh_to_Sh(i, t);
+          break;
         case Event_Ah_to_Ch:
           Ah_to_Ch(i, t);
           break;
@@ -307,6 +317,13 @@ void Host::death(int &host_ID, int t) {
   fill(inoc_time_asexual.begin(), inoc_time_asexual.end(), 0);
   fill(inoc_time_sexual.begin(), inoc_time_sexual.end(), 0);
   
+  //TODO - remove
+  for (int i = 0; i < params->max_inoculations; ++i) {
+    if (!inoc_active[i] && (inoc_state_sexual[i] != Inactive_sexual)) {
+      foo(2);
+    }
+  }
+  
   // clear all scheduled inoc events
   for (int i = 0; i < params->max_inoculations; ++i) {
     inoc_events[i].clear();
@@ -372,6 +389,10 @@ void Host::denovo_infection(int t, int &next_infection_ID, std::ofstream &transm
 //------------------------------------------------
 // infection
 void Host::infection(int t, int &next_infection_ID, int mosquito_ID, int mosquito_infection_ID, std::ofstream &transmission_record) {
+  
+  if (mosquito_ID == 122) {
+    print(t, host_ID, mosquito_ID, next_infection_ID, mosquito_infection_ID, deme + 1);
+  }
   
   // update cumulative infective bites
   cumul_infective_bites++;
@@ -517,6 +538,8 @@ void Host::treatment(int t) {
     prob_pos_microscopy = get_detectability_microscopy_acute(t);
   } else if (get_host_state() == Host_Ch) {
     prob_pos_microscopy = get_detectability_microscopy_chronic(t);
+  } else {
+    Rcpp::stop("treatment of host not in acute or chronic state");
   }
   microscopy_positive_at_treatment = rbernoulli1(prob_pos_microscopy);
   
@@ -525,8 +548,6 @@ void Host::treatment(int t) {
     prob_pos_PCR = get_detectability_PCR_acute(t);
   } else if (get_host_state() == Host_Ch) {
     prob_pos_PCR = get_detectability_PCR_chronic(t);
-  } else {
-    Rcpp::stop("treatment of host not in acute or chronic state");
   }
   PCR_positive_at_treatment = rbernoulli1(prob_pos_PCR);
   
@@ -549,16 +570,22 @@ void Host::treatment(int t) {
     // anything that is currently in the acute or chronic stages is cured
     if ((inoc_state_asexual[i] == Acute_asexual) || (inoc_state_asexual[i] == Chronic_asexual)) {
       
-      // if due to become infective at a future timepoint then store this
-      // timepoint
+      // if due to become infective at a future time then store these
+      // timepoints. Note, this may not be true if already infective
       bool due_acute_infective = (inoc_events[i].count(Event_begin_infective_acute) != 0);
-      bool due_chronic_infective = (inoc_events[i].count(Event_begin_infective_chronic) != 0);
-      int t_infective_start = 0;
+      int t_infective_start_acute = 0;
       if (due_acute_infective) {
-        t_infective_start = inoc_events[i][Event_begin_infective_acute];
-      } else if (due_chronic_infective) {
-        t_infective_start = inoc_events[i][Event_begin_infective_chronic];
+        t_infective_start_acute = inoc_events[i][Event_begin_infective_acute];
       }
+      
+      bool due_chronic_infective = (inoc_events[i].count(Event_begin_infective_chronic) != 0);
+      int t_infective_start_chronic = 0;
+      if (due_chronic_infective) {
+        t_infective_start_chronic = inoc_events[i][Event_begin_infective_chronic];
+      }
+      
+      // get time to infectious end
+      int t_infective_end = t + params->g;
       
       // clear bloodstage infection
       inoc_state_asexual[i] = Inactive_asexual;
@@ -567,14 +594,15 @@ void Host::treatment(int t) {
       inoc_events[i].clear();
       
       // reinstate infectious start if needed
-      if (due_acute_infective) {
-        new_infection_event(t_infective_start, Event_begin_infective_acute, i);
-      } else if (due_chronic_infective) {
-        new_infection_event(t_infective_start, Event_begin_infective_chronic, i);
+      if (due_acute_infective && (t_infective_start_acute < t_infective_end)) {
+        new_infection_event(t_infective_start_acute, Event_begin_infective_acute, i);
+      }
+      if (due_chronic_infective && (t_infective_start_chronic < t_infective_end)) {
+        new_infection_event(t_infective_start_chronic, Event_begin_infective_chronic, i);
       }
       
       // schedule new infectious end
-      new_infection_event(t + params->g, Event_end_infective, i);
+      new_infection_event(t_infective_end, Event_end_infective, i);
       
     }
     
@@ -592,11 +620,9 @@ void Host::treatment(int t) {
         inoc_events[i].clear();
         
         // reschedule progression directly to clearance
-        new_infection_event(t_emerge, Event_Eh_to_Ah, i);
-        new_infection_event(t_emerge, Event_Ah_to_Sh, i);
-        new_infection_event(t_emerge, Event_end_infective, i);
+        new_infection_event(t_emerge, Event_Eh_to_Sh, i);
         
-        // inoculations that will emerge to chronic stage
+      // inoculations that will emerge to chronic stage
       } else if ((inoc_events[i].count(Event_Eh_to_Ch) != 0) && (inoc_events[i][Event_Eh_to_Ch] <= t2)) {
         
         // store time at which due to emerge
@@ -606,9 +632,7 @@ void Host::treatment(int t) {
         inoc_events[i].clear();
         
         // reschedule progression directly to clearance
-        new_infection_event(t_emerge, Event_Eh_to_Ch, i);
-        new_infection_event(t_emerge, Event_Ch_to_Sh, i);
-        new_infection_event(t_emerge, Event_end_infective, i);
+        new_infection_event(t_emerge, Event_Eh_to_Sh, i);
         
       }
     }
@@ -701,6 +725,22 @@ void Host::Eh_to_Ch(int this_slot, int t) {
 }
 
 //------------------------------------------------
+// move inoculation from Eh directly to Sh, e.g. if emerges from liver stage
+// during prophylactic period
+void Host::Eh_to_Sh(int this_slot, int t) {
+  
+  // update inoculation state
+  inoc_state_asexual[this_slot] = Inactive_asexual;
+  
+  // store time
+  inoc_time_asexual[this_slot] = t;
+  
+  // recalculate host state
+  recalculate_host_state(t);
+  
+}
+
+//------------------------------------------------
 // move inoculation from Ah to Ch
 void Host::Ah_to_Ch(int this_slot, int t) {
   
@@ -752,6 +792,14 @@ void Host::begin_infective_acute(int this_slot, int t) {
   // update inoculation state
   inoc_state_sexual[this_slot] = Acute_sexual;
   
+  //TODO - remove
+  for (int i = 0; i < params->max_inoculations; ++i) {
+    if (!inoc_active[i] && (inoc_state_sexual[i] != Inactive_sexual)) {
+      bar(1);
+      Rcpp::stop("");
+    }
+  }
+  
   // store time
   inoc_time_sexual[this_slot] = t;
   
@@ -772,11 +820,19 @@ void Host::begin_infective_chronic(int this_slot, int t) {
   // update inoculation state
   inoc_state_sexual[this_slot] = Chronic_sexual;
   
+  //TODO - remove
+  for (int i = 0; i < params->max_inoculations; ++i) {
+    if (!inoc_active[i] && (inoc_state_sexual[i] != Inactive_sexual)) {
+      bar(2);
+      Rcpp::stop("");
+    }
+  }
+  
   // store time
   inoc_time_sexual[this_slot] = t;
   
   // if newly infective then add to infectives list
-  if (current_state == Inactive_sexual && get_n_infective() == 1) {
+  if ((current_state == Inactive_sexual) && (get_n_infective() == 1)) {
     (*host_infective_index_ptr)[deme].push_back(index);
   }
   
@@ -789,6 +845,13 @@ void Host::end_infective(int this_slot) {
   // update host state
   inoc_state_sexual[this_slot] = Inactive_sexual;
   inoc_active[this_slot] = false;
+  
+  //TODO - remove
+  for (int i = 0; i < params->max_inoculations; ++i) {
+    if (!inoc_active[i] && (inoc_state_sexual[i] != Inactive_sexual)) {
+      foo(3);
+    }
+  }
   
   // reset times
   inoc_time_asexual[this_slot] = 0;

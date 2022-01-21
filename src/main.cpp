@@ -249,7 +249,8 @@ Rcpp::List sim_haplotype_tree_cpp(Rcpp::List args) {
         
         // check that mosquito exists in population
         if (mosquito_pop.count(mosquito_ID[i]) == 0) {
-          Rcpp::stop("human host receives infectious bite from mosquito that has not yet been infected");
+          print("Error: human host receives infectious bite from mosquito that has not yet been infected. Occurs on line", i + 1, "of pruned record");
+          Rcpp::stop("");
         }
         
         // pass in haplos from mosquito
