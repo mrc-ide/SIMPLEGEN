@@ -939,7 +939,7 @@ get_sample_relatedness <- function(project,
                                    sample_IDs,
                                    generations = 3,
                                    silent = FALSE) {
-  
+
   # check inputs
   assert_class(project, "simplegen_project")
   assert_vector_pos_int(sample_IDs, zero_allowed = FALSE)
@@ -961,13 +961,15 @@ get_sample_relatedness <- function(project,
     dplyr::filter(.data$sample_ID %in% sample_IDs) %>%
     dplyr::select(.data$sample_ID, .data$haplo_IDs)
   
-  # check that all samples are positive (contain at least one haplotype)
+  # remove all samples that are not positive (contain at least one haplotype)
   n_haplos <- mapply(function(x) {
     length(unlist(x))
   }, sample_target$haplo_IDs)
   if (!all(n_haplos > 0)) {
-    stop("not all sample_IDs were positive (contained at least one haplotype)")
+    sample_target<-sample_target[n_haplos > 0,]
+    warning("Warning: Not all sample_IDs were positive (contained at least one haplotype), non-positives removed")
   }
+  
   
   if (!silent) {
     message("Calculating relatedness between samples")
