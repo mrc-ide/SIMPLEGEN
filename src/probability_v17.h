@@ -98,7 +98,13 @@ std::vector<int> sample4(int n, int a, int b);
 double rgamma1(double shape, double rate);
 
 //------------------------------------------------
+double dgamma1(double x, double shape, double rate, bool return_log = true);
+
+//------------------------------------------------
 double rbeta1(double shape1, double shape2);
+
+//------------------------------------------------
+double dbeta1(double x, double shape1, double shape2, bool return_log = true);
 
 //------------------------------------------------
 int rpois1(double lambda);
@@ -107,10 +113,13 @@ int rpois1(double lambda);
 int rztpois1(double lambda);
 
 //------------------------------------------------
-double dpois1(int n, double lambda, bool return_log);
+double dpois1(int n, double lambda, bool return_log = true);
 
 //------------------------------------------------
 std::vector<double> rdirichlet1(double alpha, int n);
+
+//------------------------------------------------
+std::vector<double> rdirichlet2(std::vector<double> &alpha);
 
 //------------------------------------------------
 int rgeom1(const double p);

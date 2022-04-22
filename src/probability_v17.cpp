@@ -1,6 +1,6 @@
 
-#include "probability_v14.h"
-#include "misc_v12.h"
+#include "probability_v17.h"
+#include "misc_v14.h"
 
 using namespace std;
 
@@ -405,6 +405,11 @@ double rgamma1(double shape, double rate) {
 }
 #endif
 
+//------------------------------------------------
+// density of gamma(shape,rate) distribution
+double dgamma1(double x, double shape, double rate, bool return_log) {
+  return(R::dgamma(x, shape, 1.0 / rate, return_log));
+}
 
 //------------------------------------------------
 // draw from beta(shape1,shape2) distribution
@@ -419,6 +424,12 @@ double rbeta1(double shape1, double shape2) {
   return x1/double(x1+x2);
 }
 #endif
+
+//------------------------------------------------
+// density of beta(shape1,shape2) distribution
+double dbeta1(double x, double shape1, double shape2, bool return_log) {
+  return R::dbeta(x, shape1, shape2, return_log);
+}
 
 //------------------------------------------------
 // draw from Poisson distribution with rate lambda
@@ -473,7 +484,29 @@ std::vector<double> rdirichlet1(double alpha, int n) {
   for (int i = 0; i < (n - 1); ++i) {
     double x = rbeta1(alpha, (n - 1 - i)*alpha);
     ret[i] = stick_remaining * x;
-    stick_remaining -= x;
+    stick_remaining -= ret[i];
+    if (stick_remaining <= 0) {
+      stick_remaining = 0;
+      break;
+    }
+  }
+  ret[n - 1] = stick_remaining;
+  return ret;
+}
+
+//------------------------------------------------
+// draw from potentially asymmetric dichlet distribution given vector of shape
+// parameters
+std::vector<double> rdirichlet2(vector<double> &alpha) {
+  int n = alpha.size();
+  double sum_alpha = sum(alpha);
+  std::vector<double> ret(n);
+  double stick_remaining = 1.0;
+  for (int i = 0; i < (n - 1); ++i) {
+    sum_alpha -= alpha[i];
+    double x = rbeta1(alpha[i], sum_alpha);
+    ret[i] = stick_remaining * x;
+    stick_remaining -= ret[i];
     if (stick_remaining <= 0) {
       stick_remaining = 0;
       break;

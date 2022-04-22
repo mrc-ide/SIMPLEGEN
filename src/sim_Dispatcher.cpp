@@ -1,6 +1,6 @@
 
-#include "Dispatcher.h"
-#include "probability_v14.h"
+#include "sim_Dispatcher.h"
+#include "probability_v17.h"
 
 #include <fstream>
 
@@ -8,7 +8,7 @@ using namespace std;
 
 //------------------------------------------------
 // initialise
-void Dispatcher::init(Parameters &params_) {
+void sim_Dispatcher::init(sim_Parameters &params_) {
   
   // store pointer to parameters
   params = &params_;
@@ -16,13 +16,13 @@ void Dispatcher::init(Parameters &params_) {
   // open filestream to write transmission record to file
   open_trans_record();
   
-  // initialise unique IDs for hosts, mosquitoes and inoculations
+  // initialise unique IDs for hosts, mosquitoes and infections
   next_host_ID = 1;
   next_mosq_ID = 1;
   next_infection_ID = 1;
   
   // create objects for sampling from probability distributions
-  int sampler_draws = 1000;
+  int sampler_draws = 1000;  // number of random values to generate in one go (see Sampler class header for details)
   sampler_age_stable = Sampler(params->age_stable, sampler_draws);
   sampler_age_death = Sampler(params->age_death, sampler_draws);
   sampler_duration_acute = make_sampler_vec(params->duration_acute, sampler_draws);
@@ -39,11 +39,12 @@ void Dispatcher::init(Parameters &params_) {
   Ch = vector<int>(params->n_demes);
   Ph = vector<int>(params->n_demes);
   
-  // initialise single population of human hosts over all demes. This is
-  // preferable to using separate vectors of hosts for each deme, as this would
-  // mean moving hosts around due to migration. With a single population we can
-  // simply change the "deme" attribute of a host to represent migration
-  host_pop = vector<Host>(sum(H));
+  // initialise single vector of human hosts over all demes. This is preferable
+  // to using separate vectors of hosts for each deme, as this would mean moving
+  // hosts around due to migration. With a single population we can simply
+  // change the "deme" attribute of a host to represent migration (and change
+  // the index, see objects below)
+  host_pop = vector<sim_Host>(sum(H));
   
   // for each deme, store the integer index of all hosts in that deme. The
   // actual host object can be found by refering to this index within host_pop.
@@ -51,10 +52,10 @@ void Dispatcher::init(Parameters &params_) {
   // stage, therefore there are no infective hosts initially.
   host_index = vector<vector<int>>(params->n_demes);
   host_infective_index = vector<vector<int>>(params->n_demes);
-  int tmp_int1 = 0;
+  int deme_start = 0;
   for (int k = 0; k < params->n_demes; ++k) {
-    host_index[k] = seq_int(tmp_int1, tmp_int1 + H[k] - 1);
-    tmp_int1 += H[k];
+    host_index[k] = seq_int(deme_start, deme_start + H[k] - 1);
+    deme_start += H[k];
   }
   
   // initialise the host population
@@ -80,8 +81,8 @@ void Dispatcher::init(Parameters &params_) {
   Ev_death = vector<vector<int>>(params->n_demes, vector<int>(params->v));
   
   // populations of mosquitoes at various stages
-  Ev_pop = vector<vector<vector<Mosquito>>>(params->n_demes, vector<vector<Mosquito>>(params->v));
-  Iv_pop = vector<vector<Mosquito>>(params->n_demes);
+  Ev_pop = vector<vector<vector<sim_Mosquito>>>(params->n_demes, vector<vector<sim_Mosquito>>(params->v));
+  Iv_pop = vector<vector<sim_Mosquito>>(params->n_demes);
   
   // objects for storing results
   daily_output = vector<vector<double>>(params->max_time, vector<double>(params->n_daily_outputs));
@@ -95,7 +96,7 @@ void Dispatcher::init(Parameters &params_) {
 
 //------------------------------------------------
 // open transmission record
-void Dispatcher::open_trans_record() {
+void sim_Dispatcher::open_trans_record() {
   
   // return if not saving transmission record
   if (!params->save_transmission_record) {
@@ -120,7 +121,7 @@ void Dispatcher::open_trans_record() {
 
 //------------------------------------------------
 // run main simulation
-void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_progress) {
+void sim_Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_progress) {
   
   // start message
   if (!params->silent) {
@@ -321,7 +322,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
           } else {
             
             // create new mosquito object and infect from host
-            Mosquito m;
+            sim_Mosquito m;
             m.set_mosquito_ID(next_mosq_ID);
             m.infection(t, next_infection_ID, host_pop[this_host]);
             
@@ -614,7 +615,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
           
           // if host to be included
           if (include_host) {
-            Host this_host = host_pop[query_indices[i]];
+            sim_Host this_host = host_pop[query_indices[i]];
             
             // save individual-level output to list
             Rcpp::List this_sample;
@@ -632,9 +633,9 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
             
             // store infection IDs in separate object
             vector<int> infection_IDs;
-            for (int j = 0; j < this_host.inoc_ID_vec.size(); ++j) {
-              if ((this_host.inoc_state_asexual[j] == Acute_asexual) || (this_host.inoc_state_asexual[j] == Chronic_asexual)) {
-                infection_IDs.push_back(this_host.inoc_ID_vec[j]);
+            for (int j = 0; j < this_host.infection_ID_vec.size(); ++j) {
+              if ((this_host.infection_state_asexual[j] == Acute_asexual) || (this_host.infection_state_asexual[j] == Chronic_asexual)) {
+                infection_IDs.push_back(this_host.infection_ID_vec[j]);
               }
             }
             surveys_indlevel_output_infection_IDs.push_back(infection_IDs);
@@ -668,7 +669,7 @@ void Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args_pro
 
 //------------------------------------------------
 // draw sample from deme
-void Dispatcher::get_sample_details(int t, int deme, int n, Diagnostic diag) {
+void sim_Dispatcher::get_sample_details(int t, int deme, int n, Diagnostic diag) {
   /*
   // n cannot exceed human population size at this point in time
   if (n > H[deme]) {
@@ -717,7 +718,7 @@ void Dispatcher::get_sample_details(int t, int deme, int n, Diagnostic diag) {
     
     // if positive then push back inoc IDs
     if (test_positive) {
-      for (int j = 0; j < params->max_inoculations; ++j) {
+      for (int j = 0; j < params->max_infections; ++j) {
         Status_asexual this_asexual = host_pop[this_index].inoc_status_asexual[j];
         if (this_asexual == Acute_asexual || this_asexual == Chronic_asexual) {
           this_details.push_back(host_pop[this_index].inoc_ID_vec[j]);

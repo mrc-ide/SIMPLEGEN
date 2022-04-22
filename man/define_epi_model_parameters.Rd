@@ -28,7 +28,7 @@ define_epi_model_parameters(
   duration_prophylactic = dgeom(1:25, 1/5),
   infectivity_acute = 0.07,
   infectivity_chronic = 0.07,
-  max_inoculations = 5,
+  max_infections = 5,
   H = 1000,
   seed_infections = 100,
   M = 1000,
@@ -131,8 +131,8 @@ incident of acute disease, the second element for the second incident and
 so on (the final element is used for all remaining incidents). If a vector
 then the same infectivity is used for all episodes of acute disease.}
 
-\item{max_inoculations}{maximum number of inoculations that an individual
-can hold simultaneously.}
+\item{max_infections}{maximum number of infections that an individual
+can carry simultaneously.}
 
 \item{H}{vector specifying human population size in each deme.}
 

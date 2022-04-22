@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "Parameters.h"
-#include "Sampler_v4.h"
+#include "sim_Parameters.h"
+#include "Sampler_v5.h"
 
 #include <vector>
 #include <set>
@@ -27,27 +27,28 @@ enum Event {Event_Eh_to_Ah, Event_Eh_to_Ch, Event_Eh_to_Sh,
 
 //------------------------------------------------
 // class defining human host
-class Host {
+class sim_Host {
   
 public:
   
   // PUBLIC OBJECTS
   
   // pointer to parameters
-  Parameters * params;
+  sim_Parameters * params;
   
   // identifiers
   int index;      // where in the population (vector of hosts) this host resides. This index never changes
-  int host_ID;    // unique ID, modified upon death
+  int host_ID;    // unique ID of this host, modified upon death
   int home_deme;  // deme into which this host was born
   int deme;       // deme in which this host currently resides
   
-  // pointers to indices of hosts and infective hosts in each deme
+  // pointers to indices of hosts and infective hosts in each deme. We need
+  // access to these objects so we can modify them upon host migration
   std::vector<std::vector<int>>* host_index_ptr;
   std::vector<std::vector<int>>* host_infective_index_ptr;
   
   // pointers to sampler objects. Used to make efficient random draws from
-  // global distributions
+  // various distributions
   Sampler* sampler_age_stable_ptr;
   Sampler* sampler_age_death_ptr;
   std::vector<Sampler>* sampler_duration_acute_ptr;
@@ -79,28 +80,28 @@ public:
   int time_host_state_change;
   
   // host characteristics
-  double treatment_seeking;
+  double treatment_seeking;  // host-specific treatment-seeking probability
   
-  // inoculation slots
-  std::vector<int> inoc_ID_vec;
-  std::vector<bool> inoc_active;
-  std::vector<State_asexual> inoc_state_asexual;
-  std::vector<State_sexual> inoc_state_sexual;
-  std::vector<int> inoc_time_asexual;
-  std::vector<int> inoc_time_sexual;
+  // infection slots
+  std::vector<int> infection_ID_vec;
+  std::vector<bool> infection_active;
+  std::vector<State_asexual> infection_state_asexual;
+  std::vector<State_sexual> infection_state_sexual;
+  std::vector<int> infection_time_asexual;
+  std::vector<int> infection_time_sexual;
   
   // events
-  std::vector<std::map<Event, int>> inoc_events;
-  int t_next_inoc_event;
+  std::vector<std::map<Event, int>> infection_events;
+  int t_next_infection_event;
   
   
   // PUBLIC FUNCTIONS
   
   // constructors
-  Host() {};
+  sim_Host() {};
   
   // initialisation
-  void init(Parameters &params_,
+  void init(sim_Parameters &params_,
             int index, int &host_ID, int deme,
             std::vector<std::vector<int>> &host_index,
             std::vector<std::vector<int>> &host_infective_index,
@@ -127,7 +128,7 @@ public:
   void treatment(int t);
   void end_prophylaxis();
   
-  // inoculation-level events
+  // infection-level events
   void new_Eh(int this_slot, int t, int &next_infection_ID);
   void Eh_to_Ah(int this_slot, int t);
   void Eh_to_Ch(int this_slot, int t);
@@ -141,9 +142,9 @@ public:
   void recalculate_host_state(int t);
   
   // getters, setters and random draws
-  int get_free_inoc_slot();
+  int get_free_infection_slot();
   int get_n_active_inoc();
-  std::vector<int> get_inoc_ID_vec();
+  std::vector<int> get_infection_ID_vec();
   State_host get_host_state();
   int get_n_liverstage();
   int get_n_bloodstage_acute();
@@ -185,8 +186,8 @@ public:
                         bool &PCR_positive);
   
   // diagnostics and checks
-  void print_inoc_events();
-  void print_inoc_state();
+  void print_infection_events();
+  void print_infection_state();
   void check_host_infective_index(int x);
   
 };

@@ -1,11 +1,11 @@
 
 #pragma once
 
-#include "misc_v12.h"
-#include "Parameters.h"
-#include "Sampler_v4.h"
-#include "Host.h"
-#include "Mosquito.h"
+#include "misc_v14.h"
+#include "sim_Parameters.h"
+#include "Sampler_v5.h"
+#include "sim_Host.h"
+#include "sim_Mosquito.h"
 #include "utils.h"
 
 #include <set>
@@ -13,19 +13,19 @@
 
 //------------------------------------------------
 // class for dispatching main simulation. Inherits parameters
-class Dispatcher {
+class sim_Dispatcher {
   
 public:
   
   // PUBLIC OBJECTS
   
   // pointer to parameters
-  Parameters * params;
+  sim_Parameters * params;
   
   // filestream to transmission record
   std::ofstream transmission_record;
   
-  // unique IDs for hosts, mosquitoes and inoculations
+  // used to define unique IDs for hosts, mosquitoes and infections
   int next_host_ID;
   int next_mosq_ID;
   int next_infection_ID;
@@ -47,10 +47,11 @@ public:
   std::vector<int> Ch;
   std::vector<int> Ph;
   
-  // population of human hosts
-  std::vector<Host> host_pop;
+  // vector of all human hosts
+  std::vector<sim_Host> host_pop;
   
-  // store the integer index of hosts in each deme
+  // the integer index of hosts in each deme. host_infective_index is a subset
+  // of host_index
   std::vector<std::vector<int>> host_index;
   std::vector<std::vector<int>> host_infective_index;
   
@@ -62,9 +63,9 @@ public:
   // objects for tracking mosquitoes that die in lag phase
   std::vector<std::vector<int>> Ev_death;
   
-  // populations of mosquitoes at various stages
-  std::vector<std::vector<std::vector<Mosquito>>> Ev_pop;
-  std::vector<std::vector<Mosquito>> Iv_pop;
+  // arrays of mosquitoes at various stages
+  std::vector<std::vector<std::vector<sim_Mosquito>>> Ev_pop;
+  std::vector<std::vector<sim_Mosquito>> Iv_pop;
   
   // objects for storing results
   std::vector<std::vector<double>> daily_output;
@@ -80,10 +81,10 @@ public:
   // PUBLIC FUNCTIONS
   
   // constructors
-  Dispatcher() {};
+  sim_Dispatcher() {};
   
   // methods
-  void init(Parameters &params);
+  void init(sim_Parameters &params);
   void open_trans_record();
   void run_simulation(Rcpp::List &args_functions, Rcpp::List &args_progress);
   void get_sample_details(int t, int deme, int n, Diagnostic diag);

@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "misc_v12.h"
+#include "misc_v14.h"
 
 #include <list>
 
@@ -15,7 +15,7 @@ enum Case_detection {Case_active, Case_passive};
 
 //------------------------------------------------
 // class defining all model parameters
-class Parameters {
+class sim_Parameters {
   
 public:
   
@@ -23,44 +23,45 @@ public:
   
   // scalar epi parameters
   double a, p, mu;
-  int u, v, g, max_inoculations;
+  int u, v, g, max_infections;
   
   // state transition probabilities and durations
   std::vector<double> prob_infection;
-  int n_prob_infection;
-  double max_prob_infection;
   std::vector<double> prob_acute;
-  int n_prob_acute;
   std::vector<double> prob_AC;
-  int n_prob_AC;
   std::vector<std::vector<double>> duration_acute;
-  int n_duration_acute;
   std::vector<std::vector<double>> duration_chronic;
+  int n_prob_infection;
+  int n_prob_acute;
+  int n_prob_AC;
+  int n_duration_acute;
   int n_duration_chronic;
+  double max_prob_infection;
   
   // detectability
   std::vector<std::vector<double>> detectability_microscopy_acute;
-  int n_detectability_microscopy_acute;
   std::vector<std::vector<double>> detectability_microscopy_chronic;
-  int n_detectability_microscopy_chronic;
   std::vector<std::vector<double>> detectability_PCR_acute;
-  int n_detectability_PCR_acute;
   std::vector<std::vector<double>> detectability_PCR_chronic;
+  int n_detectability_microscopy_acute;
+  int n_detectability_microscopy_chronic;
+  int n_detectability_PCR_acute;
   int n_detectability_PCR_chronic;
   
   // treatment
-  double treatment_seeking_mean, treatment_seeking_sd;
+  double treatment_seeking_mean;
+  double treatment_seeking_sd;
   std::vector<std::vector<double>> time_treatment_acute;
-  int n_time_treatment_acute;
   std::vector<std::vector<double>> time_treatment_chronic;
-  int n_time_treatment_chronic;
   std::vector<std::vector<double>> duration_prophylactic;
+  int n_time_treatment_acute;
+  int n_time_treatment_chronic;
   int n_duration_prophylactic;
   
   // onward infectivity
   std::vector<std::vector<double>> infectivity_acute;
-  int n_infectivity_acute;
   std::vector<std::vector<double>> infectivity_chronic;
+  int n_infectivity_acute;
   int n_infectivity_chronic;
   double max_infectivity;
   
@@ -132,7 +133,7 @@ public:
   // PUBLIC FUNCTIONS
   
   // constructors
-  Parameters() {};
+  sim_Parameters() {};
   
   // methods
   void load_params(Rcpp::List args);

@@ -3,11 +3,11 @@
 
 #include <vector>
 
-#include "Host.h"
+#include "sim_Host.h"
 
 //------------------------------------------------
 // class defining mosquito
-class Mosquito {
+class sim_Mosquito {
   
 public:
   
@@ -24,10 +24,10 @@ public:
   // PUBLIC FUNCTIONS
   
   // constructors
-  Mosquito() {};
+  sim_Mosquito() {};
   
   // main events
-  void infection(int t, int &next_infection_ID, Host &host);
+  void infection(int t, int &next_infection_ID, sim_Host &host);
   void write_buffer(std::ofstream &transmission_record);
   void print_status();
   

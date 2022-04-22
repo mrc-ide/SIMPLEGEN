@@ -1,11 +1,11 @@
 
-#include "Parameters.h"
+#include "sim_Parameters.h"
 
 using namespace std;
 
 //------------------------------------------------
 // load all parameter values
-void Parameters::load_params(Rcpp::List args) {
+void sim_Parameters::load_params(Rcpp::List args) {
   
   // load all parameter values
   load_model_params(args);
@@ -19,7 +19,7 @@ void Parameters::load_params(Rcpp::List args) {
 
 //------------------------------------------------
 // load epi model parameter values
-void Parameters::load_model_params(Rcpp::List args) {
+void sim_Parameters::load_model_params(Rcpp::List args) {
   
   // scalar epi parameters
   a = rcpp_to_double(args["a"]);
@@ -28,55 +28,55 @@ void Parameters::load_model_params(Rcpp::List args) {
   u = rcpp_to_int(args["u"]);
   v = rcpp_to_int(args["v"]);
   g = rcpp_to_int(args["g"]);
-  max_inoculations = rcpp_to_int(args["max_inoculations"]);
+  max_infections = rcpp_to_int(args["max_infections"]);
   
   // state transition probabilities and durations
   prob_infection = rcpp_to_vector_double(args["prob_infection"]);
-  n_prob_infection = int(prob_infection.size());
   prob_acute = rcpp_to_vector_double(args["prob_acute"]);
-  n_prob_acute = int(prob_acute.size());
   prob_AC = rcpp_to_vector_double(args["prob_AC"]);
-  n_prob_AC = int(prob_AC.size());
   duration_acute = rcpp_to_matrix_double(args["duration_acute"]);
-  n_duration_acute = int(duration_acute.size());
   duration_chronic = rcpp_to_matrix_double(args["duration_chronic"]);
+  n_prob_infection = int(prob_infection.size());
+  n_prob_acute = int(prob_acute.size());
+  n_prob_AC = int(prob_AC.size());
+  n_duration_acute = int(duration_acute.size());
   n_duration_chronic = int(duration_chronic.size());
   
   // detectability
   detectability_microscopy_acute = rcpp_to_matrix_double(args["detectability_microscopy_acute"]);
-  n_detectability_microscopy_acute = int(detectability_microscopy_acute.size());
   detectability_microscopy_chronic = rcpp_to_matrix_double(args["detectability_microscopy_chronic"]);
-  n_detectability_microscopy_chronic = int(detectability_microscopy_chronic.size());
   detectability_PCR_acute = rcpp_to_matrix_double(args["detectability_PCR_acute"]);
-  n_detectability_PCR_acute = int(detectability_PCR_acute.size());
   detectability_PCR_chronic = rcpp_to_matrix_double(args["detectability_PCR_chronic"]);
+  n_detectability_microscopy_acute = int(detectability_microscopy_acute.size());
+  n_detectability_microscopy_chronic = int(detectability_microscopy_chronic.size());
+  n_detectability_PCR_acute = int(detectability_PCR_acute.size());
   n_detectability_PCR_chronic = int(detectability_PCR_chronic.size());
   
   // treatment
   treatment_seeking_mean = rcpp_to_double(args["treatment_seeking_mean"]);
   treatment_seeking_sd = rcpp_to_double(args["treatment_seeking_sd"]);
   time_treatment_acute = rcpp_to_matrix_double(args["time_treatment_acute"]);
-  n_time_treatment_acute = int(time_treatment_acute.size());
   time_treatment_chronic = rcpp_to_matrix_double(args["time_treatment_chronic"]);
-  n_time_treatment_chronic = int(time_treatment_chronic.size());
   duration_prophylactic = rcpp_to_matrix_double(args["duration_prophylactic"]);
+  n_time_treatment_acute = int(time_treatment_acute.size());
+  n_time_treatment_chronic = int(time_treatment_chronic.size());
   n_duration_prophylactic = int(duration_prophylactic.size());
   
   // infectivity
   infectivity_acute = rcpp_to_matrix_double(args["infectivity_acute"]);
-  n_infectivity_acute = int(infectivity_acute.size());
   infectivity_chronic = rcpp_to_matrix_double(args["infectivity_chronic"]);
+  n_infectivity_acute = int(infectivity_acute.size());
   n_infectivity_chronic = int(infectivity_chronic.size());
   
   // get max prob_infection
   max_prob_infection = max(prob_infection);
   
-  // get max infectivity over all distributions
+  // get max infectivity over all distributions, both acute and chronic
   max_infectivity = 0.0;
-  for (unsigned int i = 0; i < infectivity_acute.size(); ++i) {
+  for (size_t i = 0; i < infectivity_acute.size(); ++i) {
     max_infectivity = (max(infectivity_acute[i]) > max_infectivity) ? max(infectivity_acute[i]) : max_infectivity;
   }
-  for (unsigned int i = 0; i < infectivity_chronic.size(); ++i) {
+  for (size_t i = 0; i < infectivity_chronic.size(); ++i) {
     max_infectivity = (max(infectivity_chronic[i]) > max_infectivity) ? max(infectivity_chronic[i]) : max_infectivity;
   }
   
@@ -87,7 +87,7 @@ void Parameters::load_model_params(Rcpp::List args) {
 
 //------------------------------------------------
 // load deme parameter values
-void Parameters::load_deme_params(Rcpp::List args) {
+void sim_Parameters::load_deme_params(Rcpp::List args) {
   
   // distributions
   H_init = rcpp_to_vector_int(args["H"]);
@@ -99,7 +99,7 @@ void Parameters::load_deme_params(Rcpp::List args) {
 
 //------------------------------------------------
 // load migration parameter values
-void Parameters::load_migration_params(Rcpp::List args) {
+void sim_Parameters::load_migration_params(Rcpp::List args) {
   
   // migration matrix
   mig_mat = rcpp_to_matrix_double(args["mig_mat"]);
@@ -108,7 +108,7 @@ void Parameters::load_migration_params(Rcpp::List args) {
 
 //------------------------------------------------
 // load demography parameter values
-void Parameters::load_demog_params(Rcpp::List args) {
+void sim_Parameters::load_demog_params(Rcpp::List args) {
   
   // distributions
   life_table = rcpp_to_vector_double(args["life_table"]);
@@ -120,7 +120,7 @@ void Parameters::load_demog_params(Rcpp::List args) {
 
 //------------------------------------------------
 // load sampling strategy parameter values
-void Parameters::load_sampling_params(Rcpp::List args) {
+void sim_Parameters::load_sampling_params(Rcpp::List args) {
   load_sampling_params_daily(args);
   load_sampling_params_sweep(args);
   load_sampling_params_survey(args);
@@ -128,7 +128,7 @@ void Parameters::load_sampling_params(Rcpp::List args) {
 
 //------------------------------------------------
 // load daily sampling strategy parameter values
-void Parameters::load_sampling_params_daily(Rcpp::List args) {
+void sim_Parameters::load_sampling_params_daily(Rcpp::List args) {
   
   // return if no daily outputs
   any_daily_outputs = args["any_daily_outputs"];
@@ -141,29 +141,29 @@ void Parameters::load_sampling_params_daily(Rcpp::List args) {
   Rcpp::List daily_df = args["daily"];
   
   // extract columns into vectors
-  daily_deme = Rcpp::as<vector<int>>(daily_df["deme"]);
+  daily_deme = rcpp_to_vector_int(daily_df["deme"]);
   n_daily_outputs = daily_deme.size();
   
-  vector<int> daily_measure_int = Rcpp::as<vector<int>>(daily_df["measure"]);
-  daily_measure = std::vector<Measure>(daily_measure_int.size());
-  for (unsigned int i = 0; i < daily_measure_int.size(); ++i) {
+  vector<int> daily_measure_int = rcpp_to_vector_int(daily_df["measure"]);
+  daily_measure = vector<Measure>(daily_measure_int.size());
+  for (size_t i = 0; i < daily_measure_int.size(); ++i) {
     daily_measure[i] = static_cast<Measure>(daily_measure_int[i]);
   }
   
-  vector<int> daily_state_int = Rcpp::as<vector<int>>(daily_df["state"]);
-  daily_state = std::vector<Model_state>(daily_state_int.size());
-  for (unsigned int i = 0; i < daily_state_int.size(); ++i) {
+  vector<int> daily_state_int = rcpp_to_vector_int(daily_df["state"]);
+  daily_state = vector<Model_state>(daily_state_int.size());
+  for (size_t i = 0; i < daily_state_int.size(); ++i) {
     daily_state[i] = static_cast<Model_state>(daily_state_int[i]);
   }
   
-  vector<int> daily_diagnostic_int = Rcpp::as<vector<int>>(daily_df["diagnostic"]);
-  daily_diagnostic = std::vector<Diagnostic>(daily_diagnostic_int.size());
-  for (unsigned int i = 0; i < daily_diagnostic_int.size(); ++i) {
+  vector<int> daily_diagnostic_int = rcpp_to_vector_int(daily_df["diagnostic"]);
+  daily_diagnostic = vector<Diagnostic>(daily_diagnostic_int.size());
+  for (size_t i = 0; i < daily_diagnostic_int.size(); ++i) {
     daily_diagnostic[i] = static_cast<Diagnostic>(daily_diagnostic_int[i]);
   }
   
-  daily_age_min = Rcpp::as<vector<int>>(daily_df["age_min"]);
-  daily_age_max = Rcpp::as<vector<int>>(daily_df["age_max"]);
+  daily_age_min = rcpp_to_vector_int(daily_df["age_min"]);
+  daily_age_max = rcpp_to_vector_int(daily_df["age_max"]);
   
   // Create a map to assist in working out if a host is required to produce
   // daily output. The key to the map is a deme-&-age combination (1-year age
@@ -204,14 +204,14 @@ void Parameters::load_sampling_params_daily(Rcpp::List args) {
 //------------------------------------------------
 // print maps that assist in working out which hosts are required to produce
 // daily output
-void Parameters::print_daily_maps() {
+void sim_Parameters::print_daily_maps() {
   
   // individual-level map
   print("DAILY MAP:");
   for (auto it = daily_map.cbegin(); it != daily_map.cend(); ++it) {
     pair<int, int> map_key = it->first;
     Rcpp::Rcout << "deme" << map_key.first << " age" << map_key.second << ": ";
-    for (int i = 0; i < it->second.size(); ++i) {
+    for (size_t i = 0; i < it->second.size(); ++i) {
       Rcpp::Rcout << it->second[i] << " ";
     }
     Rcpp::Rcout << "\n";
@@ -225,7 +225,7 @@ void Parameters::print_daily_maps() {
 
 //------------------------------------------------
 // load population sweep sampling strategy parameter values
-void Parameters::load_sampling_params_sweep(Rcpp::List args) {
+void sim_Parameters::load_sampling_params_sweep(Rcpp::List args) {
   
   // return if no sweep outputs
   any_sweep_outputs = args["any_sweep_outputs"];
@@ -238,39 +238,37 @@ void Parameters::load_sampling_params_sweep(Rcpp::List args) {
   Rcpp::List sweep_df = args["sweeps"];
   
   // extract columns into vectors
-  sweep_time = Rcpp::as<vector<int>>(sweep_df["time"]);
+  sweep_time = rcpp_to_vector_int(sweep_df["time"]);
   n_sweep_outputs = sweep_time.size();
+  sweep_time_ordered = rcpp_to_vector_int(args["sweep_time_ordered"]);
+  sweep_deme = rcpp_to_vector_int(sweep_df["deme"]);
   
-  sweep_time_ordered = Rcpp::as<vector<int>>(args["sweep_time_ordered"]);;
-  
-  sweep_deme = Rcpp::as<vector<int>>(sweep_df["deme"]);
-  
-  vector<int> sweep_measure_int = Rcpp::as<vector<int>>(sweep_df["measure"]);
-  sweep_measure = std::vector<Measure>(sweep_measure_int.size());
-  for (unsigned int i = 0; i < sweep_measure_int.size(); ++i) {
+  vector<int> sweep_measure_int = rcpp_to_vector_int(sweep_df["measure"]);
+  sweep_measure = vector<Measure>(sweep_measure_int.size());
+  for (size_t i = 0; i < sweep_measure_int.size(); ++i) {
     sweep_measure[i] = static_cast<Measure>(sweep_measure_int[i]);
   }
   
-  vector<int> sweep_state_int = Rcpp::as<vector<int>>(sweep_df["state"]);
-  sweep_state = std::vector<Model_state>(sweep_state_int.size());
-  for (unsigned int i = 0; i < sweep_state_int.size(); ++i) {
+  vector<int> sweep_state_int = rcpp_to_vector_int(sweep_df["state"]);
+  sweep_state = vector<Model_state>(sweep_state_int.size());
+  for (size_t i = 0; i < sweep_state_int.size(); ++i) {
     sweep_state[i] = static_cast<Model_state>(sweep_state_int[i]);
   }
   
-  vector<int> sweep_diagnostic_int = Rcpp::as<vector<int>>(sweep_df["diagnostic"]);
-  sweep_diagnostic = std::vector<Diagnostic>(sweep_diagnostic_int.size());
-  for (unsigned int i = 0; i < sweep_diagnostic_int.size(); ++i) {
+  vector<int> sweep_diagnostic_int = rcpp_to_vector_int(sweep_df["diagnostic"]);
+  sweep_diagnostic = vector<Diagnostic>(sweep_diagnostic_int.size());
+  for (size_t i = 0; i < sweep_diagnostic_int.size(); ++i) {
     sweep_diagnostic[i] = static_cast<Diagnostic>(sweep_diagnostic_int[i]);
   }
   
-  sweep_age_min = Rcpp::as<vector<int>>(sweep_df["age_min"]);
-  sweep_age_max = Rcpp::as<vector<int>>(sweep_df["age_max"]);
+  sweep_age_min = rcpp_to_vector_int(sweep_df["age_min"]);
+  sweep_age_max = rcpp_to_vector_int(sweep_df["age_max"]);
   
 }
 
 //------------------------------------------------
 // load survey sampling strategy parameter values
-void Parameters::load_sampling_params_survey(Rcpp::List args) {
+void sim_Parameters::load_sampling_params_survey(Rcpp::List args) {
   
   // return if no survey outputs
   any_survey_outputs = args["any_survey_outputs"];
@@ -290,20 +288,20 @@ void Parameters::load_sampling_params_survey(Rcpp::List args) {
   n_survey_outputs = surveys_deme.size();
   
   vector<int> surveys_measure_int = rcpp_to_vector_int(surveys_df["measure"]);
-  surveys_measure = std::vector<Measure>(surveys_measure_int.size());
-  for (unsigned int i = 0; i < n_survey_outputs; ++i) {
+  surveys_measure = vector<Measure>(surveys_measure_int.size());
+  for (size_t i = 0; i < n_survey_outputs; ++i) {
     surveys_measure[i] = static_cast<Measure>(surveys_measure_int[i]);
   }
   
   vector<int> surveys_sampling_int = rcpp_to_vector_int(surveys_df["sampling"]);
-  surveys_sampling = std::vector<Sampling>(surveys_sampling_int.size());
-  for (unsigned int i = 0; i < n_survey_outputs; ++i) {
+  surveys_sampling = vector<Sampling>(surveys_sampling_int.size());
+  for (size_t i = 0; i < n_survey_outputs; ++i) {
     surveys_sampling[i] = static_cast<Sampling>(surveys_sampling_int[i]);
   }
   
-  vector<int> surveys_diagnostic_int = Rcpp::as<vector<int>>(surveys_df["diagnostic"]);
-  surveys_diagnostic = std::vector<Diagnostic>(surveys_diagnostic_int.size());
-  for (unsigned int i = 0; i < n_survey_outputs; ++i) {
+  vector<int> surveys_diagnostic_int = rcpp_to_vector_int(surveys_df["diagnostic"]);
+  surveys_diagnostic = vector<Diagnostic>(surveys_diagnostic_int.size());
+  for (size_t i = 0; i < n_survey_outputs; ++i) {
     surveys_diagnostic[i] = static_cast<Diagnostic>(surveys_diagnostic_int[i]);
   }
   
@@ -321,7 +319,7 @@ void Parameters::load_sampling_params_survey(Rcpp::List args) {
 
 //------------------------------------------------
 // load run parameter values
-void Parameters::load_run_params(Rcpp::List args) {
+void sim_Parameters::load_run_params(Rcpp::List args) {
   
   // load values
   max_time = rcpp_to_int(args["max_time"]);
@@ -334,7 +332,7 @@ void Parameters::load_run_params(Rcpp::List args) {
 
 //------------------------------------------------
 // print summary of parameters
-void Parameters::summary() {
+void sim_Parameters::summary() {
   
   // print epi scalars
   print("a:", a);
@@ -345,7 +343,7 @@ void Parameters::summary() {
   print("g:", g);
   print("treatment_seeking_mean:", treatment_seeking_mean);
   print("treatment_seeking_sd:", treatment_seeking_sd);
-  print("max_inoculations:", max_inoculations);
+  print("max_inoculations:", max_infections);
   
   // print epi distributions
   print("prob_infection:");

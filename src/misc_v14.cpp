@@ -1,5 +1,5 @@
 
-#include "misc_v12.h"
+#include "misc_v14.h"
 
 #include <math.h>
 #include <fstream>
@@ -612,4 +612,21 @@ void cubic_spline(vector<double> &x, vector<double> &y,
   }
   
   return;
+}
+
+//------------------------------------------------
+// works with the R function update_progress() to increment a progress bar by
+// name. If display_updates is false then only update bar at 0% and 100%.
+void update_progress_cpp(Rcpp::List args_progress, Rcpp::Function update_progress_R,
+                         string pb_name, int i, int max_i, bool display_updates) {
+  if (i == 0) {
+    update_progress_R(args_progress, pb_name, 0, max_i);
+  } else if (i == max_i) {
+    update_progress_R(args_progress, pb_name, i, max_i);
+  } else {
+    int remainder = i % int(ceil(double(max_i) / 100));
+    if (remainder == 0 && display_updates) {
+      update_progress_R(args_progress, pb_name, i, max_i);
+    }
+  }
 }
