@@ -189,3 +189,266 @@
 #' 
 #' 
 "prev_inc_griffin2014"
+
+#------------------------------------------------
+#' 24-SNP barcode data at two time-points in Senegal (Bei et al., 2018)
+#' 
+#' Data from Bei et al. (2018). Here we give a brief summary of the data - see
+#' the original paper for full details.
+#' \cr
+#' \cr
+#' Samples were randomly selected from longitudinal cohorts collected from
+#' Dielmo/Ndiop, Senegal, and focus on 2 distant time-points (2001-2002, and
+#' 2014). The first time-point corresponds to a period of high transmission, and
+#' the second a period of extremely low transmission. Samples were genotyped
+#' using a 24-SNP barcode, and complexity of infection was estimated using the
+#' COIL algorithm. Samples were also matched against a large database of
+#' previously published and unpublished barcodes. For samples from the low
+#' transmission period (2014), one of the three repeated barcode clusters (n =
+#' 6) corresponded to a parasite type (haplotype 3), observed in Thiès in both
+#' 2007 and 2010. The other 2 clusters (IP1, n = 2; IP2, n = 2) had not
+#' previously been observed. Data were extracted using Tabula v1.2.1.
+#'
+#' @docType data
+#'
+#' @usage data(Bei_2018)
+#'
+#' @format A list of multiple data objects:
+#'   \itemize{
+#'     \item \code{EIR}: estimates of the EIR at each location and year
+#'     \item \code{barcodes}: genetic data and associated sample characteristics
+#'     \item \code{SNP_locations}: genomic locations of SNPs (key to be used with \code{barcodes})
+#'   }
+#'   
+#'   \code{EIR}: A dataframe with 3 columns, giving the time, the sampling
+#'   location, and the estimated EIR (see original paper for details). The EIR
+#'   in 2014 in Ndiop was recorded as "0.0" in the paper, and so has been coded
+#'   as "<0.05" here to indicate the precision of this estimate.
+#'   
+#'   \code{barcodes}: A dataframe with 35 columns. Gives sample characteristics
+#'   (columns 1:8), the estimated COI and whether this indicates a
+#'   monogenomic/polygenomic infection (columns 9:10), the individual SNPs
+#'   (columns 11:34) and the corresponding haplotype, if known (column 35). The
+#'   "Location" column has been added from the original data in the paper, as
+#'   this was indicated by colour code and so was lost in processing.
+#'   
+#'   \code{SNP_locations}: A dataframe that acts as a key relating the SNP codes
+#'   present in \code{barcodes} to the corresponding genomic location.
+#' 
+#' @keywords datasets
+#' 
+#' @references
+#' \insertRef{bei_dramatic_2018}{SIMPLEGEN}
+#' 
+#' @source
+#'   \href{https://academic.oup.com/jid/article/217/4/622/4793403}{Data in main paper}
+#'   \href{https://tabula.technology/}{Tabula data extractor}
+#' 
+#' @importFrom Rdpack reprompt
+#' 
+"Bei_2018"
+
+#------------------------------------------------
+#' 93-SNP barcode data from Thai-Myanmar border (Taylor et al., 2017)
+#' 
+#' Data from Taylor et al. (2017). Here we give a brief summary of the data -
+#' see the original paper for full details.
+#' \cr
+#' \cr
+#' Samples were obtained from Shoklo Malaria Research Unit (SMRU) clinics
+#' spanning approximately 120km of the border between Thailand and Myanmar, and
+#' were collected between 2001-2014. 1731 samples were genotyped using a 93-SNP
+#' barcode. Samples with 6 or more heteroallelic genotyping outcomes were
+#' designated multiple infections (n = 558), and all other samples were denoted
+#' single infections (n = 1173).
+#'
+#' @docType data
+#'
+#' @usage data(Taylor_2017)
+#'
+#' @format A dataframe with 98 columns, giving sample IDs, dates and locations
+#'   (columns 1:3), estimated clonality (columns 4:5), and genotyping calls at
+#'   all 93 SNPs (columns 6:98). Missing genetic data is denoted "N".
+#'
+#' @keywords datasets
+#'
+#' @references
+#' \insertRef{taylor_quantifying_2017}{SIMPLEGEN}
+#'
+#' @source
+#'   \href{https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1007065}{Supplementary materials}
+#' 
+#' @importFrom Rdpack reprompt
+#' 
+"Taylor_2017"
+
+#------------------------------------------------
+#' 24-SNP barcode data from two urban cities in Nigeria (Bankole et al., 2018)
+#' 
+#' Data from Bankole et al. (2018). Here we give a brief summary of the data -
+#' see the original paper for full details.
+#' \cr
+#' \cr
+#' Samples were obtained from two major urban cities, Ibadan and Enugu in
+#' Nigeria, both high transmission settings. DNA was extracted from dried blood
+#' impregnated filter paper and samples were genotyped using a 24-SNP barcode.
+#' Samples were considered polygenomic if they had more than 2 heterozygous
+#' sites (Enugu = 5/28, Ibadan = 5/37), and monogenomic otherwise.  Data were
+#' extracted using Tabula v1.2.1.
+#'
+#' @docType data
+#'
+#' @usage data(Bankole_2018)
+#'
+#' @format A dataframe with 27 columns, giving sample IDs and locations (columns
+#'   1:2), genotyping calls at all 24 SNPs (columns 3:26), and (unknown) (column
+#'   27). Heterozygous genotyping calls are denoted "N", and missing data is
+#'   denoted "X".
+#'
+#' @keywords datasets
+#'
+#' @references
+#' \insertRef{bankole_characterization_2018}{SIMPLEGEN}
+#'
+#' @source
+#'   \href{https://malariajournal.biomedcentral.com/articles/10.1186/s12936-018-2623-8}{Data in main paper}
+#'   \href{https://tabula.technology/}{Tabula data extractor}
+#' 
+#' @importFrom Rdpack reprompt
+#' 
+"Bankole_2018"
+
+#------------------------------------------------
+#' 24-SNP barcode data from 11 sentinel sites in Haiti (Daniels et al., 2020)
+#' 
+#' Data from Daniels et al. (2020). Here we give a brief summary of the data -
+#' see the original paper for full details.
+#' \cr
+#' \cr
+#' Sample sites in Haiti included four sentinel sites in three departments
+#' (Grand’Anse, Sud, and Nippes) from among 11 sites nationwide established for
+#' anti-malarial molecular resistance marker surveillance. Individuals of all
+#' ages seeking treatment at clinics located at the sentinel sites with symptoms
+#' of malaria who also tested positive for malaria by either microscopy or rapid
+#' diagnostic test (RDT) from March 2016 to December 2017 were considered
+#' eligible to participate. Interviews were also conducted to collect patient
+#' information (including age, gender, recent travel history). Genomic DNA was
+#' isolated from dried blood spots and genotyped using a 24-SNP barcode. Samples
+#' were designated polygenomic if multiple alleles were observed at two or more
+#' positions. After quality filtering stages, what remained was 42 polygenomic
+#' samples and 462 monogenomic samples.
+#'
+#' @docType data
+#'
+#' @usage data(Daniels_2020)
+#'
+#' @format A dataframe with 14 columns, giving sample characteristics (columns
+#'   1:7), barcode information (columns 8:9), whether the sample was designated
+#'   mono/polygenomic (column 10) and information on travel history (columns
+#'   11:14).
+#'
+#' @keywords datasets
+#'
+#' @references
+#' \insertRef{daniels_genetic_2020-1}{SIMPLEGEN}
+#'
+#' @source
+#'   \href{https://malariajournal.biomedcentral.com/articles/10.1186/s12936-020-03439-7}{Supplementary materials}
+#' 
+#' @importFrom Rdpack reprompt
+#' 
+"Daniels_2020"
+
+#------------------------------------------------
+#' 24-SNP barcode data from two trials in Zambia (Daniels et al., 2020)
+#' 
+#' Data from Daniels et al. (2020). Here we give a brief summary of the data -
+#' see the original paper for full details.
+#' \cr
+#' \cr
+#' Rapid diagnostic test-positive samples were obtained from household-level
+#' data collection during two community-randomized trials conducted in the same
+#' geographical region of Southern Province of Zambia between 2012 and 2016. the
+#' first sample set (n = 836 children younger than 6 years) was collected during
+#' the peak malaria transmission season (April–May) in both 2012 and 2013
+#' (baseline) as part of a community-randomized controlled trial designed to
+#' assess the impact of three rounds of an MTAT intervention that used RDTs for
+#' testing and artemether–lumefantrine for treatment. The second sample set (n =
+#' 784 individuals 3 months or older) was obtained from an 18-month longitudinal
+#' cohort study, with monthly follow-up visits, conducted from December 2014 to
+#' May 2016 (cohort). The cohort was designed to evaluate a cluster randomized
+#' controlled trial for assessing the impact of four rounds of community-wide
+#' MDA and household-level (focal) MDA (fMDA) with DHAp compared with that of no
+#' mass treatment (control).
+#' \cr
+#' Samples were genotyped using a 24-SNP barcode. Samples were designated
+#' polygenomic if multiple alleles were observed at two or more positions,
+#' otherwise they were designated monogenomic. Samples with missing data at 5 or
+#' more loci were deemed to have "failed" for the purposes of subsequent
+#' analyses, but are included in the data anyway.
+#'
+#' @docType data
+#'
+#' @usage data(Daniels_2020B)
+#'
+#' @format A dataframe with 34 columns, giving the sample ID, collection date,
+#'   study type, (TODO), study batch and arm (columns 1:6), the genomic data
+#'   over all 24 SNPs (columns 7:30), and details of missingness and designated
+#'   mono/polyclonality (columns 31:34). Heterozygous genotyping calls are
+#'   identified by "N", and missing alleles are identified by "X". Note, the
+#'   original downloaded data contained 18 samples with missing genotypic data,
+#'   which have been removed to leave the 1620 samples referred to in the main
+#'   paper.
+#'
+#' @keywords datasets
+#'
+#' @references
+#' \insertRef{daniels_evidence_2020}{SIMPLEGEN}
+#'
+#' @source
+#'   \href{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7416975/}{Supplementary materials}
+#' 
+#' @importFrom Rdpack reprompt
+#' 
+"Daniels_2020B"
+
+#------------------------------------------------
+#' 24-SNP barcode data from Richard Toll, Senegal (Daniels et al., 2020)
+#' 
+#' Data from Daniels et al. (2020). Here we give a brief summary of the data -
+#' see the original paper for full details.
+#' \cr
+#' \cr
+#' Samples were obtained from routine case investigation carried out in Richard
+#' Toll, Senegal between September 2012 and December 2015. Rapid diagnostic
+#' tests (RDTs) were used to diagnose malaria cases either through
+#' facility-based passive case detection (PCD) or through reactive case
+#' detection (RACD). A standardized questionnaire was also filled out for all
+#' participants to collect information on basic demographic information
+#' including travel history. RDTs were used to genotype malaria infections using
+#' a 24-SNP barcode. Samples were designated polygenomic if multiple alleles
+#' were observed at two or more positions, otherwise they were designated
+#' monogenomic. Samples with missing data at 5 or more loci were deemed to have
+#' "failed" for the purposes of subsequent analyses, but are included in the
+#' data anyway.
+#'
+#' @docType data
+#'
+#' @usage data(Daniels_2020C)
+#'
+#' @format A dataframe with 30 columns, giving sample ID and year (columns 1:2),
+#'   genomic data at 24 SNPs (columns 3:26), and details of missingness and
+#'   designated mono/polyclonality (columns 27:30). Heterozygous genotyping
+#'   calls are identified by "N", and missing alleles are identified by "X".
+#'
+#' @keywords datasets
+#'
+#' @references
+#' \insertRef{daniels_genetic_2020}{SIMPLEGEN}
+#'
+#' @source
+#'   \href{https://malariajournal.biomedcentral.com/articles/10.1186/s12936-020-03346-x}{Supplementary materials}
+#' 
+#' @importFrom Rdpack reprompt
+#' 
+"Daniels_2020C"
