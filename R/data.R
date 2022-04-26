@@ -452,3 +452,210 @@
 #' @importFrom Rdpack reprompt
 #' 
 "Daniels_2020C"
+
+#------------------------------------------------
+#' 24-SNP barcode data from clonal outbreak in Panama (Obaldia et al., 2015)
+#' 
+#' Data from Obaldia et al. (2015). Here we give a brief summary of the data -
+#' see the original paper for full details.
+#' \cr
+#' \cr
+#' This study focused on 37 P. falciparum isolates collected during 2003–2008
+#' from individuals in malaria-endemic provinces in eastern Panama, along with
+#' 20 isolates collected during 2011–2012 from healthcare facilities in 3
+#' malaria endemic sites in Colombia. Samples were sequenced using a 24-SNP
+#' barcode. Samples were considered polyclonal if they contained multiple
+#' alleles at two or more loci, otherwise they were considered monoclonal.
+#' Samples were clustered into major groups using STRUCTURE software.
+#'
+#' @docType data
+#'
+#' @usage data(Obaldia_2015)
+#'
+#' @format A dataframe with 30 columns, giving sample characteristics (columns
+#'   1:5), genomic data at 24 SNPs (columns 6:29), and major group membership
+#'   (column 30). Heterozygous genotyping calls are identified by "N", and
+#'   missing alleles are identified by "NA".
+#'
+#' @keywords datasets
+#'
+#' @references
+#' \insertRef{obaldia_clonal_2015}{SIMPLEGEN}
+#'
+#' @source
+#'   \href{https://academic.oup.com/jid/article-lookup/doi/10.1093/infdis/jiu575}{Data extracted manually from paper}
+#' 
+#' @importFrom Rdpack reprompt
+#' 
+"Obaldia_2015"
+
+#------------------------------------------------
+#' 24-SNP barcode data showing population structure in Haiti (Charles et al., 2016)
+#' 
+#' Data from Charles et al. (2016). Here we give a brief summary of the data -
+#' see the original paper for full details.
+#' \cr
+#' \cr
+#' Samples were collected through routine surveillance spanning 2006–2009 by the
+#' Haitian Group for the Study of Kaposi’s Sarcoma and Opportunistic Infections
+#' (GHESKIO) at 9 healthcare centers in various municipalities. Samples were
+#' genotyped using a 24-SNP barcode. The paper states that samples that showed
+#' >1 mixed-base SNP call or had >5 missing calls in the 24SNP molecular barcode
+#' were removed from analysis, however, there is 1 sample (monogenomic sample
+#' 24) that has 6 missing calls and has not been removed, and there is also 1
+#' sample (polygenomic sample 8) that has exactly 1 mixed-base SNP call and 0
+#' missing calls and yet has been removed. Therefore, it is possible that
+#' samples were removed if they showed >0 mixed-base calls, or had >6 missing
+#' calls (all data presented are consistent with this filtering). Both
+#' monogenomic (n = 52) and polygenomic (n = 8) samples are available, although
+#' samples excluded based on missingness are not available. Samples were
+#' compared in terms of the proportion of shared bases, and were identified as
+#' either identical, related, or unique based on this number.
+#'
+#' @docType data
+#'
+#' @usage data(Charles_2016)
+#'
+#' @format A list of two data objects:
+#'   \itemize{
+#'     \item \code{monoclonal}: the 42 samples identified as monoclonal
+#'     \item \code{polyclonal}: the remaining 8 samples identified as polyclonal
+#'   }
+#'   
+#'   \code{monoclonal}: A dataframe with 6 columns, giving sample
+#'   characteristics (columns 1:3), barcode data (columns 4:5), and similarity
+#'   category (column 6). location, and the estimated EIR (see original paper
+#'   for details). Heterozygous genotyping calls are identified by "N", and
+#'   missing alleles are identified by "X".
+#'   
+#'   \code{polyclonal}: A dataframe with 4 columns, giving sample
+#'   characteristics (columns 1:3), and barcode data (column 4). As above,
+#'   heterozygous genotyping calls are identified by "N", and missing alleles
+#'   are identified by "X".
+#'   
+#' @keywords datasets
+#'
+#' @references
+#' \insertRef{charles_plasmodium_2016}{SIMPLEGEN}
+#'
+#' @source
+#'   \href{http://wwwnc.cdc.gov/eid/article/22/5/15-0359_article.htm}{Data extracted from tables}
+#' 
+#' @importFrom Rdpack reprompt
+#' 
+"Charles_2016"
+
+#------------------------------------------------
+#' 24-SNP barcode data showing clonal and epidemic transmission in Senegal (Daniels et al., 2013)
+#' 
+#' Data from Daniels et al. (2013). Here we give a brief summary of the data -
+#' see the original paper for full details.
+#' \cr
+#' \cr
+#' Note - see \code{?Galinsky_2015} for an expanded version of this same set of
+#' barcodes. All 529 Sample IDs in this dataset are also present in
+#' Galinsky_2015, along with an additional 445 samples.
+#' \cr
+#' \cr
+#' Samples were obtained annually from 2006–2011 from the Service de Lutte
+#' Anti-Parasitaire (SLAP) clinic in Thies, Senegal. Samples were collected
+#' passively; with patients over the age of 12 months admitted to this study
+#' with self-reported acute fevers within 24 hours of visiting the clinic and no
+#' recent anti-malarial use. Whole blood spots from 2006–2011 were preserved on
+#' filter paper, and DNA was extracted and characterised using a 24-SNP
+#' molecular barcode. Samples were excluded if they had missing data on more
+#' than four SNP positions. Samples were identified as polygenomic if they had
+#' multiallelic calls at more than one SNP position, otherwise monogenomic. It
+#' is unclear whether the data presented is for monogenomic samples only, as one
+#' sample (SenT081) has mixed calls at 2 sites and therefore is polygenomic, but
+#' it seems unlikely that there was only one polygenomic sample observed in the
+#' entire dataset.
+#' 
+#'
+#' @docType data
+#'
+#' @usage data(Daniels_2013)
+#'
+#' @format A dataframe with 27 columns, giving sample characteristics (columns
+#'   1:3), and genomic data at 24 SNPs (columns 4:27). Heterozygous genotyping
+#'   calls are identified by "N", and missing alleles are identified by "NA".
+#'   
+#' @keywords datasets
+#'
+#' @references
+#' \insertRef{daniels_genetic_2013}{SIMPLEGEN}
+#'
+#' @source
+#'   \href{https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0060780}{Supplementary materials}
+#' 
+#' @importFrom Rdpack reprompt
+#' 
+"Daniels_2013"
+
+#------------------------------------------------
+#'  Multiplicity of infection in Mali using 24-SNP barcode data (Adomako-Ankomah et al., 2017)
+#' 
+#' Data from Adomako-Ankomah et al. (2017). Here we give a brief summary of the
+#' data - see the original paper for full details.
+#' \cr
+#' \cr
+#' A longitudinal cohort study was conducted in a seasonal and high-transmission
+#' area of Mali, in which 500 subjects aged 1–65 years were followed for 1 year.
+#' Blood samples were collected every 2 weeks. Multiclonality of Pf infection was
+#' measured using a 24-SNP DNA barcoding assay at 4 time-points (two in wet season,
+#' and two in dry season).
+#' 
+#'
+#' @docType data
+#'
+#' @usage data(Adomako_Ankomah_2017)
+#'
+#' @format A dataframe with 26 columns, giving time point in the year (column
+#'   1), multiplicity category, including number of failed assays (column 2),
+#'   and frequencies for each of these classes for all 24 SNPs (columns 3:26).
+#'   
+#' @keywords datasets
+#'
+#' @references
+#' \insertRef{adomako-ankomah_high_2017}{SIMPLEGEN}
+#'
+#' @source
+#'   \href{https://dx.plos.org/10.1371/journal.pone.0170948}{Supplementary materials}
+#' 
+#' @importFrom Rdpack reprompt
+#' 
+"Adomako_Ankomah_2017"
+
+
+#------------------------------------------------
+#' 24-SNP barcode data showing monogenomic and polygenomic infections in Senegal (Galinsky et al., 2015)
+#' 
+#' Data from Galinsky et al. (2015). Here we give a brief summary of the
+#' data - see the original paper for full details.
+#' \cr
+#' \cr
+#' Samples are an expanded set of those present in another dataset (see
+#' \code{?Daniels_2013} for further details of sample collection). The
+#' difference is that samples here also include those that are likely
+#' polygenomic infections.
+#'
+#' @docType data
+#'
+#' @usage data(Galinsky_2015)
+#'
+#' @format A dataframe with 26 columns, giving the sample ID and collection year
+#'   (columns 1:2), and genotype calls at all 24 SNP loci (columns 3:26).
+#'   Heterozygous genotyping calls are identified by "N", and missing alleles
+#'   are identified by "X".
+#'   
+#' @keywords datasets
+#'
+#' @references
+#' \insertRef{galinsky_coil_2015}{SIMPLEGEN}
+#'
+#' @source
+#'   \href{https://malariajournal.biomedcentral.com/articles/10.1186/1475-2875-14-4}{Supplementary materials}
+#' 
+#' @importFrom Rdpack reprompt
+#' 
+"Galinsky_2015"
