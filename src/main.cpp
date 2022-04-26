@@ -1,8 +1,8 @@
 
 #include "main.h"
-#include "Parameters.h"
-#include "Dispatcher.h"
-#include "probability_v14.h"
+#include "sim_Parameters.h"
+#include "sim_Dispatcher.h"
+#include "probability_v17.h"
 #include "genmodel_Host.h"
 #include "genmodel_Mosquito.h"
 #include "genmodel_Infection.h"
@@ -17,7 +17,7 @@
 using namespace std;
 
 //------------------------------------------------
-// draw from simple individual-based model
+// draw from inbuilt individual-based model
 #ifdef RCPP_ACTIVE
 Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List args_progress) {
   
@@ -25,11 +25,11 @@ Rcpp::List indiv_sim_cpp(Rcpp::List args, Rcpp::List args_functions, Rcpp::List 
   chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
   
   // define parameters object and load values from arguments
-  Parameters params;
+  sim_Parameters params;
   params.load_params(args);
   
   // create dispatcher object and run simulations
-  Dispatcher dispatcher;
+  sim_Dispatcher dispatcher;
   dispatcher.init(params);
   dispatcher.run_simulation(args_functions, args_progress);
   
@@ -177,7 +177,7 @@ Rcpp::List prune_transmission_record_cpp(Rcpp::List args) {
 
 //------------------------------------------------
 // read in a pruned transmission record and simulate tree connecting haplotypes
-// from genetic model
+// by drawing from genetic model
 Rcpp::List sim_haplotype_tree_cpp(Rcpp::List args) {
   
   // start timer
@@ -186,6 +186,7 @@ Rcpp::List sim_haplotype_tree_cpp(Rcpp::List args) {
   // extract input args
   vector<int> sample_human_IDs = rcpp_to_vector_int(args["sample_human_IDs"]);
   vector<vector<int>> sample_infection_IDs = rcpp_to_matrix_int(args["sample_infection_IDs"]);
+  int n_samples = sample_human_IDs.size();
   
   vector<double> oocyst_distribution = rcpp_to_vector_double(args["oocyst_distribution"]);
   vector<double> hepatocyte_distribution = rcpp_to_vector_double(args["hepatocyte_distribution"]);
@@ -226,15 +227,21 @@ Rcpp::List sim_haplotype_tree_cpp(Rcpp::List args) {
   vector<int> output_child_haplo_ID;
   vector<vector<int>> output_parent_haplo_ID;
   
+  vector<vector<vector<int>>> sample_haplo_IDs(n_samples);
+  vector<vector<vector<double>>> sample_haplo_densities(n_samples);
+  
   if (!silent) {
     print("Simulating haplotype tree");
   }
   
-  // loop through pruned transmission record
-  for (int i = 0; i < time.size(); ++i) {
+  // loop through pruned transmission record and simulate a haplotype tree
+  // within the wider infection tree defined by this record. Hosts, mosquitoes,
+  // and infections have their own classes for passing around the required
+  // information. The record of events is stored within the objects
+  // output_record_row, output_child_haplo_ID, and output_parent_haplo_ID.
+  for (size_t i = 0; i < time.size(); ++i) {
     
-    if (event[i] == 1) {
-      // human receives parasites from mosquito
+    if (event[i] == 1) {  // human receives parasites from mosquito
       
       // add host to population if doesn't exist
       if (host_pop.count(human_ID[i]) == 0) {
@@ -261,8 +268,7 @@ Rcpp::List sim_haplotype_tree_cpp(Rcpp::List args) {
       
       //host_pop[human_ID[i]].print_status();
       
-    } else if (event[i] == 2) {
-      // mosquito receives parasites from human
+    } else if (event[i] == 2) {  // mosquito receives parasites from human
       
       // mosquito should not already exist in population as no superinfection
       // allowed in this model
@@ -295,14 +301,15 @@ Rcpp::List sim_haplotype_tree_cpp(Rcpp::List args) {
     
   }  // end loop through transmission record
   
-  // get haplo IDs in final sample
-  vector<vector<vector<int>>> sample_haplo_IDs(sample_human_IDs.size());
-  vector<vector<vector<double>>> sample_haplo_densities(sample_human_IDs.size());
-  for (int i = 0; i < sample_human_IDs.size(); ++i) {
+  
+  // get haplo IDs in final sample. Every requested sample_human_IDs should now
+  // be present in host_pop, therefore simply a case of extracting haplo IDs and
+  // densities into output objects.
+  for (int i = 0; i < n_samples; ++i) {
     
     // check that host exists in population
     if (host_pop.count(sample_human_IDs[i]) == 0) {
-      Rcpp::stop("Host requested from sample details is not impled by pruned transmission record");
+      Rcpp::stop("Host requested from sample details is not implied by pruned transmission record");
     }
     genmodel_Host this_host = host_pop[sample_human_IDs[i]];
     
@@ -314,7 +321,7 @@ Rcpp::List sim_haplotype_tree_cpp(Rcpp::List args) {
     for (int j = 0; j < sample_infection_IDs[i].size(); ++j) {
       int this_infection_ID = sample_infection_IDs[i][j];
       
-      // check that this infection ID present in host
+      // check that this infection ID is present in host
       if (this_host.infections_map.count(this_infection_ID) == 0) {
         Rcpp::stop("Infection ID requested from sample details not present in host");
       }

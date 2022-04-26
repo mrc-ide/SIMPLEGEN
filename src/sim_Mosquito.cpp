@@ -1,11 +1,11 @@
 
-#include "Mosquito.h"
+#include "sim_Mosquito.h"
 
 using namespace std;
 
 //------------------------------------------------
 // infection
-void Mosquito::infection(int t, int &next_infection_ID, Host &host) {
+void sim_Mosquito::infection(int t, int &next_infection_ID, sim_Host &host) {
   
   // set infection ID and increment
   infection_ID = next_infection_ID++;
@@ -16,12 +16,12 @@ void Mosquito::infection(int t, int &next_infection_ID, Host &host) {
   source_host_ID = host.host_ID;
   
   if (source_infection_ID_vec.size() != 0) {
-    Rcpp::stop("error in Mosquito::infection(), source_infection_ID_vec already populated");
+    Rcpp::stop("error in sim_Mosquito::infection(), source_infection_ID_vec already populated");
   }
   
-  for (int i = 0; i < host.inoc_ID_vec.size(); ++i) {
-    if (host.inoc_active[i]) {
-      source_infection_ID_vec.push_back(host.inoc_ID_vec[i]);
+  for (int i = 0; i < host.infection_ID_vec.size(); ++i) {
+    if (host.infection_active[i]) {
+      source_infection_ID_vec.push_back(host.infection_ID_vec[i]);
     }
   }
   
@@ -29,7 +29,7 @@ void Mosquito::infection(int t, int &next_infection_ID, Host &host) {
 
 //------------------------------------------------
 // write buffered info to transmission record and clear buffer
-void Mosquito::write_buffer(ofstream &transmission_record) {
+void sim_Mosquito::write_buffer(ofstream &transmission_record) {
   
   if (source_infection_ID_vec.size() != 0) {
     
@@ -45,13 +45,13 @@ void Mosquito::write_buffer(ofstream &transmission_record) {
 
 //------------------------------------------------
 // set mosquito ID and increment
-void Mosquito::set_mosquito_ID(int &mosquito_ID) {
+void sim_Mosquito::set_mosquito_ID(int &mosquito_ID) {
   this->mosquito_ID = mosquito_ID++;
 }
 
 //------------------------------------------------
 // print status
-void Mosquito::print_status() {
+void sim_Mosquito::print_status() {
   print("mosquito_ID:", mosquito_ID);
   print("infection_ID:", infection_ID);
   print("source_time:", source_time);

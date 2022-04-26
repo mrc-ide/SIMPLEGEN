@@ -1,8 +1,8 @@
 
 #include "genmodel_Mosquito.h"
 #include "genmodel_Host.h"
-#include "misc_v12.h"
-#include "probability_v14.h"
+#include "misc_v14.h"
+#include "probability_v17.h"
 
 using namespace std;
 

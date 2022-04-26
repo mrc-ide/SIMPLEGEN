@@ -1,7 +1,7 @@
 
-#include "Sampler_v4.h"
-#include "misc_v12.h"
-#include "probability_v14.h"
+#include "Sampler_v5.h"
+#include "misc_v14.h"
+#include "probability_v17.h"
 
 using namespace std;
 
@@ -17,7 +17,7 @@ Sampler::Sampler(vector<double> &p, int n) {
   x = vector<int>(n);
   
   // checks on inputs
-  for (unsigned int i = 0; i < p.size(); ++i) {
+  for (int i = 0; i < int(p.size()); ++i) {
     if (p[i] < 0.0) {
       Rcpp::stop("error when initialising sampler: p values less than 0");
     }
@@ -40,12 +40,12 @@ void Sampler::reset() {
   int n_remaining = n;
   double p_remaining = sum_p;
   for (int i = 0; i < int(p.size()); ++i) {
-    double q = p[i]/p_remaining;
+    double q = p[i] / p_remaining;
     if (q > 1.0) {  // deal with rounding issue causing probabilities > 1
       q = 1.0;
     }
     int n_i = rbinom1(n_remaining, q);
-    fill(x.begin()+n_cum, x.begin()+n_cum+n_i, i);
+    fill(x.begin() + n_cum, x.begin() + n_cum + n_i, i);
     n_cum += n_i;
     n_remaining -= n_i;
     p_remaining -= p[i];
@@ -54,7 +54,7 @@ void Sampler::reset() {
     }
   }
   
-  // re-shuffle x to break order
+  // shuffle x to break order
   reshuffle(x);
   
 }
@@ -64,7 +64,7 @@ void Sampler::reset() {
 int Sampler::draw() {
   
   // reset x if needed
-  if (index == (n-1)) {
+  if (index == (n - 1)) {
     reset();
     index = 0;
   }

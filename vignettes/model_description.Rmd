@@ -25,51 +25,51 @@ set.seed(1)
 library(SIMPLEGEN)
 ```
 
-The first step in the SIMPLEGEN pipeline is to simulate from an epidemiological transmission model. An inbuilt transmission model is included with the pipeline to make life easier, but any transmission model can be used as long as it can produce output in a certain format (described in [the next vignette](https://mrc-ide.github.io/SIMPLEGEN/articles/transmission_record.html)). The inbuilt model is designed to be as simple as possible but no simpler. It does not attempt to be a complete phenomenological description of the malaria life cycle - rather it is a cartoon that tries to capture some of the key relationships we see in data.
+The first step in the SIMPLEGEN pipeline is to simulate from an epidemiological transmission model. Any model can be used as long as it can produce output in the required format (described in [the next vignette](https://mrc-ide.github.io/SIMPLEGEN/articles/transmission_record.html)), but an inbuilt transmission model is included with the pipeline to make life easier. The inbuilt model is designed to be as simple as possible but no simpler. It does not attempt to be a complete phenomenological description of the malaria life cycle - rather it is a cartoon that tries to capture some of the key relationships that we tend to see in real data.
 
-This vignette gives a high-level description of the inbuilt transmission model, including some of the key assumptions. For details on how to *run* this model, see [this vignette](https://mrc-ide.github.io/SIMPLEGEN/articles/getting_started.html).
+This vignette gives a high-level description of the inbuilt transmission model, including some of the key assumptions. For details on how to run this model, see [this vignette](https://mrc-ide.github.io/SIMPLEGEN/articles/getting_started.html).
 
 
-### Inoculations and host states
+### Infections and host states
 
-The most important concept in the model is the idea of an "inoculation", defined here as a population of parasites that are passed from mosquito to human host upon successful infection. Each host within the model can be thought of having multiple inoculation "slots", and each new inoculation falls into a new slot. There are a finite number of slots available per host, defined by `max_inoculations`, but most of the time we can set this number to be large enough that hosts never saturate all their slots.
+The model works by tracking individual infections. Each host within the model can be thought of having multiple infection "slots", and each new infection falls into a new slot. There are a finite number of slots available per host, defined by `max_infections`, but most of the time we can set this number to be large enough that hosts never saturate all their slots.
 
-Each inoculation can be thought of as an independent episode of malaria that goes through the following stages:
+Each infection can be thought of as an independent episode of malaria that goes through the following stages:
 
   1. latent (liver stage) infection
   2. acute blood-stage
   3. chronic blood-stage
   4. clearance
 
-Inoculations can pass through all four stages in order, or they can skip over the acute or chronic stages depending on the model parameters (see **Figure 4**). The acute stage essentially represents the symptomatic stage of infection, although the word "acute" has been used rather than "symptomatic" to avoid forcing a clinical interpretation on the model. The chronic stage is designed to capture long-lasting infections, including possible asymptomatic and/or sub-patent stages (more on detection later).
+Infections can pass through all four stages in order, or they can skip over the acute or chronic stages depending on the model parameters (see **Figure 4**). The acute stage essentially represents the symptomatic stage of infection, although the word "acute" has been used rather than "symptomatic" to avoid forcing a clinical interpretation on the model. The chronic stage is designed to capture long-lasting infections, including possible asymptomatic and/or sub-patent stages (more on detection later).
 
 The state of a host is defined using the decision tree in **Figure 1**.
 
-<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/host_decision_tree.png" width="160" height = "300"/>
+<img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/host_decision_tree.png" width="287" height = "397"/>
 <font size="2">
 <figcaption> **Figure 1** Decision tree showing how the state of a host is decided.</figcaption>
 </font>
 
-Unless the host has recently recieved treatment, and so is in the prophylactic stage, the state of the host is dictated by the states of the inoculations it carries.. This can be seen in **Figure 2**, which shows the host state for a simple case of two overlapping inoculations.
+Unless the host has recently received treatment (and so is in the prophylactic stage) the state of the host is dictated by the states of the infections it carries. This can be seen in **Figure 2**, which shows the host state for a simple case of two overlapping infections
 
 <img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/progression1.png"/>
 <font size="2">
-<figcaption> **Figure 2** The host carries two inoculations (horizontal boxes), each of which goes through a latent stage and acute and chronic stages before clearing naturally. The host state is dictated from the inoculation states.</figcaption>
+<figcaption> **Figure 2** The host carries two infections (horizontal boxes), each of which goes through a latent stage and acute and chronic stages before clearing naturally. The host state is dictated from the infection states.</figcaption>
 </font>
 
-The only host state that is not dictated directly from its inoculations is the treated (aka prophylactic) state. Treatment is described fully in a later section, but in simple terms treatment causes all blood-stage infections to clear immediately. Liver-stage infections are not cleared, i.e. treatment does not represent a radical cure. After treatment, the host enters a prophylactic state in which new liver-stage infections can occur, but any inoculations leaving the liver within the prophylactic period are immediately cured. Eventually the prophylaxis wears off and the host transitions back into the susceptible or exposed state. **Figure 3** shows a second example of host states, this time for a more complex case involving treatment and prophylaxis.
+The only host state that is not dictated directly from its infections is the treated (aka prophylactic) state. Treatment is described fully in a later section, but in simple terms treatment causes all blood-stage infections to clear immediately. Liver-stage infections are not cleared, i.e. treatment does not represent a radical cure. After treatment, the host enters a prophylactic state in which new liver-stage infections can occur, but any infections leaving the liver within the prophylactic period are immediately cured. Eventually the prophylaxis wears off and the host transitions back into the susceptible or exposed state. **Figure 3** shows a second example of host states, this time for a more complex case involving treatment and prophylaxis.
 
 <img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/progression2.png"/>
 <font size="2">
-<figcaption> **Figure 3** The host acquires two inoculations, and later receives treatment and enters a prophylactic state. During this prophylactic period a new liver-stage inoculation takes hold, but this leaves the liver within the prophylactic period and is therefore immediately cured. A second liver-stage inoculation occurs within the prophylactic period, but this one leaves the liver outside the prophylactic period and so proceeds as normal.</figcaption>
+<figcaption> **Figure 3** The host acquires two infections, and later receives treatment and enters a prophylactic state. During this prophylactic period a new liver-stage infection takes hold, but this leaves the liver within the prophylactic period and is therefore immediately cured. A second liver-stage infection occurs within the prophylactic period, but this one leaves the liver outside the prophylactic period and so proceeds as normal.</figcaption>
 </font>
 
 
-Given the description above, we can now visualise the model in a classical compartmental structure. **Figure 4** shows the possible states and transitions of both individual inoculations and hosts.
+Given the description above, we can now visualise the model in a classical compartmental structure. **Figure 4** shows the possible states and transitions of both infections and hosts.
 
 <img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/develop/R_ignore/images/model_diagram_inoc&host.png"/>
 <font size="2">
-<figcaption> **Figure 4** Inoculation states and host states. Dashed arrows indicate transitions that are only possible via super-infection.</figcaption>
+<figcaption> **Figure 4** Infection states and host states. Dashed arrows indicate transitions that are only possible via super-infection.</figcaption>
 </font>
 
 Notice there are no rates or parameters on any of the arrows in **Figure 4**. This is because state durations and transition probabilities are modelled using flexible distributions rather than fixed parameter values.
@@ -77,13 +77,13 @@ Notice there are no rates or parameters on any of the arrows in **Figure 4**. Th
 
 ### Flexible distributions
 
-There are two elements that describe how inoculations move between states - duration distributions and transition probabilities. Duration distributions dictate the probability that an inoculation leaves a given state on each day since entering that state. Once it is decided that an inoculation will leave a state, transition probabilities dictate the chance of moving to each possible destination state.
+There are two elements that describe how infections move between states - duration distributions and transition probabilities. Duration distributions dictate the probability that an infection leaves a given state on each day since entering that state. Once it is decided that an infection will leave a state, transition probabilities dictate the chance of moving to each possible destination state.
 
-Both duration distributions and transition probabilities can be defined in a flexible way, giving fine control over how inoculations move between states. Duration distributions can be input as a vector of daily probabilities, and durations within the model are obtained by sampling from this vector. Alternatively, the user can input a list of vectors, in which case the first element applies the first time the host is exposed to an inoculation, the second element the second time, and so on. Once we reach the final element in the list, this applies for all subsequent inoculations. Similarly, transition probabilities can be defined as a single value, or as a vector of values in which case the first value applies to the first exposure, the second value to the second exposure, and so on. By varying these inputs we can capture a great deal of richness within quite a simple model. For example, we could arrive at a simple exposure-driven immunity model by setting up distributions such that subsequent infections are more likely to be chronic, and/or last longer.
+Both duration distributions and transition probabilities can be defined in a flexible way, giving fine control over how infections move between states. Duration distributions can be input as a vector of daily probabilities, and then durations within the model are obtained by sampling from this vector. Alternatively, the user can input a list of vectors, in which case the first element applies the first time the host is exposed to an infection, the second element the second time, and so on. Once we reach the final element in the list, this applies for all subsequent infections. Similarly, transition probabilities can be defined as a single value, or as a vector of values in which case the first value applies to the first exposure, the second value to the second exposure, and so on. By varying these inputs we can capture some fairly detailed patterns within quite a simple model. For example, we could arrive at a simple exposure-driven immunity model by setting up distributions such that subsequent infections are more likely to be chronic, and/or last longer.
 
-Finally, there are some daily probabilities that can be defined in a flexible way, for example the daily probability of being detected by microscopy. These differ from duration distributions in that they are not normalised probability mass functions, rather they give a probability between 0 and 1 on each day. These can also be defined as either a vector or a list of vectors that increment with exposure.
+Finally, there are some daily probabilities that can be defined in a flexible way, for example the daily probability of being detected by microscopy following infection. These differ from duration distributions in that they do not need to sum to one, rather they give a probability between 0 and 1 on each day. These can also be defined as either a vector or a list of vectors that increment with exposure.
 
-Here is a complete list of parameters that can be flexibly defined:
+Here is a complete list of parameters that can be defined in a flexible way:
 
 #### duration distributions:
 
@@ -93,15 +93,15 @@ Here is a complete list of parameters that can be flexibly defined:
 
 #### transition probabilities:
 
-- `prob_infection`: the probability of becoming infected, given a bite from an infectious mosquito
-- `prob_acute`: the probability of an inoculation going to acute stage vs. directly to chronic stage
-- `prob_AC`: the probability of an acute inoculation going to chronic stage vs. clearing directly
+- `prob_infection`: the probability of becoming infected given a bite from an infectious mosquito
+- `prob_acute`: the probability of an infection going to acute stage vs. directly to chronic stage
+- `prob_AC`: the probability of an acute infection going to chronic stage vs. clearing directly
 
 #### daily probabilities:
 
 - `detectability_microscopy_acute`, `detectability_microscopy_chronic`: detectability by microscopy in the acute and chronic stages
-- `detectability_PCR_acute`, `detectability_PCR_chronic`: detectability by polymerase chain reaction in the acute and chronic stages
-- `infectivity_acute`, `infectivity_chronic`: onward infectivity of inoculations in the acute and chronic stages
+- `detectability_PCR_acute`, `detectability_PCR_chronic`: detectability by polymerase chain reaction (PCR) in the acute and chronic stages
+- `infectivity_acute`, `infectivity_chronic`: onward infectivity of infections in the acute and chronic stages
 
 All flexible distributions can be visualised using the function `plot_epi_distribution()`, for example:
 
@@ -123,9 +123,9 @@ simplegen_project() %>%
 
 ### Treatment
 
-Treatment is the exception to the rule that inoculations are modelled as independent. Upon treatment, all blood-stage inoculations are immediately cured, and the host enters a prophylactic stage in which no new inoculations are possible. Liver stage inoculations are not directly cured, but inoculations that leave the liver stage while the host is in the prophylactic stage are considered immediately cured. Sexual stages are not directly cured, although the termination of the diseased stage will lead to the eventual termination of the sexual stage after the appropriate time-lag. Treatment is only prompted a maximum of once per inoculation: if an inoculation goes through both acute and then chronic stages then only the acute stage will prompt treatment, whereas if an inoculation goes directly to chronic then this stage will prompt treatment.
+We break treatment down into two elements: first, the time it takes for the host to be *prompted* to seek treatment, for example due to the emergence of clinical features, and second, whether the host actually seeks treatment at this point in time. The latter is dictated in the model by a host-specific treatment-seeking probability, $p_i$, that is defined at birth and stays with the host for the duration of their life. This treatment-seeking probability is intended to capture the long-term factors that influence an individual's propensity or ability to obtain treatment. These factors may include distance to the nearest health facility, economic situation, and a host of other factors. The value of $p_i$ is drawn independently for each host from a Beta distribution with mean `treatment_seeking_mean` and standard deviation `treatment_seeking_sd`. These parameters allow the user to define both the mean access to care in the population and the extent of inequality in access to care.
 
-Notice that in parameter inputs we can define both the distribution of duration of disease (acute and chronic), and the distribution of time until seeking treatment. These are competing hazards - whichever one of these occurs first takes precedence. If the disease clears naturally first then the host does not seek treatment. If treatment comes first then the host is considered *prompted* to seek treatment at this point in time (for example due to the emergence of clinical features) although treatment is still not guaranteed. Instead, the host draws whether to access care from its own treatment-seeking probability, $p_i$. The value of $p_i$ is defined separately for each host at birth, and represents long-term factors that dictate a host's propensity/ability to obtain treatment. The value of $p_i$ is drawn independently for each host from a Beta distribution with mean `treatment_seeking_mean` and standard deviation `treatment_seeking_sd`. These parameters allow the user to define both the mean access to care in the population, and the extent of inequality in access to care.
+In parameter inputs we can define both the distribution of duration of disease (acute and chronic), and the distribution of time until seeking treatment. These are competing hazards - whichever one of these occurs first takes precedence. If the disease clears naturally first then the host does not seek treatment. We also note that treatment can only be prompted once per infection: if an infection goes through both acute and then chronic stages then only the acute stage will prompt treatment (from `time_treatment_acute`), whereas if an infection goes directly to chronic then this stage will prompt treatment (from `time_treatment_chronic`).
 
 For example, imagine we want to model a population that has good access to healthcare overall, but with wide disparity between individuals. We choose parameter values `treatment_seeking_mean = 0.7` and `treatment_seeking_sd = 0.2`, which we can visualise using the `plot_treatment_seeking()` function:
 
@@ -136,12 +136,14 @@ simplegen_project() %>%
   plot_treatment_seeking()
 ```
 
-The dashed line shows that at a population level there is a 70% chance of seeking treatment for malaria, but there is also considerable spread around this value. Each host has a value $p_i$ drawn from this distribution once at birth. For example, imagine a single unlucky individual for which $p_i = 0.1$. This individual has poor access to malaria treatment, either for economic reasons or geographic reasons or whatever. If this individual becomes infected *and* if clinical symptoms occur *before* the disease has chance to clear naturally, then this individual makes the decision whether to obtain treatment, with only a 10% chance of choosing to do so. If they choose not to seek treatment then the disease continues until it clears naturally.
+The dashed line shows that at a population level there is a 70% chance of seeking treatment for malaria, but there is also considerable spread around this value. Each host has a value $p_i$ drawn from this distribution once at birth. For example, imagine a single individual for which $p_i = 0.1$. This individual has poor access to malaria treatment for one reason or another. If this individual becomes infected *and* if clinical symptoms occur *before* the disease has chance to clear naturally, then this individual will make the decision to obtain treatment with only a 10% probability. If they choose not to seek treatment then the disease will continue until it clears naturally.
+
+Upon treatment, all blood-stage infections are immediately cured, and the host enters a prophylactic stage in which no new infections are possible. Liver stage infections are not directly cured, but infections that leave the liver stage while the host is in the prophylactic stage are considered immediately cured. Sexual stages are not directly cured, although the termination of the diseased stage will lead to the eventual termination of the sexual stage after the appropriate time-lag.
 
 
 ### Infectivity and mosquitoes
 
-The onward infectivity of an inoculation stems from the sexual stage of the parasite. These are also modelled as going through acute and chronic stages, which are lagged from the asexual stages by a fixed duration For example, take an inoculation that transitions from liver stage to acute stage on day 20, then to chronic infection on day 40, then recovers on day 100. If the gametocyte lag parameter `g` is equal to 10 days then the inoculation will enter the acute infective stage on day 30, the chronic infective stage on day 50, and will become uninfective on day 110. The daily infectivity of the acute and chronic stages can be defined flexibly (see above). If a host carries multiple inoculations then the infectivity is taken to be the *maximum* of the infectivity of its inoculations.
+The onward infectivity of an infection stems from the sexual stage of the parasite. These are also modelled as going through acute and chronic stages, which are lagged from the asexual stages by a fixed duration. For example, take an infection that transitions from liver stage to acute stage on day 20, then to chronic infection on day 40, then recovers on day 100. If the gametocyte lag parameter `g` is equal to 10 days then the infection will enter the acute infective stage on day 30, the chronic infective stage on day 50, and will become uninfective on day 110. The daily infectivity of the acute and chronic stages can be defined flexibly (see above). If a host carries multiple infections then the infectivity is taken to be the *maximum* of the infectivity of its individual infections.
 
 Mosquitoes exist in three stages: susceptible, latently infected, and infectious. Upon biting an infectious human host and becoming infected, they enter the latent stage which has fixed duration `v` (the extrinsic incubation period). Upon leaving the latent stage they become infective to humans. Natural death occurs with constant rate `mu` throughout the mosquito lifetime, and every death is matched with a new birth in the susceptible stage, leading to a constant mosquito population size `M` (strictly speaking this is size of the adult female mosquito population).
 

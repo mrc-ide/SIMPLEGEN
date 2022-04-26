@@ -414,3 +414,9 @@ std::vector<std::vector<double>> inverse(std::vector<std::vector<double>> M);
 // values in x_pred must be inside (or equal to) x.
 void cubic_spline(std::vector<double> &x, std::vector<double> &y,
                   std::vector<double> &x_pred, std::vector<double> &y_pred);
+
+//------------------------------------------------
+// works with the R function update_progress() to increment a progress bar by
+// name. If display_updates is false then only update bar at 0% and 100%.
+void update_progress_cpp(Rcpp::List args_progress, Rcpp::Function update_progress_R,
+                         std::string pb_name, int i, int max_i, bool display_updates);

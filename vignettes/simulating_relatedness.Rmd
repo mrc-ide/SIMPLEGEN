@@ -18,12 +18,13 @@ set.seed(1)
 library(SIMPLEGEN)
 ```
 
-We have a tree that tells us how ancestral inoculations map to the present-day sample. But we defined an inoculation as "a population of parasites that are passed from mosquito to human host upon successful infection", meaning a single inoculation can represent multiple parasite genotypes. In this step we go from inoculations to genotypes by simulating from a genetic model.
+We have a tree that tells us how ancestral infections map to the present-day sample. But we defined an infection as "a population of parasites that are passed from mosquito to human host upon successful infection", meaning a single infection can represent multiple parasite genotypes. In this step we go from infections to genotypes by simulating from a genetic model.
 
 Note that we are still thinking in terms of ancestry and relatedness at this stage, rather than alleles and homozygosity which will come later. To make this clear, we will use the term "lineage" to describe genotypes purely in terms of their ancestry.
 
 Simulation steps:
-  - pruned transmission record gives us a set of source inoculation IDs, and a target inoculation ID.
+
+  - pruned transmission record gives us a set of source infection IDs, and a target infection ID.
   - assume that each source ID has a vector of lineage IDs and lineage densities
   - draw the number of oocysts from distribution
   - for each oocyst, draw the parental lineages from their relative densities
@@ -34,7 +35,7 @@ Simulation steps:
   - simplfy by grouping together identical clonal products (and their densities)
   - end result is a new vector of lineage IDs and densities
 
-When drawing de novo, start with a single unique lineage per inoculation. Each individual is monoclonally infected with a unique lineage. Over time, polyclonal infections will accrue and unique lineages will be reshuffled through recombination and lost to drift, meaning the starting condition of the population will be "forgotten". We can keep track of some key genetic measures to work out if we have burned in the simulation for long enough (see implementation vignette (TODO)).
+When drawing de novo, start with a single unique lineage per infection. Each individual is monoclonally infected with a unique lineage. Over time, polyclonal infections will accrue and unique lineages will be reshuffled through recombination and lost to drift, meaning the starting condition of the population will be "forgotten". We can keep track of some key genetic measures to work out if we have burned in the simulation for long enough (see implementation vignette (TODO)).
 
 General comments
   - there is a trade-off between the diversity-generating process of recombination and the diversity-reducing processes of finite sampling

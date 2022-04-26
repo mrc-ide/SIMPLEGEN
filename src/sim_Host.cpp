@@ -1,7 +1,7 @@
 
-#include "Host.h"
-#include "misc_v12.h"
-#include "probability_v14.h"
+#include "sim_Host.h"
+#include "misc_v14.h"
+#include "probability_v17.h"
 
 using namespace std;
 
@@ -14,7 +14,7 @@ using namespace std;
 
 //------------------------------------------------
 // initialise host
-void Host::init(Parameters &params_,
+void sim_Host::init(sim_Parameters &params_,
                 int index, int &host_ID, int deme,
                 vector<vector<int>> &host_index,
                 vector<vector<int>> &host_infective_index,
@@ -29,18 +29,19 @@ void Host::init(Parameters &params_,
   // store pointer to parameters
   params = &params_;
   
-  // identifiers. See host.h for further description
-  this->index = index;
-  this->host_ID = host_ID++;
-  home_deme = deme;
-  this->deme = deme;
+  // identifiers
+  this->index = index;          // where in the population (vector of hosts) this host resides. This index never changes
+  this->host_ID = host_ID++;    // unique ID of this host, modified upon death
+  home_deme = deme;             // deme into which this host was born
+  this->deme = deme;            // deme in which this host currently resides
   
-  // pointers to indices of hosts and infective hosts in each deme
+  // pointers to indices of hosts and infective hosts in each deme. We need
+  // access to these objects so we can modify them upon host migration
   host_index_ptr = &host_index;
   host_infective_index_ptr = &host_infective_index;
   
   // pointers to sampler objects. Used to make efficient random draws from
-  // global distributions
+  // various distributions
   sampler_age_stable_ptr = &sampler_age_stable;
   sampler_age_death_ptr = &sampler_age_death;
   sampler_duration_acute_ptr = &sampler_duration_acute;
@@ -73,17 +74,17 @@ void Host::init(Parameters &params_,
   // draw host-specific treatment-seeking probability
   draw_treatment_seeking();
   
-  // initialise inoculation slots
-  inoc_ID_vec = vector<int>(params->max_inoculations);
-  inoc_active = vector<bool>(params->max_inoculations, false);
-  inoc_state_asexual = vector<State_asexual>(params->max_inoculations, Inactive_asexual);
-  inoc_state_sexual = vector<State_sexual>(params->max_inoculations, Inactive_sexual);
-  inoc_time_asexual = vector<int>(params->max_inoculations);
-  inoc_time_sexual = vector<int>(params->max_inoculations);
+  // initialise infection slots
+  infection_ID_vec = vector<int>(params->max_infections);
+  infection_active = vector<bool>(params->max_infections, false);
+  infection_state_asexual = vector<State_asexual>(params->max_infections, Inactive_asexual);
+  infection_state_sexual = vector<State_sexual>(params->max_infections, Inactive_sexual);
+  infection_time_asexual = vector<int>(params->max_infections);
+  infection_time_sexual = vector<int>(params->max_infections);
   
   // initialise events
-  inoc_events = vector<map<Event, int>>(params->max_inoculations);
-  t_next_inoc_event = params->max_time + 1;
+  infection_events = vector<map<Event, int>>(params->max_infections);
+  t_next_infection_event = params->max_time + 1;
   
 }
 
@@ -92,7 +93,7 @@ void Host::init(Parameters &params_,
 // schedule death for future. Only needed at start of simulation, after which
 // hosts that die are instantly re-born and have death drawn from entire life
 // table
-void Host::draw_starting_age() {
+void sim_Host::draw_starting_age() {
   
   // draw age from stable demography distribution
   int age_years = sampler_age_stable_ptr->draw();
@@ -139,7 +140,7 @@ void Host::draw_starting_age() {
 //------------------------------------------------
 // draw host-specific treatment seeking parameter, either from Beta distribution
 // or Dirac delta distribution (fixed value)
-void Host::draw_treatment_seeking() {
+void sim_Host::draw_treatment_seeking() {
   
   if ((params->treatment_seeking_mean == 0) || (params->treatment_seeking_mean == 1) || (params->treatment_seeking_sd == 0)) {
     treatment_seeking = params->treatment_seeking_mean;
@@ -161,36 +162,36 @@ void Host::draw_treatment_seeking() {
 // rather than testing each generation to see if a host undergoes an event (e.g.
 // acute infection transitioning to chronic), instead we draw the timings of all
 // future events at the point of infection. These events are appended to the
-// inoc_events vector. The value t_next_inoc_event is used to describe the time
+// infection_events vector. The value t_next_infection_event is used to describe the time
 // of the next event in the life of the host, meaning all we have to do in a
 // given generation is test whether the host has an event scheduled for day
-// t_next_inoc_event, and if not we move on to the next host.
+// t_next_infection_event, and if not we move on to the next host.
 // 
 // When a scheduled event occurs we carry out the appropriate function, and
-// simultaneously recalculate t_next_inoc_event to be the time of the next
-// event. Similarly, when a new event is scheduled we append it to inoc_events,
+// simultaneously recalculate t_next_infection_event to be the time of the next
+// event. Similarly, when a new event is scheduled we append it to infection_events,
 // and simultaneously ask whether the new event occurs before the current
-// t_next_inoc_event, in which case it replaces it.
+// t_next_infection_event, in which case it replaces it.
 
 //------------------------------------------------
 // add new infection event to list
-void Host::new_infection_event(int t, Event this_event, int this_slot) {
-  t_next_inoc_event = (t < t_next_inoc_event) ? t : t_next_inoc_event;
-  inoc_events[this_slot].insert(make_pair(this_event, t));
+void sim_Host::new_infection_event(int t, Event this_event, int this_slot) {
+  t_next_infection_event = (t < t_next_infection_event) ? t : t_next_infection_event;
+  infection_events[this_slot].insert(make_pair(this_event, t));
 }
 
 //------------------------------------------------
 // check for any infection-level events that need to be carried out at time t
-void Host::check_infection_event(int t) {
+void sim_Host::check_infection_event(int t) {
   
   // return if nothing scheduled at time t
-  if (t_next_inoc_event != t) {
+  if (t_next_infection_event != t) {
     return;
   }
   
   // deal with treatment at time t before looking for other events
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    for (const auto & x : inoc_events[i]) {
+  for (int i = 0; i < params->max_infections; ++i) {
+    for (const auto & x : infection_events[i]) {
       if ((x.first == Event_become_unwell) && (x.second == t)) {
         become_unwell(t);
         goto treatment_break;
@@ -201,9 +202,9 @@ void Host::check_infection_event(int t) {
   
   // find other events that are scheduled for time t. Simultaneously recalculate
   // the time of next inoc event
-  t_next_inoc_event = params->max_time + 1;
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    for (auto it = inoc_events[i].begin(); it != inoc_events[i].end();) {
+  t_next_infection_event = params->max_time + 1;
+  for (int i = 0; i < params->max_infections; ++i) {
+    for (auto it = infection_events[i].begin(); it != infection_events[i].end();) {
       if (it->second == t) {
         
         // switch depending on event
@@ -239,12 +240,12 @@ void Host::check_infection_event(int t) {
           break;
         }
         
-        // drop this event from inoc_events[i]
-        it = inoc_events[i].erase(it);
+        // drop this event from infection_events[i]
+        it = infection_events[i].erase(it);
         
       } else {
-        if (it->second < t_next_inoc_event) {
-          t_next_inoc_event = it->second;
+        if (it->second < t_next_infection_event) {
+          t_next_infection_event = it->second;
         }
         ++it;
       }
@@ -267,7 +268,7 @@ void Host::check_infection_event(int t) {
 // affect multiple inoculation slots along with other host properties.
 // 
 // Some of these functions can be fiddly. For example, on treatment we move all
-// inoc_state_asexual slots to Inactive_asexual, which is simple enough, but we
+// infection_state_asexual slots to Inactive_asexual, which is simple enough, but we
 // also need to go through all future scheduled events for the progression of
 // this inoculation and update or remove them as needed. For example,
 // progression to chronic infection may be curtailed, and the time of asexual
@@ -275,7 +276,7 @@ void Host::check_infection_event(int t) {
 
 //------------------------------------------------
 // death
-void Host::death(int &host_ID, int t) {
+void sim_Host::death(int &host_ID, int t) {
   
   // move host back to home deme
   migrate(home_deme);
@@ -303,18 +304,18 @@ void Host::death(int &host_ID, int t) {
   time_host_state_change = t;
   
   // reset inoculation slots
-  fill(inoc_ID_vec.begin(), inoc_ID_vec.end(), 0);
-  fill(inoc_active.begin(), inoc_active.end(), false);
-  fill(inoc_state_asexual.begin(), inoc_state_asexual.end(), Inactive_asexual);
-  fill(inoc_state_sexual.begin(), inoc_state_sexual.end(), Inactive_sexual);
-  fill(inoc_time_asexual.begin(), inoc_time_asexual.end(), 0);
-  fill(inoc_time_sexual.begin(), inoc_time_sexual.end(), 0);
+  fill(infection_ID_vec.begin(), infection_ID_vec.end(), 0);
+  fill(infection_active.begin(), infection_active.end(), false);
+  fill(infection_state_asexual.begin(), infection_state_asexual.end(), Inactive_asexual);
+  fill(infection_state_sexual.begin(), infection_state_sexual.end(), Inactive_sexual);
+  fill(infection_time_asexual.begin(), infection_time_asexual.end(), 0);
+  fill(infection_time_sexual.begin(), infection_time_sexual.end(), 0);
   
   // clear all scheduled inoc events
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    inoc_events[i].clear();
+  for (int i = 0; i < params->max_infections; ++i) {
+    infection_events[i].clear();
   }
-  t_next_inoc_event = params->max_time + 1;
+  t_next_infection_event = params->max_time + 1;
   
   // new host will be re-born today
   birth_day = t;
@@ -336,7 +337,7 @@ void Host::death(int &host_ID, int t) {
 
 //------------------------------------------------
 // migrate to new deme
-void Host::migrate(int new_deme) {
+void sim_Host::migrate(int new_deme) {
   
   // return if migration is to current deme
   if (new_deme == deme) {
@@ -365,7 +366,7 @@ void Host::migrate(int new_deme) {
 
 //------------------------------------------------
 // de-novo infection
-void Host::denovo_infection(int t, int &next_infection_ID, std::ofstream &transmission_record) {
+void sim_Host::denovo_infection(int t, int &next_infection_ID, std::ofstream &transmission_record) {
   
   // carry out infection from dummy mosquito
   infection(t, next_infection_ID, -1, -1, transmission_record);
@@ -374,13 +375,13 @@ void Host::denovo_infection(int t, int &next_infection_ID, std::ofstream &transm
 
 //------------------------------------------------
 // infection
-void Host::infection(int t, int &next_infection_ID, int mosquito_ID, int mosquito_infection_ID, std::ofstream &transmission_record) {
+void sim_Host::infection(int t, int &next_infection_ID, int mosquito_ID, int mosquito_infection_ID, std::ofstream &transmission_record) {
   
   // update cumulative infective bites
   cumul_infective_bites++;
   
   // return if already at max_inoculations
-  if (get_n_active_inoc() == params->max_inoculations) {
+  if (get_n_active_inoc() == params->max_infections) {
     return;
   }
   
@@ -398,7 +399,7 @@ void Host::infection(int t, int &next_infection_ID, int mosquito_ID, int mosquit
   }
   
   // get next free inoculation slot
-  int this_slot = get_free_inoc_slot();
+  int this_slot = get_free_infection_slot();
   
   // add new inoculation and increment ID
   new_Eh(this_slot, t, next_infection_ID);
@@ -501,7 +502,7 @@ void Host::infection(int t, int &next_infection_ID, int mosquito_ID, int mosquit
 
 //------------------------------------------------
 // become unwell enough to require treatment
-void Host::become_unwell(int t) {
+void sim_Host::become_unwell(int t) {
   if (rbernoulli1(treatment_seeking)) {
     treatment(t);
   }
@@ -509,7 +510,7 @@ void Host::become_unwell(int t) {
 
 //------------------------------------------------
 // treatment
-void Host::treatment(int t) {
+void sim_Host::treatment(int t) {
   
   // store treatment time
   t_treatment = t;
@@ -547,33 +548,33 @@ void Host::treatment(int t) {
   recalculate_host_state(t);
   
   // loop through inoculations
-  for (int i = 0; i < params->max_inoculations; ++i) {
+  for (int i = 0; i < params->max_infections; ++i) {
     
     // anything that is currently in the acute or chronic stages is cured
-    if ((inoc_state_asexual[i] == Acute_asexual) || (inoc_state_asexual[i] == Chronic_asexual)) {
+    if ((infection_state_asexual[i] == Acute_asexual) || (infection_state_asexual[i] == Chronic_asexual)) {
       
       // if due to become infective at a future time then store these
       // timepoints. Note, this may not be true if already infective
-      bool due_acute_infective = (inoc_events[i].count(Event_begin_infective_acute) != 0);
+      bool due_acute_infective = (infection_events[i].count(Event_begin_infective_acute) != 0);
       int t_infective_start_acute = 0;
       if (due_acute_infective) {
-        t_infective_start_acute = inoc_events[i][Event_begin_infective_acute];
+        t_infective_start_acute = infection_events[i][Event_begin_infective_acute];
       }
       
-      bool due_chronic_infective = (inoc_events[i].count(Event_begin_infective_chronic) != 0);
+      bool due_chronic_infective = (infection_events[i].count(Event_begin_infective_chronic) != 0);
       int t_infective_start_chronic = 0;
       if (due_chronic_infective) {
-        t_infective_start_chronic = inoc_events[i][Event_begin_infective_chronic];
+        t_infective_start_chronic = infection_events[i][Event_begin_infective_chronic];
       }
       
       // get time to infectious end
       int t_infective_end = t + params->g;
       
       // clear bloodstage infection
-      inoc_state_asexual[i] = Inactive_asexual;
+      infection_state_asexual[i] = Inactive_asexual;
       
       // clear all scheduled events
-      inoc_events[i].clear();
+      infection_events[i].clear();
       
       // reinstate infectious start if needed
       if (due_acute_infective && (t_infective_start_acute < t_infective_end)) {
@@ -590,28 +591,28 @@ void Host::treatment(int t) {
     
     // anything that is scheduled to emerge from the liver during the
     // prophylactic period is cured immediately upon emergence
-    if (inoc_state_asexual[i] == Liverstage_asexual) {
+    if (infection_state_asexual[i] == Liverstage_asexual) {
       
       // inoculations that will emerge to acute stage
-      if ((inoc_events[i].count(Event_Eh_to_Ah) != 0) && (inoc_events[i][Event_Eh_to_Ah] <= t2)) {
+      if ((infection_events[i].count(Event_Eh_to_Ah) != 0) && (infection_events[i][Event_Eh_to_Ah] <= t2)) {
         
         // store time at which due to emerge
-        int t_emerge = inoc_events[i][Event_Eh_to_Ah];
+        int t_emerge = infection_events[i][Event_Eh_to_Ah];
         
         // clear all scheduled events
-        inoc_events[i].clear();
+        infection_events[i].clear();
         
         // reschedule progression directly to clearance
         new_infection_event(t_emerge, Event_Eh_to_Sh, i);
         
       // inoculations that will emerge to chronic stage
-      } else if ((inoc_events[i].count(Event_Eh_to_Ch) != 0) && (inoc_events[i][Event_Eh_to_Ch] <= t2)) {
+      } else if ((infection_events[i].count(Event_Eh_to_Ch) != 0) && (infection_events[i][Event_Eh_to_Ch] <= t2)) {
         
         // store time at which due to emerge
-        int t_emerge = inoc_events[i][Event_Eh_to_Ch];
+        int t_emerge = infection_events[i][Event_Eh_to_Ch];
         
         // clear all scheduled events
-        inoc_events[i].clear();
+        infection_events[i].clear();
         
         // reschedule progression directly to clearance
         new_infection_event(t_emerge, Event_Eh_to_Sh, i);
@@ -622,19 +623,19 @@ void Host::treatment(int t) {
   }  // end i loop through inoculations
   
   // recalculate time of next event
-  t_next_inoc_event = params->max_time + 1;
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    for (const auto & x : inoc_events[i]) {
+  t_next_infection_event = params->max_time + 1;
+  for (int i = 0; i < params->max_infections; ++i) {
+    for (const auto & x : infection_events[i]) {
       
       // catch to ensure that events cannot predate current time
       if (x.second < t) {
         print("time =", t);
-        print_inoc_state();
-        print_inoc_events();
-        Rcpp::stop("error in Host::treatment(), events found that predate current time");
+        print_infection_state();
+        print_infection_events();
+        Rcpp::stop("error in sim_Host::treatment(), events found that predate current time");
       }
-      if (x.second < t_next_inoc_event) {
-        t_next_inoc_event = x.second;
+      if (x.second < t_next_infection_event) {
+        t_next_infection_event = x.second;
       }
     }
   }
@@ -643,7 +644,7 @@ void Host::treatment(int t) {
 
 //------------------------------------------------
 // end prophylactic period
-void Host::end_prophylaxis() {
+void sim_Host::end_prophylaxis() {
   prophylaxis_on = false;
 }
 
@@ -657,19 +658,19 @@ void Host::end_prophylaxis() {
 
 //------------------------------------------------
 // new Eh inoculation
-void Host::new_Eh(int this_slot, int t, int &next_infection_ID) {
+void sim_Host::new_Eh(int this_slot, int t, int &next_infection_ID) {
   
   // add inoculation ID and increment
-  inoc_ID_vec[this_slot] = next_infection_ID++;
+  infection_ID_vec[this_slot] = next_infection_ID++;
   
   // mark inoculation as active
-  inoc_active[this_slot] = true;
+  infection_active[this_slot] = true;
   
   // update inoculation state
-  inoc_state_asexual[this_slot] = Liverstage_asexual;
+  infection_state_asexual[this_slot] = Liverstage_asexual;
   
   // store time
-  inoc_time_asexual[this_slot] = t;
+  infection_time_asexual[this_slot] = t;
   
   // recalculate host state
   recalculate_host_state(t);
@@ -678,13 +679,13 @@ void Host::new_Eh(int this_slot, int t, int &next_infection_ID) {
 
 //------------------------------------------------
 // move inoculation from Eh to Ah
-void Host::Eh_to_Ah(int this_slot, int t) {
+void sim_Host::Eh_to_Ah(int this_slot, int t) {
   
   // update inoculation state
-  inoc_state_asexual[this_slot] = Acute_asexual;
+  infection_state_asexual[this_slot] = Acute_asexual;
   
   // store time
-  inoc_time_asexual[this_slot] = t;
+  infection_time_asexual[this_slot] = t;
   
   // recalculate host state
   recalculate_host_state(t);
@@ -693,13 +694,13 @@ void Host::Eh_to_Ah(int this_slot, int t) {
 
 //------------------------------------------------
 // move inoculation from Eh to Ch
-void Host::Eh_to_Ch(int this_slot, int t) {
+void sim_Host::Eh_to_Ch(int this_slot, int t) {
   
   // update inoculation state
-  inoc_state_asexual[this_slot] = Chronic_asexual;
+  infection_state_asexual[this_slot] = Chronic_asexual;
   
   // store time
-  inoc_time_asexual[this_slot] = t;
+  infection_time_asexual[this_slot] = t;
   
   // recalculate host state
   recalculate_host_state(t);
@@ -709,13 +710,13 @@ void Host::Eh_to_Ch(int this_slot, int t) {
 //------------------------------------------------
 // move inoculation from Eh directly to Sh, e.g. if emerges from liver stage
 // during prophylactic period
-void Host::Eh_to_Sh(int this_slot, int t) {
+void sim_Host::Eh_to_Sh(int this_slot, int t) {
   
   // update inoculation state
-  inoc_state_asexual[this_slot] = Inactive_asexual;
+  infection_state_asexual[this_slot] = Inactive_asexual;
   
   // store time
-  inoc_time_asexual[this_slot] = t;
+  infection_time_asexual[this_slot] = t;
   
   // recalculate host state
   recalculate_host_state(t);
@@ -724,13 +725,13 @@ void Host::Eh_to_Sh(int this_slot, int t) {
 
 //------------------------------------------------
 // move inoculation from Ah to Ch
-void Host::Ah_to_Ch(int this_slot, int t) {
+void sim_Host::Ah_to_Ch(int this_slot, int t) {
   
   // update inoculation state
-  inoc_state_asexual[this_slot] = Chronic_asexual;
+  infection_state_asexual[this_slot] = Chronic_asexual;
   
   // store time
-  inoc_time_asexual[this_slot] = t;
+  infection_time_asexual[this_slot] = t;
   
   // recalculate host state
   recalculate_host_state(t);
@@ -739,13 +740,13 @@ void Host::Ah_to_Ch(int this_slot, int t) {
 
 //------------------------------------------------
 // move inoculation from Ah to Sh
-void Host::Ah_to_Sh(int this_slot, int t) {
+void sim_Host::Ah_to_Sh(int this_slot, int t) {
   
   // update inoculation state
-  inoc_state_asexual[this_slot] = Inactive_asexual;
+  infection_state_asexual[this_slot] = Inactive_asexual;
   
   // store time
-  inoc_time_asexual[this_slot] = t;
+  infection_time_asexual[this_slot] = t;
   
   // recalculate host state
   recalculate_host_state(t);
@@ -754,13 +755,13 @@ void Host::Ah_to_Sh(int this_slot, int t) {
 
 //------------------------------------------------
 // move inoculation from Ch to Sh
-void Host::Ch_to_Sh(int this_slot, int t) {
+void sim_Host::Ch_to_Sh(int this_slot, int t) {
   
   // update inoculation state
-  inoc_state_asexual[this_slot] = Inactive_asexual;
+  infection_state_asexual[this_slot] = Inactive_asexual;
   
   // store time
-  inoc_time_asexual[this_slot] = t;
+  infection_time_asexual[this_slot] = t;
   
   // recalculate host state
   recalculate_host_state(t);
@@ -769,13 +770,13 @@ void Host::Ch_to_Sh(int this_slot, int t) {
 
 //------------------------------------------------
 // begin acutely infective period
-void Host::begin_infective_acute(int this_slot, int t) {
+void sim_Host::begin_infective_acute(int this_slot, int t) {
   
   // update inoculation state
-  inoc_state_sexual[this_slot] = Acute_sexual;
+  infection_state_sexual[this_slot] = Acute_sexual;
   
   // store time
-  inoc_time_sexual[this_slot] = t;
+  infection_time_sexual[this_slot] = t;
   
   // if newly infective then add to infectives list
   if (get_n_infective() == 1) {
@@ -786,16 +787,16 @@ void Host::begin_infective_acute(int this_slot, int t) {
 
 //------------------------------------------------
 // begin chronically infective period
-void Host::begin_infective_chronic(int this_slot, int t) {
+void sim_Host::begin_infective_chronic(int this_slot, int t) {
   
   // get current inoculation state
-  State_sexual current_state = inoc_state_sexual[this_slot];
+  State_sexual current_state = infection_state_sexual[this_slot];
   
   // update inoculation state
-  inoc_state_sexual[this_slot] = Chronic_sexual;
+  infection_state_sexual[this_slot] = Chronic_sexual;
   
   // store time
-  inoc_time_sexual[this_slot] = t;
+  infection_time_sexual[this_slot] = t;
   
   // if newly infective then add to infectives list
   if ((current_state == Inactive_sexual) && (get_n_infective() == 1)) {
@@ -806,15 +807,15 @@ void Host::begin_infective_chronic(int this_slot, int t) {
 
 //------------------------------------------------
 // end infective period
-void Host::end_infective(int this_slot) {
+void sim_Host::end_infective(int this_slot) {
   
   // update host state
-  inoc_state_sexual[this_slot] = Inactive_sexual;
-  inoc_active[this_slot] = false;
+  infection_state_sexual[this_slot] = Inactive_sexual;
+  infection_active[this_slot] = false;
   
   // reset times
-  inoc_time_asexual[this_slot] = 0;
-  inoc_time_sexual[this_slot] = 0;
+  infection_time_asexual[this_slot] = 0;
+  infection_time_sexual[this_slot] = 0;
   
   // if no longer infective then drop from infectives list
   if (get_n_infective() == 0) {
@@ -825,7 +826,7 @@ void Host::end_infective(int this_slot) {
 
 //------------------------------------------------
 // recalculate host state from inoculations
-void Host::recalculate_host_state(int t) {
+void sim_Host::recalculate_host_state(int t) {
   
   // store host state before recalculating
   State_host state_before = host_state;
@@ -835,14 +836,14 @@ void Host::recalculate_host_state(int t) {
     host_state = Host_Ph;
   } else {
     host_state = Host_Sh;
-    for (int i = 0; i < params->max_inoculations; ++i) {
-      if ((host_state == Host_Sh) && (inoc_state_asexual[i] == Liverstage_asexual)) {
+    for (int i = 0; i < params->max_infections; ++i) {
+      if ((host_state == Host_Sh) && (infection_state_asexual[i] == Liverstage_asexual)) {
         host_state = Host_Eh;
       }
-      if ((host_state == Host_Sh || host_state == Host_Eh) && (inoc_state_asexual[i] == Chronic_asexual)) {
+      if ((host_state == Host_Sh || host_state == Host_Eh) && (infection_state_asexual[i] == Chronic_asexual)) {
         host_state = Host_Ch;
       }
-      if ((host_state == Host_Sh || host_state == Host_Eh || host_state == Host_Ch) && (inoc_state_asexual[i] == Acute_asexual)) {
+      if ((host_state == Host_Sh || host_state == Host_Eh || host_state == Host_Ch) && (infection_state_asexual[i] == Acute_asexual)) {
         host_state = Host_Ah;
         break;
       }
@@ -865,19 +866,19 @@ void Host::recalculate_host_state(int t) {
 
 //------------------------------------------------
 // get next free inoculation slot
-int Host::get_free_inoc_slot() {
+int sim_Host::get_free_infection_slot() {
   
   // loop until find inactive slot
   int ret = 0;
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    if (!inoc_active[i]) {
+  for (int i = 0; i < params->max_infections; ++i) {
+    if (!infection_active[i]) {
       break;
     }
     ret++;
   }
   
   // error check for outside range
-  if (ret == params->max_inoculations) {
+  if (ret == params->max_infections) {
     Rcpp::stop("could not find free inoculation slot");
   }
   
@@ -886,17 +887,17 @@ int Host::get_free_inoc_slot() {
 
 //------------------------------------------------
 // get total number of active inoculations
-int Host::get_n_active_inoc() {
-  return sum_bool(inoc_active);
+int sim_Host::get_n_active_inoc() {
+  return sum_bool(infection_active);
 }
 
 //------------------------------------------------
 // return vector of inoc IDs taken from infective inoculations
-vector<int> Host::get_inoc_ID_vec() {
+vector<int> sim_Host::get_infection_ID_vec() {
   vector<int> ret;
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    if (inoc_state_sexual[i] != Inactive_sexual) {
-      ret.push_back(inoc_ID_vec[i]);
+  for (int i = 0; i < params->max_infections; ++i) {
+    if (infection_state_sexual[i] != Inactive_sexual) {
+      ret.push_back(infection_ID_vec[i]);
     }
   }
   return ret;
@@ -904,16 +905,16 @@ vector<int> Host::get_inoc_ID_vec() {
 
 //------------------------------------------------
 // get host state
-State_host Host::get_host_state() {
+State_host sim_Host::get_host_state() {
   return host_state;
 }
 
 //------------------------------------------------
 // get total number of liverstage inoculations
-int Host::get_n_liverstage() {
+int sim_Host::get_n_liverstage() {
   int ret = 0;
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    if (inoc_state_asexual[i] == Liverstage_asexual) {
+  for (int i = 0; i < params->max_infections; ++i) {
+    if (infection_state_asexual[i] == Liverstage_asexual) {
       ret ++;
     }
   }
@@ -922,10 +923,10 @@ int Host::get_n_liverstage() {
 
 //------------------------------------------------
 // get total number of acute bloodstage inoculations
-int Host::get_n_bloodstage_acute() {
+int sim_Host::get_n_bloodstage_acute() {
   int ret = 0;
-  for (unsigned int i = 0; i < inoc_state_asexual.size(); ++i) {
-    if (inoc_state_asexual[i] == Acute_asexual) {
+  for (unsigned int i = 0; i < infection_state_asexual.size(); ++i) {
+    if (infection_state_asexual[i] == Acute_asexual) {
       ret ++;
     }
   }
@@ -934,10 +935,10 @@ int Host::get_n_bloodstage_acute() {
 
 //------------------------------------------------
 // get total number of chronic bloodstage inoculations
-int Host::get_n_bloodstage_chronic() {
+int sim_Host::get_n_bloodstage_chronic() {
   int ret = 0;
-  for (unsigned int i = 0; i < inoc_state_asexual.size(); ++i) {
-    if (inoc_state_asexual[i] == Chronic_asexual) {
+  for (unsigned int i = 0; i < infection_state_asexual.size(); ++i) {
+    if (infection_state_asexual[i] == Chronic_asexual) {
       ret ++;
     }
   }
@@ -946,22 +947,22 @@ int Host::get_n_bloodstage_chronic() {
 
 //------------------------------------------------
 // get total number of bloodstage inoculations
-int Host::get_n_bloodstage() {
+int sim_Host::get_n_bloodstage() {
   return get_n_bloodstage_acute() + get_n_bloodstage_chronic();
 }
 
 //------------------------------------------------
 // get total number of asexual stage inoculations
-int Host::get_n_asexual() {
+int sim_Host::get_n_asexual() {
   return get_n_liverstage() + get_n_bloodstage();
 }
 
 //------------------------------------------------
 // get total number of infective (sexual stage) inoculations
-int Host::get_n_infective() {
+int sim_Host::get_n_infective() {
   int ret = 0;
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    if (inoc_state_sexual[i] == Acute_sexual || inoc_state_sexual[i] == Chronic_sexual) {
+  for (int i = 0; i < params->max_infections; ++i) {
+    if (infection_state_sexual[i] == Acute_sexual || infection_state_sexual[i] == Chronic_sexual) {
       ret ++;
     }
   }
@@ -970,10 +971,10 @@ int Host::get_n_infective() {
 
 //------------------------------------------------
 // get current probability of infection
-double Host::get_prob_infection() {
+double sim_Host::get_prob_infection() {
   
   // situations in which zero chance of infection
-  if ((get_n_active_inoc() == params->max_inoculations) || prophylaxis_on) {
+  if ((get_n_active_inoc() == params->max_infections) || prophylaxis_on) {
     return 0.0;
   }
   
@@ -984,72 +985,72 @@ double Host::get_prob_infection() {
 
 //------------------------------------------------
 // get current probability of going to acute infection
-double Host::get_prob_acute() {
+double sim_Host::get_prob_acute() {
   int tmp = (cumul_infections < params->n_prob_acute) ? cumul_infections : params->n_prob_acute - 1;
   return params->prob_acute[tmp];
 }
 
 //------------------------------------------------
 // get current probability of going to chronic from acute infection
-double Host::get_prob_AC() {
+double sim_Host::get_prob_AC() {
   int tmp = (cumul_infections < params->n_prob_AC) ? cumul_infections : params->n_prob_AC - 1;
   return params->prob_AC[tmp];
 }
 
 //------------------------------------------------
 // draw duration of acute disease
-int Host::draw_duration_acute() {
+int sim_Host::draw_duration_acute() {
   int tmp = (cumul_infections < params->n_duration_acute) ? cumul_infections : params->n_duration_acute - 1;
   return (*sampler_duration_acute_ptr)[tmp].draw();
 }
 
 //------------------------------------------------
 // draw duration of chronic disease
-int Host::draw_duration_chronic() {
+int sim_Host::draw_duration_chronic() {
   int tmp = (cumul_infections < params->n_duration_chronic) ? cumul_infections : params->n_duration_chronic - 1;
   return (*sampler_duration_chronic_ptr)[tmp].draw();
 }
 
 //------------------------------------------------
 // draw time until treatment of acute disease
-int Host::draw_time_treatment_acute() {
+int sim_Host::draw_time_treatment_acute() {
   int tmp = (cumul_infections < params->n_time_treatment_acute) ? cumul_infections : params->n_time_treatment_acute - 1;
   return (*sampler_time_treatment_acute_ptr)[tmp].draw();
 }
 
 //------------------------------------------------
 // draw time until treatment of chronic disease
-int Host::draw_time_treatment_chronic() {
+int sim_Host::draw_time_treatment_chronic() {
   int tmp = (cumul_infections < params->n_time_treatment_chronic) ? cumul_infections : params->n_time_treatment_chronic - 1;
   return (*sampler_time_treatment_chronic_ptr)[tmp].draw();
 }
 
 //------------------------------------------------
 // draw duration of prophylaxis
-int Host::draw_duration_prophylaxis() {
+int sim_Host::draw_duration_prophylaxis() {
   int tmp = (cumul_infections < params->n_duration_prophylactic) ? cumul_infections : params->n_duration_prophylactic - 1;
   return (*sampler_duration_prophylatic_ptr)[tmp].draw();
 }
 
 //------------------------------------------------
 // get current detectability by microscopy over acute inoculations
-double Host::get_detectability_microscopy_acute(int t) {
+double sim_Host::get_detectability_microscopy_acute(int t) {
   
   // acute detectability is the max detectability over all acute inoculations
   double ret = 0;
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    if (inoc_state_asexual[i] == Acute_asexual) {
+  for (int i = 0; i < params->max_infections; ++i) {
+    if (infection_state_asexual[i] == Acute_asexual) {
       
       // get time since entered acute state
-      int time_diff = t - inoc_time_asexual[i];
+      int time_diff = t - infection_time_asexual[i];
       
       // get detectability from appropriate distribution
       int tmp1 = (cumul_infections < params->n_detectability_microscopy_acute) ? cumul_infections : params->n_detectability_microscopy_acute - 1;
       int tmp2 = (time_diff < int(params->detectability_microscopy_acute[tmp1].size())) ? time_diff : int(params->detectability_microscopy_acute[tmp1].size()) - 1;
-      double inoc_detectability = params->detectability_microscopy_acute[tmp1][tmp2];
+      double infection_detectability = params->detectability_microscopy_acute[tmp1][tmp2];
       
-      // ret is max of ret and inoc_detectability
-      ret = (ret > inoc_detectability) ? ret : inoc_detectability;
+      // ret is max of ret and infection_detectability
+      ret = (ret > infection_detectability) ? ret : infection_detectability;
     }
   }
   
@@ -1058,23 +1059,23 @@ double Host::get_detectability_microscopy_acute(int t) {
 
 //------------------------------------------------
 // get current detectability by microscopy over chronic inoculations
-double Host::get_detectability_microscopy_chronic(int t) {
+double sim_Host::get_detectability_microscopy_chronic(int t) {
   
   // chronic detectability is the max detectability over all chronic inoculations
   double ret = 0;
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    if (inoc_state_asexual[i] == Chronic_asexual) {
+  for (int i = 0; i < params->max_infections; ++i) {
+    if (infection_state_asexual[i] == Chronic_asexual) {
       
       // get time since entered chronic state
-      int time_diff = t - inoc_time_asexual[i];
+      int time_diff = t - infection_time_asexual[i];
       
       // get detectability from appropriate distribution
       int tmp1 = (cumul_infections < params->n_detectability_microscopy_chronic) ? cumul_infections : params->n_detectability_microscopy_chronic - 1;
       int tmp2 = (time_diff < int(params->detectability_microscopy_chronic[tmp1].size())) ? time_diff : int(params->detectability_microscopy_chronic[tmp1].size()) - 1;
-      double inoc_detectability = params->detectability_microscopy_chronic[tmp1][tmp2];
+      double infection_detectability = params->detectability_microscopy_chronic[tmp1][tmp2];
       
-      // ret is max of ret and inoc_detectability
-      ret = (ret > inoc_detectability) ? ret : inoc_detectability;
+      // ret is max of ret and infection_detectability
+      ret = (ret > infection_detectability) ? ret : infection_detectability;
     }
   }
   
@@ -1083,23 +1084,23 @@ double Host::get_detectability_microscopy_chronic(int t) {
 
 //------------------------------------------------
 // get current detectability by PCR over acute inoculations
-double Host::get_detectability_PCR_acute(int t) {
+double sim_Host::get_detectability_PCR_acute(int t) {
   
   // acute detectability is the max detectability over all acute inoculations
   double ret = 0;
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    if (inoc_state_asexual[i] == Acute_asexual) {
+  for (int i = 0; i < params->max_infections; ++i) {
+    if (infection_state_asexual[i] == Acute_asexual) {
       
       // get time since entered acute state
-      int time_diff = t - inoc_time_asexual[i];
+      int time_diff = t - infection_time_asexual[i];
       
       // get detectability from appropriate distribution
       int tmp1 = (cumul_infections < params->n_detectability_PCR_acute) ? cumul_infections : params->n_detectability_PCR_acute - 1;
       int tmp2 = (time_diff < int(params->detectability_PCR_acute[tmp1].size())) ? time_diff : int(params->detectability_PCR_acute[tmp1].size()) - 1;
-      double inoc_detectability = params->detectability_PCR_acute[tmp1][tmp2];
+      double infection_detectability = params->detectability_PCR_acute[tmp1][tmp2];
       
-      // ret is max of ret and inoc_detectability
-      ret = (ret > inoc_detectability) ? ret : inoc_detectability;
+      // ret is max of ret and infection_detectability
+      ret = (ret > infection_detectability) ? ret : infection_detectability;
     }
   }
   
@@ -1108,23 +1109,23 @@ double Host::get_detectability_PCR_acute(int t) {
 
 //------------------------------------------------
 // get current detectability by PCR over chronic inoculations
-double Host::get_detectability_PCR_chronic(int t) {
+double sim_Host::get_detectability_PCR_chronic(int t) {
   
   // chronic detectability is the max detectability over all chronic inoculations
   double ret = 0;
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    if (inoc_state_asexual[i] == Chronic_asexual) {
+  for (int i = 0; i < params->max_infections; ++i) {
+    if (infection_state_asexual[i] == Chronic_asexual) {
       
       // get time since entered chronic state
-      int time_diff = t - inoc_time_asexual[i];
+      int time_diff = t - infection_time_asexual[i];
       
       // get detectability from appropriate distribution
       int tmp1 = (cumul_infections < params->n_detectability_PCR_chronic) ? cumul_infections : params->n_detectability_PCR_chronic - 1;
       int tmp2 = (time_diff < int(params->detectability_PCR_chronic[tmp1].size())) ? time_diff : int(params->detectability_PCR_chronic[tmp1].size()) - 1;
-      double inoc_detectability = params->detectability_PCR_chronic[tmp1][tmp2];
+      double infection_detectability = params->detectability_PCR_chronic[tmp1][tmp2];
       
-      // ret is max of ret and inoc_detectability
-      ret = (ret > inoc_detectability) ? ret : inoc_detectability;
+      // ret is max of ret and infection_detectability
+      ret = (ret > infection_detectability) ? ret : infection_detectability;
     }
   }
   
@@ -1133,36 +1134,36 @@ double Host::get_detectability_PCR_chronic(int t) {
 
 //------------------------------------------------
 // get current infectivity
-double Host::get_infectivity(int t) {
+double sim_Host::get_infectivity(int t) {
   
   // host infectivity is the max infectivity over all inoculations
   double ret = 0;
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    if ((inoc_state_sexual[i] == Acute_sexual) || (inoc_state_sexual[i] == Chronic_sexual)) {
+  for (int i = 0; i < params->max_infections; ++i) {
+    if ((infection_state_sexual[i] == Acute_sexual) || (infection_state_sexual[i] == Chronic_sexual)) {
       
       // get time since became infective
-      int time_diff = t - inoc_time_sexual[i];
+      int time_diff = t - infection_time_sexual[i];
       
       // split by acute vs. chronic infectivity
-      double inoc_infectivity;
-      if (inoc_state_sexual[i] == Acute_sexual) {
+      double infection_infectivity;
+      if (infection_state_sexual[i] == Acute_sexual) {
         
         // get infectivity from appropriate distribution
         int tmp1 = (cumul_infections < params->n_infectivity_acute) ? cumul_infections : params->n_infectivity_acute-1;
         int tmp2 = (time_diff < int(params->infectivity_acute[tmp1].size())) ? time_diff : int(params->infectivity_acute[tmp1].size())-1;
-        inoc_infectivity = params->infectivity_acute[tmp1][tmp2];
+        infection_infectivity = params->infectivity_acute[tmp1][tmp2];
         
       } else {
         
         // get infectivity from appropriate distribution
         int tmp1 = (cumul_infections < params->n_infectivity_chronic) ? cumul_infections : params->n_infectivity_chronic-1;
         int tmp2 = (time_diff < int(params->infectivity_chronic[tmp1].size())) ? time_diff : int(params->infectivity_chronic[tmp1].size())-1;
-        inoc_infectivity = params->infectivity_chronic[tmp1][tmp2];
+        infection_infectivity = params->infectivity_chronic[tmp1][tmp2];
         
       }
       
-      // ret is max of ret and inoc_infectivity
-      ret = (ret > inoc_infectivity) ? ret : inoc_infectivity;
+      // ret is max of ret and infection_infectivity
+      ret = (ret > infection_infectivity) ? ret : infection_infectivity;
     }
   }
   
@@ -1171,7 +1172,7 @@ double Host::get_infectivity(int t) {
 
 //------------------------------------------------
 // get host age in years at time t
-int Host::get_age(int t) {
+int sim_Host::get_age(int t) {
   return (t - birth_day) / 365;
 }
 
@@ -1184,7 +1185,7 @@ int Host::get_age(int t) {
 
 //------------------------------------------------
 // return prevalence/incidence/counts output for daily and sweep outputs
-double Host::get_output(Measure measure, 
+double sim_Host::get_output(Measure measure, 
                         Model_state state,
                         Diagnostic diagnostic,
                         int age_min,
@@ -1262,7 +1263,7 @@ double Host::get_output(Measure measure,
 // return flag whether this individual should be included in individual-level
 // output. diagnostic_result is passed by reference and stores whether the
 // individual is malaria positive
-bool Host::get_indiv_output(Measure measure, 
+bool sim_Host::get_indiv_output(Measure measure, 
                             Sampling sampling,
                             Diagnostic diagnostic,
                             int age_min,
@@ -1359,10 +1360,10 @@ bool Host::get_indiv_output(Measure measure,
 
 //------------------------------------------------
 // print innoc_events
-void Host::print_inoc_events() {
+void sim_Host::print_infection_events() {
   
-  for (int i = 0; i < params->max_inoculations; ++i) {
-    for (const auto & x : inoc_events[i]) {
+  for (int i = 0; i < params->max_infections; ++i) {
+    for (const auto & x : infection_events[i]) {
       Rcpp::Rcout << "[" << x.first << ", " << x.second << "] ";
     }
     Rcpp::Rcout << "\n";
@@ -1371,24 +1372,24 @@ void Host::print_inoc_events() {
 
 //------------------------------------------------
 // print state of inoc slots
-void Host::print_inoc_state() {
+void sim_Host::print_infection_state() {
   Rcpp::Rcout << "host_ID: " << host_ID << "\n";
-  Rcpp::Rcout << "inoc_ID: ";
-  print_vector(inoc_ID_vec);
+  Rcpp::Rcout << "infection_ID: ";
+  print_vector(infection_ID_vec);
   Rcpp::Rcout << "active : ";
-  print_vector(inoc_active);
+  print_vector(infection_active);
   Rcpp::Rcout << "asex   : ";
-  print_vector(inoc_state_asexual);
+  print_vector(infection_state_asexual);
   Rcpp::Rcout << "sex    : ";
-  print_vector(inoc_state_sexual);
+  print_vector(infection_state_sexual);
   Rcpp::Rcout << "time   : ";
-  print_vector(inoc_time_sexual);
+  print_vector(infection_time_sexual);
 }
 
 //------------------------------------------------
 // if host carries any infective inoculations, check that host index is present
 // in host_infective_index
-void Host::check_host_infective_index(int x) {
+void sim_Host::check_host_infective_index(int x) {
   
   if ((get_n_infective() != 0) && (!is_in_vector(index, (*host_infective_index_ptr)[deme]))) {
     print(x);
