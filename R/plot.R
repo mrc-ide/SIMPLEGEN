@@ -331,8 +331,8 @@ plot_age_states <- function(project, sample_time = NULL, deme = 1, state = "S") 
 epiPlots <- function(model_out, dataname) {
   
   #check input
-  assert_class(mode_out[[1]], "simplegen_project")
-  assert_class(mode_out, "list")
+  assert_class(model_out[[1]], "simplegen_project")
+  assert_class(model_out, "list")
   assert_in(state, c("micro_vs_PCR", "prevalence_EIR", "prevalence_incidence"))
   
   
