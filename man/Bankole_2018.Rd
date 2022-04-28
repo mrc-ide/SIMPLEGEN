@@ -12,6 +12,7 @@ A dataframe with 27 columns, giving sample IDs and locations (columns
 }
 \source{
 \href{https://malariajournal.biomedcentral.com/articles/10.1186/s12936-018-2623-8}{Data in main paper}
+  
   \href{https://tabula.technology/}{Tabula data extractor}
 }
 \usage{
