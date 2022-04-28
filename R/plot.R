@@ -391,7 +391,7 @@ epiPlots <- function(model_out, dataname) {
       theme_bw() +
       labs_pubr(base_size = 14) +
       xlab("Prevalence by PCR") +
-      ylab("Prevalence by Microscopy") +
+      ylab("Prevalence by microscopy") +
       labs(colour = "Source")
     p
     set_palette(p, "npg")
