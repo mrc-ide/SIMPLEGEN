@@ -659,3 +659,48 @@
 #' @importFrom Rdpack reprompt
 #' 
 "Galinsky_2015"
+
+#------------------------------------------------
+#' 250-SNP barcode reveals connectivity on Colombian-Pacific coast (Taylor et al., 2020)
+#' 
+#' Data from Taylor et al. (2020). Here we give a brief summary of the data -
+#' see the original paper for full details.
+#' \cr
+#' \cr
+#' The study by Taylor et al. (2020) uses data from a previously published study
+#' by Echeverry et al. (2013). Samples were obtained from patients with
+#' symptomatic uncomplicated malaria, and were collected between 1993 and 2007
+#' from five cities in four provinces of Colombia. Samples were genotyped using
+#' a 250-SNP barcode. These samples were all considered to be monoclonal
+#' infections, therefore any heterozygous genotype calls were recoded as missing
+#' data. Note that markers were re-ordered post-publication, but this did not
+#' qualitatively alter any of the major conclusions
+#' (\href{#'https://github.com/aimeertaylor/ColombianBarcode/blob/master/README.md}{see
+#' Github README}).
+#'
+#' @docType data
+#'
+#' @usage data(Taylor_2020)
+#'
+#' @format A dataframe with 257 columns, giving the sample ID (column 1),
+#'   multi-locus genotype ID (column 2), collection place and time (columns
+#'   3:5), the genotype call at all 250 SNPs (columns 6:255), the number of
+#'   heterozygous loci in the original data (now recoded as missing) (column
+#'   256) and the collection year (column 257, matches info in column 5).
+#'   Genotype values give 0 for minor allele, 1 for major allele, or NA for
+#'   missing data. Samples were considered monoclonal and therefore any
+#'   heterozygous calls were recoded as missing data.
+#'   
+#' @keywords datasets
+#'
+#' @references
+#' \insertRef{taylor_identity-by-descent_2020}{SIMPLEGEN}
+#' 
+#' \insertRef{echeverry_long_2013}{SIMPLEGEN}
+#'
+#' @source
+#'   \href{https://github.com/aimeertaylor/ColombianBarcode}{Associated Github repository}
+#' 
+#' @importFrom Rdpack reprompt
+#' 
+"Taylor_2020"
