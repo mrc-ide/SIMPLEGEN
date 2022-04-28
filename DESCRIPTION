@@ -35,7 +35,8 @@ Imports:
     ggsci,
     lubridate,
     rlang,
-    dplyr
+    dplyr,
+    Rdpack
 SystemRequirements: C++11
 Suggests: 
     testthat (>= 2.1.0),
@@ -44,3 +45,5 @@ Suggests:
     rmarkdown,
     devtools
 VignetteBuilder: knitr
+RdMacros: Rdpack
+
