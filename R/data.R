@@ -225,12 +225,10 @@
 #'   in 2014 in Ndiop was recorded as "0.0" in the paper, and so has been coded
 #'   as "<0.05" here to indicate the precision of this estimate.
 #'   
-#'   \code{barcodes}: A dataframe with 35 columns. Gives sample characteristics
-#'   (columns 1:8), the estimated COI and whether this indicates a
-#'   monogenomic/polygenomic infection (columns 9:10), the individual SNPs
-#'   (columns 11:34) and the corresponding haplotype, if known (column 35). The
-#'   "Location" column has been added from the original data in the paper, as
-#'   this was indicated by colour code and so was lost in processing.
+#'   \code{barcodes}: A dataframe with 34 columns. Gives sample characteristics
+#'   (columns 1:7), the estimated COI and whether this indicates a
+#'   monogenomic/polygenomic infection (columns 8:9), the individual SNPs
+#'   (columns 10:33) and the corresponding haplotype, if known (column 34).
 #'   
 #'   \code{SNP_locations}: A dataframe that acts as a key relating the SNP codes
 #'   present in \code{barcodes} to the corresponding genomic location.
@@ -312,6 +310,7 @@
 #'
 #' @source
 #'   \href{https://malariajournal.biomedcentral.com/articles/10.1186/s12936-018-2623-8}{Data in main paper}
+#'   
 #'   \href{https://tabula.technology/}{Tabula data extractor}
 #' 
 #' @importFrom Rdpack reprompt
