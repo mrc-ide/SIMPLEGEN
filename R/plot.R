@@ -333,7 +333,7 @@ epiPlots <- function(model_out, dataname) {
   #check input
   assert_class(model_out[[1]], "simplegen_project")
   assert_class(model_out, "list")
-  assert_in(state, c("micro_vs_PCR", "prevalence_EIR", "prevalence_incidence"))
+  assert_in(dataname, c("micro_vs_PCR", "prevalence_EIR", "prevalence_incidence"))
   
   
   # Microscopy detection plot
