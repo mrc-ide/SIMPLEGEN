@@ -3,7 +3,8 @@
 \docType{data}
 \name{Daniels_2013}
 \alias{Daniels_2013}
-\title{24-SNP barcode data showing clonal and epidemic transmission in Senegal (Daniels et al., 2013)}
+\title{24-SNP barcode data showing clonal and epidemic transmission in Senegal
+(Daniels et al., 2013)}
 \format{
 A dataframe with 27 columns, giving sample characteristics (columns
   1:3), and genomic data at 24 SNPs (columns 4:27). Heterozygous genotyping

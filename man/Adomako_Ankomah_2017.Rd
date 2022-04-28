@@ -3,7 +3,8 @@
 \docType{data}
 \name{Adomako_Ankomah_2017}
 \alias{Adomako_Ankomah_2017}
-\title{Multiplicity of infection in Mali using 24-SNP barcode data (Adomako-Ankomah et al., 2017)}
+\title{Multiplicity of infection in Mali using 24-SNP barcode data (Adomako-Ankomah
+ et al., 2017)}
 \format{
 A dataframe with 26 columns, giving time point in the year (column
   1), multiplicity category, including number of failed assays (column 2),

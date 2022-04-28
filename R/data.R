@@ -490,7 +490,8 @@
 "Obaldia_2015"
 
 #------------------------------------------------
-#' 24-SNP barcode data showing population structure in Haiti (Charles et al., 2016)
+#' 24-SNP barcode data showing population structure in Haiti (Charles et al.,
+#' 2016)
 #' 
 #' Data from Charles et al. (2016). Here we give a brief summary of the data -
 #' see the original paper for full details.
@@ -546,7 +547,8 @@
 "Charles_2016"
 
 #------------------------------------------------
-#' 24-SNP barcode data showing clonal and epidemic transmission in Senegal (Daniels et al., 2013)
+#' 24-SNP barcode data showing clonal and epidemic transmission in Senegal
+#' (Daniels et al., 2013)
 #' 
 #' Data from Daniels et al. (2013). Here we give a brief summary of the data -
 #' see the original paper for full details.
@@ -593,7 +595,8 @@
 "Daniels_2013"
 
 #------------------------------------------------
-#'  Multiplicity of infection in Mali using 24-SNP barcode data (Adomako-Ankomah et al., 2017)
+#'  Multiplicity of infection in Mali using 24-SNP barcode data (Adomako-Ankomah
+#'  et al., 2017)
 #' 
 #' Data from Adomako-Ankomah et al. (2017). Here we give a brief summary of the
 #' data - see the original paper for full details.
@@ -626,9 +629,9 @@
 #' 
 "Adomako_Ankomah_2017"
 
-
 #------------------------------------------------
-#' 24-SNP barcode data showing monogenomic and polygenomic infections in Senegal (Galinsky et al., 2015)
+#' 24-SNP barcode data showing monogenomic and polygenomic infections in Senegal
+#' (Galinsky et al., 2015)
 #' 
 #' Data from Galinsky et al. (2015). Here we give a brief summary of the
 #' data - see the original paper for full details.
@@ -660,43 +663,45 @@
 #' 
 "Galinsky_2015"
 
+#------------------------------------------------
 #' SNP data collected from Uganda (Chang et al., 2017)
 #' 
-#' Data from Chang et al., 2017. A brief description of the data follows.
+#' Data from Chang et al. (2017). Here we give a brief summary of the data - see
+#' the original paper for full details.
 #' \cr
 #' \cr
-#' Dried blood spots were taken from 2012-13 cross sectional 
-#' surveys in several provinces in Uganda. Households (n = 200) 
-#' were randomly selected from each province. All samples that 
-#' had detectable asexual parasitemia were selected for Sequenom 
-#' SNP genotyping. Medium to high frequency SNPs (n = 128) with 
-#' high frequency in malaria populations (pf-community-project) were chosen, 
-#' leaving 105 SNPs after filtering variants with lower or missing 
-#' frequencies. Genotyping was based on the intensity of the SNPs. 
-#' In addition, merozoite surface protein 2 (msp2) genotyping was conducted 
-#' on an age stratified subset of the samples. Capillary electrophoresis 
-#' was used to distinguish msp2 allele sizes.  
-#'
-#' The data contains a list (size = 3) of data frames. The first data 
-#' frame contains SNP calls for 105 filtered SNPs. The values {-1, 0, 0.5, 1} 
-#' denote missing value / no call, heterozygous, or homozygous alleles. 
-#' The second and third data frame contain 95% credible intervals for COI 
-#' and allele frequencies using their described categorical and proportional 
-#' methods for modeling homozygous/heterozygous calls and with-in host allele 
-#' frequency, respectively.  
+#' Dried blood spots were taken from 2012-13 cross sectional surveys in several
+#' provinces in Uganda. Households (n = 200) were randomly selected from each
+#' province. All samples that had detectable asexual parasitemia were selected
+#' for Sequenom SNP genotyping. Medium to high frequency SNPs (n = 128) with
+#' high frequency in malaria populations (pf-community-project) were chosen,
+#' leaving 105 SNPs after filtering variants with lower or missing frequencies.
+#' Genotyping was based on the intensity of the SNPs. In addition, merozoite
+#' surface protein 2 (msp2) genotyping was conducted on an age stratified subset
+#' of the samples. Capillary electrophoresis was used to distinguish msp2 allele
+#' sizes.
+#' \cr
+#' \cr
+#' The data contains a list (size = 3) of data frames. The first data frame
+#' contains SNP calls for 105 filtered SNPs. The values \{-1, 0, 0.5, 1\} denote
+#' missing value / no call, heterozygous, or homozygous alleles. The second and
+#' third data frame contain 95% credible intervals for COI and allele
+#' frequencies using their described categorical and proportional methods for
+#' modeling homozygous/heterozygous calls and with-in host allele frequency,
+#' respectively.
 #' 
 #' @docType data
 #' 
 #' @usage data(Chang_2017)
 #' 
 #' @format A list of multiple data objects
-#'   \itemize {
-#'     \item \code{S1_Table_SNP_data}: SNP calls for each sample {-1, 0, 0.5, 1}.
+#'   \itemize{
+#'     \item \code{S1_Table_SNP_data}: SNP calls for each sample \{-1, 0, 0.5, 1\}.
 #'     \item \code{95_cred_interval_coi}: Calculated COI of Uganda Samples
 #'     using categorical and proportional methods described in paper.
 #'     \item \code{95_cred_interval_allele_freq}: Calculated allele frequency
 #'     of Uganda Samples using categorical and proportional methods described
-#'     in paper.  
+#'     in paper.
 #'   }
 #'   
 #'  \code{S1_Table_SNP_data}: A data frame of 107 columns. The sample id and 
@@ -715,10 +720,10 @@
 #' @keywords datasets
 #'
 #' @references 
-#'   \insertRef {chang_real_2017}{SIMPLEGEN}
+#'   \insertRef{chang_real_2017}{SIMPLEGEN}
 #' 
 #' @source 
-#'   \href {https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5300274/}
+#'   \href{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5300274/}{Supplementary materials}
 #'   
 #' @importFrom Rdpack reprompt
 #' 
@@ -743,7 +748,8 @@
 #' monoclonal and less complex. Differences in MOI and $F_ws$ between cases were
 #' statistically significant but had marginal effect sizes and could not be used
 #' to discriminate cases. 
-#'
+#' \cr
+#' \cr
 #' Eligible cases were identified through Eswatini's national malaria surveillance
 #' program. Samples were genotyped using microsatellites from 26 different loci,
 #' which showed no selection based on $F_ws$ calculations. In their study, they
@@ -783,7 +789,8 @@
 #' cases were from Kavango East (March-June 2016) from 23 different health
 #' facilities, and 772 from Zambezi (Feb 2015 and June 2016) from six
 #' facilities.
-#' 
+#' \cr
+#' \cr
 #' DNA was extracted from dried blood spots using punches and strips from rapid 
 #' diagnostic tests. If a facility had less than 100 rapid tests, all tests were
 #' included for genotyping. If over 100 tests, then all cases with travel history
@@ -791,7 +798,6 @@
 #' included. In total, 2990 samples were genotyped using microsatellite markers,
 #' in which 2585 were used for data analysis. 
 #' 
-#'
 #' @docType data
 #'
 #' @usage data(Tessema_2019)
@@ -812,17 +818,17 @@
 "Tessema_2019"
 
 #------------------------------------------------
-#' Inferring local and crossboarder transmission with human and mobility data, 
+#' Inferring local and crossborder transmission with human and mobility data, 
 #' Kanunga District in Southwest Uganda (Briggs et al., 2019)
 #' 
 #' Data from Briggs et al. (2021). Here we give a brief summary of the data -
 #' see the original paper for full details.
 #' \cr
 #' \cr
-#' The study uses 80 randomly sampled households around a single
-#' health facility and includes all children (6 mo - 10 years old) and at least one adult
+#' The study uses 80 randomly sampled households around a single health facility
+#' and includes all children (6 mo - 10 years old) and at least one adult
 #' caretaker from the households. DNA was acquired though dried blood spots, and
-#' after two rounds of PCR amplification, the PCR products were sized using 
+#' after two rounds of PCR amplification, the PCR products were sized using
 #' capillary electrophoresis. Finally, allele length was calculated.
 #' 
 #' @docType data
@@ -848,4 +854,4 @@
 #' 
 #' @importFrom Rdpack reprompt
 #' 
-"Briggs_2019"
+"Briggs_2021"

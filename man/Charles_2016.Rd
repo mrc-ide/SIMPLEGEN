@@ -3,7 +3,8 @@
 \docType{data}
 \name{Charles_2016}
 \alias{Charles_2016}
-\title{24-SNP barcode data showing population structure in Haiti (Charles et al., 2016)}
+\title{24-SNP barcode data showing population structure in Haiti (Charles et al.,
+2016)}
 \format{
 A list of two data objects:
   \itemize{

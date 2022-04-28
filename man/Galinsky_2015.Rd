@@ -3,7 +3,8 @@
 \docType{data}
 \name{Galinsky_2015}
 \alias{Galinsky_2015}
-\title{24-SNP barcode data showing monogenomic and polygenomic infections in Senegal (Galinsky et al., 2015)}
+\title{24-SNP barcode data showing monogenomic and polygenomic infections in Senegal
+(Galinsky et al., 2015)}
 \format{
 A dataframe with 26 columns, giving the sample ID and collection year
   (columns 1:2), and genotype calls at all 24 SNP loci (columns 3:26).
