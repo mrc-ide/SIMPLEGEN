@@ -319,16 +319,16 @@ plot_age_states <- function(project, sample_time = NULL, deme = 1, state = "S") 
 #'
 #'
 #' @return
-#' @export
+#' @export 
 #' @import tidyverse, ggpubr
 #'
 #' @examples
 #'
-#' epiPlots(model_out, "micro_vs_PCR")
-#' epiPlots(model_out, "prevalence_EIR")
-#' epiPlots(model_out, "prevalence_incidence")
+#' plot_epi_data(model_out, "micro_vs_PCR")
+#' plot_epi_data(model_out, "prevalence_EIR")
+#' plot_epi_data(model_out, "prevalence_incidence")
 
-epiPlots <- function(model_out, dataname) {
+plot_epi_data <- function(model_out, dataname) {
   
   #check input
   assert_class(model_out[[1]], "simplegen_project")
@@ -557,26 +557,6 @@ epiPlots <- function(model_out, dataname) {
     
     # combine model output and griffin et al 2014 data
     SIMPLEGEN_dat <- do.call(rbind.data.frame, out)
-    
-    
-    #
-    # prev_inc_griffin2014 %>%
-    #   filter(type == "incidence")%>%
-    #  ggplot()+
-    #    geom_point( aes(x= age1, y = numer/denom, col = site_name)) +
-    #   geom_line( aes(x= age1, y = numer/denom, col = site_name))+
-    #    theme_bw()+
-    #    facet_wrap(facets = ~site_name)
-    #
-    # prev_inc_griffin2014 %>%
-    #   filter(type == "prevalence")%>%
-    #   ggplot()+
-    #   geom_point( aes(x= age1, y = numer/denom, col = site_name)) +
-    #   geom_line( aes(x= age1, y = numer/denom, col = site_name))+
-    #   theme_bw()+
-    #   facet_wrap(facets = ~site_name)
-    #
-    #
     
     
     SIMPLEGEN_dat$site_name <-
