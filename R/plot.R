@@ -303,52 +303,301 @@ plot_age_states <- function(project, sample_time = NULL, deme = 1, state = "S") 
 }
 
 
-#------------------------------------------------
-#' @title Plot EIR versus prevalence
+
+#' Plotting SIMPLEGEN outputs against epidemiological data
 #'
-#' @description Plots relationship between annual EIR and prevalence
+#' @param model_out list of SIMPLEGEN model outputs from running sim_epi function
+#' @param dataname  Data to compare SIMPLEGEN output to. "micro_vs_PCR" for plotting
+#'  the relationship between prevalence by microscopy and prevalence by PCR.
+#'  "prevalence_EIR" is the relationship between Annual EIR and prevalence,
+#'  "prevalence_incidence" plots the relationship between Prevalence in 2-10 year olds
+#'   against incidence in 0-5 year olds, and the modelled relationship between these 
+#'   from Griffin et a. 2014
+#'   
+#'   TODO - Need to add Griffin et al. 2014  model fit data and example list of SIMPLEGEN
+#'   model outputs 
 #'
-#' @param data dataset produced by the retrieve_prev function
-#' @param plot_studies logical argument whether to plot data from previous
-#'   empirical studies (currently Hay et al., 2005)
-#' @param scale_x linear or log scale for x axis
 #'
-#' @importFrom ggsci scale_color_lancet
-#' @importFrom rlang .data
-#' @export
-#' 
-plot_EIR_prevalence <- function(data, plot_studies = TRUE, scale_x = "linear"){
+#' @return
+#' @export 
+#' @import tidyverse, ggpubr
+#'
+#' @examples
+#'
+#' plot_epi_data(model_out, "micro_vs_PCR")
+#' plot_epi_data(model_out, "prevalence_EIR")
+#' plot_epi_data(model_out, "prevalence_incidence")
+
+plot_epi_data <- function(model_out, dataname) {
   
-  # load data (this is apparently not good practice!)
-  #data("EIRprev_hay2005")
-  #data("EIRprev_beier1999")
+  #check input
+  assert_class(model_out[[1]], "simplegen_project")
+  assert_class(model_out, "list")
+  assert_in(dataname, c("micro_vs_PCR", "prevalence_EIR", "prevalence_incidence"))
   
-  EIRprev <- tidyr::gather(as.data.frame(EIRprev), key = "detection_type", value = "prevalence", -1)
   
-  # remove zeros to avoid issues when logging
-  EIRprev <- EIRprev[is.finite(log(EIRprev[,"annual_EIR"])),]
-  
-  if (plot_studies) {
-    EIRprev_hay2005$detection_type <- rep("Hay et al., 2005", length.out = nrow( EIRprev_hay2005))
-    EIRprev_beier1999$detection_type <- rep("Beier et al., 1999", length.out = nrow( EIRprev_beier1999))
-    EIRprev <- rbind( EIRprev, EIRprev_hay2005)
-    EIRprev <- rbind(EIRprev,EIRprev_beier1999)
+  # Microscopy detection plot
+  if (dataname == "micro_vs_PCR") {
+    out <- lapply(
+      FUN = function(x) {
+        prev <- model_out[[x]]$epi_output$surveys %>%
+          filter(measure == "prevalence" &
+                   diagnostic == "microscopy") %>%
+          select(value) %>%
+          rename(prev_micro = value)
+        
+        incid <- model_out[[x]]$epi_output$surveys %>%
+          filter(measure == "prevalence" & diagnostic == "PCR") %>%
+          select(value) %>%
+          rename(prev_PCR = value)
+        
+        res <- cbind(prev, incid)
+        return(res)
+      },
+      X = 1:length(model_out)
+    )
+    
+    
+    data("PCR_micro_full_whittaker2021")
+    SIMPLEGEN_dat <- do.call(rbind.data.frame, out)
+    
+    
+    # error if nothing to plot
+    if (nrow(SIMPLEGEN_dat) == 0) {
+      stop("SIMPLEGEN output doesn't exist or incompatible with function")
+    }
+    
+    # error if nothing to plot
+    if (nrow(PCR_micro_full_whittaker2021) == 0) {
+      stop("data missing or formatted incorrectly")
+    }
+    
+    p <- ggplot() +
+      geom_point(
+        data = PCR_micro_full_whittaker2021,
+        aes(x = PCR_Prev, y = Micro_Prev, col = "Whittaker et al. 2021"),
+        size = 2
+      ) +
+      geom_point(
+        data = SIMPLEGEN_dat,
+        aes(
+          x = prev_PCR / 100,
+          y = prev_micro / 100,
+          col = "SIMPLEGEN"
+        ),
+        size = 2
+      ) +
+      geom_abline(intercept = 0, lwd = 1) +
+      theme_bw() +
+      labs_pubr(base_size = 14) +
+      xlab("Prevalence by PCR") +
+      ylab("Prevalence by microscopy") +
+      labs(colour = "Source")
+    p
+    set_palette(p, "npg")
+    
+    return(p)
   }
-  if (scale_x == "linear") {
-    p <- ggplot2::ggplot(data = as.data.frame(EIRprev), ggplot2::aes(.data$annual_EIR, .data$prevalence, colour = .data$detection_type)) +
-      ggplot2::theme_bw() + ggsci::scale_color_lancet() +
-      ggplot2::geom_point() +
-      ggplot2::labs(title = "Annual EIR and Prevalence", x = "Annual EIR", y = "Prevalence") +
-      ggplot2::coord_cartesian(ylim = c(0,1), xlim = c(0,400))
-  } else if (scale_x == "log") {
-    p <- ggplot2::ggplot(as.data.frame(EIRprev), ggplot2::aes(.data$annual_EIR, .data$prevalence, colour = .data$detection_type)) +
+  
+  
+  # Microscopy detection plot
+  if (dataname == "prevalence_EIR") {
+    # check ages for reported prevalence
+    
+    data("EIR_prev_hay2005")
+    #data("EIR_prev_beier1999")
+    
+    out <- lapply(function(x) {
+      # get prevalence
+      prev <- model_out[[x]]$epi_output$surveys %>%
+        filter(measure == 'prevalence' &
+                 diagnostic == "microscopy") %>%
+        select(value) %>%
+        rename(prev = value)
+      
+      
+      # get EIR
+      EIR <- model_out[[x]]$epi_output$daily %>%
+        filter(
+          measure == "EIR" &
+            time == unique(model_out[[x]]$epi_output$surveys$reporting_time)
+        ) %>%
+        select(value) %>%
+        rename(EIR = value)
+      
+      res <- data.frame(EIR = EIR,
+                        prev = mean(prev$prev, na.rm = TRUE))
+      return(res)
+      
+    }, X = 1:length(model_out))
+    
+    SIMPLEGEN_dat <- do.call(rbind.data.frame, out)
+    
+    # error if nothing to plot
+    if (nrow(SIMPLEGEN_dat) == 0) {
+      stop("SIMPLEGEN output doesn't exist or incompatible with function")
+    }
+    
+    # error if nothing to plot
+    if (nrow(EIR_prev_hay2005) == 0) {
+      stop("data missing or formatted incorrectly")
+    }
+    
+    
+    p <- ggplot() +
+      geom_point(
+        data = EIR_prev_hay2005,
+        aes(x = annual_EIR, y = prevalence, col = "Hay et al. 2005"),
+        size = 2
+      ) +
+      geom_point(data =  SIMPLEGEN_dat,
+                 aes(x = EIR, y = prev / 100, col = "SIMPLEGEN"),
+                 size = 2) +
+      theme_bw() +
+      labs_pubr(base_size = 14) +
+      xlim(c(0, 750)) +
+      xlab("Annual EIR") +
+      ylab("Prevalence by Microscopy") +
+      labs(colour = "Source")
+    p
+    set_palette(p, "npg")
+    return(p)
+  }
+  
+  
+  # Prev-incidence relationship by age
+  if (dataname == "prevalence_incidence") {
+    # check ages for reported prevalence
+    
+    data("prev_inc_griffin2014")
+    
+    # Griffin Model data must be added to package
+    # data("griffinmod")
+    # griffin_mod$site_name <- "griffin_model"
+    # griffin_mod <- griffin_mod[, c(3, 1, 2)]
+    # colnames(griffin_mod) <- c("site_name", "Prev_2_10", "incid_0_5")
+    # griffin_mod$Prev_2_10 <- as.numeric(griffin_mod$Prev_2_10) / 100
+    
+    # adding data used to fit griffin et al
+    prev_inc_griffin2014$value <-
+      prev_inc_griffin2014$numer / prev_inc_griffin2014$denom
+    
+    # separate out prevalence and incidence
+    prev <- prev_inc_griffin2014 %>% filter(type == "prevalence")
+    incid <- prev_inc_griffin2014 %>% filter(type == "incidence")
+    
+    # for prevalence, active or passive detection
+    passive_det <- prev %>% filter(case_detection == "PCD")
+    active_det <- prev %>% filter(case_detection != "PCD")
+    
+    # filter to ages 2-10
+    active_prev <- prev_inc_griffin2014 %>%
+      filter(site_index %in% unique(active_det$site_index)) %>%
+      filter(age1 < 11) %>%
+      filter(age0 > 1) %>%
+      filter(type == 'prevalence')
+    
+    
+    # filter to age 0 - 5
+    incid <- prev_inc_griffin2014 %>%
+      filter(age1 < 6) %>%
+      filter(type == 'incidence')
+    
+    dat_reshaped <- as.data.frame(matrix(ncol = 3, nrow = 3))
+    colnames(dat_reshaped) <-
+      c("site_name", "Prev_0_10", "incid_0_5")
+    
+    for (i in 1:length(unique(active_prev$site_name))) {
+      site_n <- unique(active_prev$site_name)[i]
+      i_tmp <- incid %>% filter(site_name == site_n)
+      ap_tmp <- active_prev %>% filter(site_name  == site_n)
+      
+      dat_reshaped[i, "site_name"] <- site_n
+      dat_reshaped[i, "Prev_0_10"] <-
+        sum(ap_tmp$numer) / sum(ap_tmp$denom)
+      dat_reshaped[i, "incid_0_5"] <-
+        sum(i_tmp$numer) / sum(i_tmp$denom)
+      
+    }
+    
+    
+    
+    out <- lapply(function(x) {
+      prev210 <- model_out[[x]]$epi_output$surveys %>%
+        filter(measure == 'prevalence' &
+                 age_max == 10 & diagnostic == "PCR") %>%
+        select(value) %>%
+        rename(prev210 = value)
+      
+      
+      incid05 <- model_out[[x]]$epi_output$surveys %>%
+        filter(measure == 'incidence' & age_max == 5) %>%
+        select(value) %>%
+        rename(incid05 = value)
+      
+      
+      # incid05 <- model_out[[x]]$epi_output$daily %>%
+      #   filter(
+      #     measure == 'incidence' &
+      #       time <  model_out[[x]]$epi_output$surveys$reporting_time &
+      #       time >  (
+      #         model_out[[x]]$epi_output$surveys$reporting_time[1] - model_out[[x]]$epi_output$surveys$reporting_interval[1]
+      #       )
+      #   ) %>%
+      #   #select(value)%>%
+      #   summarize(incid05 = sum(value, na.rm = TRUE)/sum(denom%>%
+      #   as.data.frame()
+      # colnames(incid05)<- c("incid05")
+      
+      
+      res <- cbind(prev210, incid05)
+      return(res)
+      
+    }, X = 1:length(model_out))
+    
+    # combine model output and griffin et al 2014 data
+    SIMPLEGEN_dat <- do.call(rbind.data.frame, out)
+    
+    
+    SIMPLEGEN_dat$site_name <-
+      rep('SIMPLEGEN', length.out = nrow(SIMPLEGEN_dat))
+    dat_reshaped <-
+      dat_reshaped %>% mutate(site_name = gsub('_.*', '', site_name))
+    
+    # error if nothing to plot
+    if (nrow(SIMPLEGEN_dat) == 0) {
+      stop("SIMPLEGEN output doesn't exist or incompatible with function")
+    }
+    
+    # error if nothing to plot
+    if (nrow(dat_reshaped) == 0) {
+      stop("data missing or formatted incorrectly")
+    }
+    p <-
+      ggplot2::ggplot(dat_reshaped,
+                      ggplot2::aes(x =  Prev_0_10, y = incid_0_5, col = site_name)) +
       ggplot2::theme_bw() +
-      ggplot2::geom_point() + ggplot2::scale_x_log10() + ggsci::scale_color_lancet() +
-      ggplot2::labs(title = "Annual EIR (log scale) and Prevalence", x = "Annual EIR", y = "Prevalence") +
-      ggplot2::coord_cartesian(ylim = c(0,1))
-  } else {
-    warning("scale_x must be log or linear")
+      # ggplot2::theme(legend.position = "none") +
+      ggplot2::geom_point(size = 2) +
+      labs_pubr(base_size = 14) +
+      ggplot2::xlab("Prevalence in 2 - 10 year olds") +
+      ggplot2::ylab("Incidence in 0 - 5 year olds") +
+      ggplot2::ggtitle("Prevalence in 2-10 year olds plotted against incidence in 0-5 year olds")
+    # p <-
+    #   p + geom_line(data = griffin_mod,
+    #                 aes(x = Prev_2_10, y = incid_0_5),
+    #                 size = 1)
+    p <- p + geom_point(data = SIMPLEGEN_dat,
+                        aes(x = prev210 / 100, y = incid05),
+                        size = 2)
+    
+    set_palette(p, "npg")
+    return(p)
+    
   }
-  print(p)
+  
 }
+
+
+
 
