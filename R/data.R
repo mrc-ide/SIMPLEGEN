@@ -899,3 +899,62 @@
 #' @importFrom Rdpack reprompt
 #' 
 "Taylor_2020"
+
+#------------------------------------------------
+#' Microsatellite P. falciparum data from asymptomatic school children (Touray 
+#' et al., 2020)
+#' 
+#' Data from Tourey et al. (2020). Here we give a brief summary of the data -
+#' see the original paper for full details.
+#' \cr
+#' \cr
+#' Blood samples from 95 asymptomatic school children (5-15) in Mbita, Kenya were
+#' used to identify the multiplicity of infection (MOI) and diversity of 
+#' P. falciparum in the region. 10 polymorphic microsatellites were amplified
+#' and sequenced, and showed that infections were extensively polyclonal. 
+#'
+#' @docType data
+#'
+#' @usage data(Touray_2020)
+#' 
+#' @format A list of multiple data objects:
+#'   \itemize{
+#'     \item \code{Characteristics_Of_Microsatellites}: 
+#'     \item \code{Demo_Age_Years}: Number and percent of study cases within
+#'     subset age ranges.
+#'     \item \code{Demo_Malaria_Infection}: Number and percent of study cases by
+#'     malaria infection (Single or Mixed infections).
+#'     \item \code{Demo_Microscopy}: Number and percent of study cases by 
+#'     microscopy type (Asexual and Gametocyte).
+#'     \item \code{Demo_Sex}: Number and percent of study cases by sex (Male 
+#'     and Female).
+#'     \item \code{Genetic_Diversity_95_Pf}: Genetic diversity calculations
+#'     for 10 highly polymorphic microsatellite markers analyzed in the study. 
+#'   }
+#'  \code{Genetic_Diversity_95_Pf}: The genetic diversity of P. falciparum was 
+#'  measured using 10 highly polymorphic microsatellite markers. Isolates were 
+#'  considered to contain multiple alleles if peak height was 25% or greater
+#'  than the predominant allele. Metrics include number of samples amplified(N),
+#'  number of observed alleles at the locus (Na; 8-23), number of effective
+#'  alleles (Ne; 2.3-15.3), expected heterozygosity (He), and mean multiplicity 
+#'  of infection(MOI). All calculations reportedly use the predominant allele 
+#'  when there are multiple alleles per locus, except for MOI, which was
+#'  estimated by the ratio of distinct clones per loci per successful 
+#'  amplification of the marker. Expected heterozygosity (range: [0-1]; no
+#'  genetic diversity and high genetic diversity, respectively) is calculated 
+#'  using the number of amplified markers and the frequency of the allele within
+#'  the population. The full equation is defined in the manuscript.
+#'  
+#'  \code{Characteristics_Of_Microsatellites}: Data was extracted from Table 2
+#'  of the manuscript. Columns were added to include percentage data. The 
+#'  infections were mostly polyclonal (average: 79.69%) with a mean MOI of 3.39.
+#'  At 9 of the loci (excluding pfg377), at least 6 alleles were detected. 
+#'   
+#' @keywords datasets
+#'
+#' @references
+#' \insertRef{touray_diversity_2020}{SIMPLEGEN}
+#' 
+#' @importFrom Rdpack reprompt
+#' 
+"Touray_2020"
