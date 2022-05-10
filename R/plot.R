@@ -303,7 +303,7 @@ plot_age_states <- function(project, sample_time = NULL, deme = 1, state = "S") 
 }
 
 
-
+#------------------------------------------------
 #' Plotting SIMPLEGEN outputs against epidemiological data
 #'
 #' @param model_out list of SIMPLEGEN model outputs from running sim_epi function
@@ -318,9 +318,8 @@ plot_age_states <- function(project, sample_time = NULL, deme = 1, state = "S") 
 #'   model outputs 
 #'
 #'
-#' @return
 #' @export 
-#' @import tidyverse, ggpubr
+#' @import tidyverse, ggpubr, ggplot2, 
 #'
 #' @examples
 #'
@@ -372,13 +371,13 @@ plot_epi_data <- function(model_out, dataname) {
       stop("data missing or formatted incorrectly")
     }
     
-    p <- ggplot() +
-      geom_point(
+    p <- ggplot2::ggplot() +
+      ggplot2::geom_point(
         data = PCR_micro_full_whittaker2021,
         aes(x = PCR_Prev, y = Micro_Prev, col = "Whittaker et al. 2021"),
         size = 2
       ) +
-      geom_point(
+      ggplot2:: geom_point(
         data = SIMPLEGEN_dat,
         aes(
           x = prev_PCR / 100,
@@ -387,12 +386,12 @@ plot_epi_data <- function(model_out, dataname) {
         ),
         size = 2
       ) +
-      geom_abline(intercept = 0, lwd = 1) +
-      theme_bw() +
-      labs_pubr(base_size = 14) +
-      xlab("Prevalence by PCR") +
-      ylab("Prevalence by microscopy") +
-      labs(colour = "Source")
+      ggplot2::geom_abline(intercept = 0, lwd = 1) +
+      ggplot2::theme_bw() +
+      ggpubr::labs_pubr(base_size = 14) +
+      ggplot2::xlab("Prevalence by PCR") +
+      ggplot2::ylab("Prevalence by microscopy") +
+      ggplot2::labs(colour = "Source")
     p
     set_palette(p, "npg")
     

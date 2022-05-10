@@ -35,6 +35,7 @@ Imports:
     ggsci,
     lubridate,
     rlang,
+    tidyverse,
     dplyr
 SystemRequirements: C++11
 Suggests: 
