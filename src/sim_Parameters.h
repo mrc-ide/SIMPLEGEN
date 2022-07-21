@@ -76,6 +76,7 @@ public:
   
   // migration parameters
   std::vector<std::vector<double>> mig_mat;
+  std::vector<double> vec_migration_probability;
   
   // demog parameters
   std::vector<double> life_table;

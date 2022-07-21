@@ -30,19 +30,16 @@ SIMPLEGEN works with projects, which are essentially just glorified lists that h
 
 ```{r}
 myproj <- simplegen_project()
+
+m <- 0.1 
+mig_mat <- rbind(c(1 - m, m), c(m, 1 - m)) 
+
 myproj <- define_epi_model_parameters(myproj,
                                       H = 1e3,
-                                      M = 1e4)
-```
-
-Alternatively, if you are familiar with the pipe operator `%>%` from the `magrittr` package then you can use this to chain together multiple commands:
-
-```{r}
-library(dplyr)
-
-myproj <- simplegen_project() %>%
-  define_epi_model_parameters(H = 1e3,
-                              M = 5e4)
+                                      M = 0,
+                                      seed_infections = 0,
+                                      mig_mat = mig_mat,
+                                      migration_probability = c(1., 1.))
 ```
 
 Here we've just specified the human and mosquito population sizes and left all other parameters with their default values. A complete list of model parameters and their defaults can be found in the help for this function (see `?define_epi_model_parameters`).
@@ -54,10 +51,6 @@ myproj
 ```
 
 We can use inbuilt plotting functions to explore some of the assumptions of our model. For example, we can look at the distribution of time spent in the acute state:
-
-```{r}
-plot_epi_distribution(myproj, name = "duration_acute")
-```
 
 Many distributions can be explored in this way, see `?plot_epi_distribution` for a complete list.
 
@@ -77,9 +70,7 @@ We specify daily outputs using a basic dataframe. **Table 1** gives the columns 
 Any number of extra columns can be added to this basic dataframe and will simply be ignored by the software, for example it can be useful to have a `name` column giving a short description of what each row contains. We can use any standard method to produce this dataframe; the code below uses the `rbind()` method:
 
 ```{r}
-daily_dataframe <- rbind(data.frame(name = "acute_prev", deme = 1, state = "A", measure = "prevalence", diagnostic = "microscopy", age_min = 0, age_max = 5),
-                         data.frame(name = "chronic_prev", deme = 1, state = "C", measure = "prevalence", diagnostic = "microscopy", age_min = 0, age_max = 5),
-                         data.frame(name = "acute_inc", deme = 1, state = "A", measure = "incidence", diagnostic = "PCR", age_min = 2, age_max = 10),
+daily_dataframe <- rbind(data.frame(name = "count", deme = c(1,2), state = "H", measure = "count", diagnostic = NA, age_min = 0, age_max = 120),
                          make.row.names = FALSE)
 
 print(daily_dataframe)
@@ -89,23 +80,6 @@ Once we're happy with this dataframe we can load it into the project using `defi
 ```{r}
 myproj <- define_epi_sampling_parameters(project = myproj,
                                          daily = daily_dataframe)
-```
-
-The second type of output is sweeps. These can be defined using a second dataframe identical in format to the daily output, but with an added `time` column. For example, the following code specifies that we want to output acute prevalence and acute incidence in 5-year age bands at day 365:
-
-```{r}
-sweep_dataframe <- rbind(data.frame(name = "prev_acute", time = 365, deme = 1, measure = "prevalence", state = "A", diagnostic = "true", age_min = seq(0, 100, 5), age_max = seq(0, 100, 5) + 4),
-                         data.frame(name = "inc_acute", time = 365, deme = 1, measure = "incidence",  state = "A", diagnostic = "true", age_min = seq(0, 100, 5), age_max = seq(0, 100, 5) + 4),
-                         make.row.names = FALSE)
-
-print(head(sweep_dataframe))
-```
-As before, we load this into the project using the `define_epi_sampling_parameters()` function:
-
-```{r}
-myproj <- define_epi_sampling_parameters(project = myproj,
-                                         daily = daily_dataframe,
-                                         sweeps = sweep_dataframe)
 ```
 
 The final type of output is surveys, but these mainly relate to genetic data and so will be explored in a later vignette.
@@ -135,37 +109,16 @@ head(myproj$epi_output$daily)
 Notice that the format of this dataframe is identical to the daily dataframe we loaded in, but now replicated over all `time` points and with an added `value` column. We see a very similar thing when we look at the sweep output:
 
 ```{r}
-head(myproj$epi_output$sweeps)
-```
-Having outputs in long format like this makes it easy to plot and summarize results, as will be seen below.
-
-
-### Plotting and summarizing results
-
-Having outputs in long format makes it straightforward to plot and summarize results - especially if we make use of fantastic packages like `dplyr` and `ggplot2`.
-
-For example, the following code filters our daily output to prevalence measures only and then produces a basic line plot of prevalence over time:
-
-```{r}
 library(ggplot2)
-
 myproj$epi_output$daily %>%
   dplyr::filter(measure == "prevalence") %>%
   ggplot(aes(x = time, y = value)) + theme_bw() +
   geom_line(aes(color = name))
 ```
 
-We can see that prevalence increased initally, then reached a stable level after a period of time.
 
-Similarly, we can produce simple plots of our sweep output:
+## Run through different probabilities here
 
 ```{r}
-myproj$epi_output$sweeps %>%
-  dplyr::mutate(age_mid = (age_min + age_max) / 2,
-                age_width = age_max - age_min + 1) %>%
-  ggplot() + theme_bw() +
-  geom_bar(aes(x = age_mid, y = value, width = age_width), color = "black", stat = "identity") +
-  xlab("age") +
-  facet_wrap(~name)
-```
 
+```

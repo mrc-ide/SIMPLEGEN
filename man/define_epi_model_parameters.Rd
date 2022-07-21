@@ -33,6 +33,7 @@ define_epi_model_parameters(
   seed_infections = 100,
   M = 1000,
   mig_mat = diag(1),
+  migration_probability = c(0.1),
   life_table = life_table_Mali()
 )
 }

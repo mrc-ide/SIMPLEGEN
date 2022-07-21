@@ -73,6 +73,8 @@ check_epi_model_params <- function(project) {
   # check migration matrix formats and ranges
   assert_square_matrix(x$mig_mat, name = "mig_mat")
   assert_bounded(x$mig_mat, name = "mig_mat")
+
+  assert_bounded(x$migration_probability, name = "migration_probability")
   
   # check that deme vector length equals migration matrix dimensions, or
   # alternatively are length 1 in which case the same value is applied over all

@@ -179,16 +179,15 @@ void sim_Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args
     
     
     //-------- MIGRATION --------
-    
-    
-    // loop through all hosts, draw migration
-    for (int i = 0; i < sum(H); ++i) {
-      int this_deme = host_pop[i].deme;
-      int new_deme = sample1(params->mig_mat[this_deme], 1.0);
-      
-      host_pop[i].migrate(new_deme);
+    for (int k = 0; k < params->n_demes; ++k) {
+      int n_migrants = rbinom1(H[k], params->vec_migration_probability[k]);
+      for (int i = 0; i < n_migrants; ++i) {
+        int this_deme = host_pop[i].deme;
+        int new_deme = sample1(params->mig_mat[this_deme], 1.0);
+        
+        host_pop[i].migrate(new_deme);
+      }
     }
-    
     
     //-------- MAIN LOOP THROUGH DEMES --------
     

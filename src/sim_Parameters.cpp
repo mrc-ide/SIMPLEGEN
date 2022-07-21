@@ -103,7 +103,9 @@ void sim_Parameters::load_migration_params(Rcpp::List args) {
   
   // migration matrix
   mig_mat = rcpp_to_matrix_double(args["mig_mat"]);
-  
+
+  // vector migration probabilities
+  vec_migration_probability = rcpp_to_vector_double(args["migration_probability"]);
 }
 
 //------------------------------------------------
