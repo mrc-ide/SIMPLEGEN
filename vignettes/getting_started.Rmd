@@ -39,7 +39,7 @@ myproj <- define_epi_model_parameters(myproj,
                                       M = 0,
                                       seed_infections = 0,
                                       mig_mat = mig_mat,
-                                      migration_probability = c(1., 1.))
+                                      migration_probability = c(.01, .01))
 ```
 
 Here we've just specified the human and mosquito population sizes and left all other parameters with their default values. A complete list of model parameters and their defaults can be found in the help for this function (see `?define_epi_model_parameters`).
@@ -111,7 +111,7 @@ Notice that the format of this dataframe is identical to the daily dataframe we 
 ```{r}
 library(ggplot2)
 myproj$epi_output$daily %>%
-  dplyr::filter(measure == "prevalence") %>%
+  dplyr::filter(measure == "count") %>%
   ggplot(aes(x = time, y = value)) + theme_bw() +
   geom_line(aes(color = name))
 ```

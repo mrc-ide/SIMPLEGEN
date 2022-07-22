@@ -180,12 +180,20 @@ void sim_Dispatcher::run_simulation(Rcpp::List &args_functions, Rcpp::List &args
     
     //-------- MIGRATION --------
     for (int k = 0; k < params->n_demes; ++k) {
-      int n_migrants = rbinom1(H[k], params->vec_migration_probability[k]);
-      for (int i = 0; i < n_migrants; ++i) {
-        int this_deme = host_pop[i].deme;
+      // draw number of migrants from binomial distribution using
+      // parameterized probability of migration at each deme
+      int n_this_deme = host_index[k].size();
+      int n_migrants = rbinom1(n_this_deme, params->vec_migration_probability[k]);
+      
+      // draw indices of migrants from uniform distribution
+      std::vector<int> v_k_migrants = sample4(n_migrants, 0, n_this_deme - 1);
+      
+      // move each migrant to a random deme
+      for (int i = 0; i < v_k_migrants.size(); ++i) {
+        int this_host_idx = host_index[k][v_k_migrants[i]];
+        int this_deme = host_pop[this_host_idx].deme;
         int new_deme = sample1(params->mig_mat[this_deme], 1.0);
-        
-        host_pop[i].migrate(new_deme);
+        host_pop[this_host_idx].migrate(new_deme);
       }
     }
     
