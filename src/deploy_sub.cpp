@@ -6,12 +6,14 @@
 
 // include various files within sub-directories. Note that we are including the
 // body files here and not the header files
-#include "indiv_sim/sim_indiv.cpp"
+#include "sim_indiv/sim_indiv.cpp"
+#include "sim_indiv/Parameters.cpp"
+#include "sim_indiv/Dispatcher.cpp"
 
 using namespace std;
 
 //------------------------------------------------
 [[cpp11::register]]
-void sim_indiv_deploy(cpp11::list args_progress) {
-  sim_indiv(args_progress);
+void sim_indiv_deploy(cpp11::list args, cpp11::list args_progress) {
+  sim_indiv(args, args_progress);
 }

@@ -1,13 +1,38 @@
 
-#include "probability_v20.hpp"
+#include "probability.hpp"
 
 using namespace std;
 
-/*
-// set random seed
-random_device rd;
-default_random_engine generator(rd());
+using rng_state_type = dust::random::generator<double>;
+auto rng_state = dust::random::seed<rng_state_type>(12345);
 
+
+// #####################################
+// #        DISCRETE UNIVARIATE        #
+// #####################################
+
+//------------------------------------------------
+int rbinom1(int N, double p) {
+  return dust::random::binomial<double>(rng_state, N, p);
+}
+
+
+// #######################################
+// #        CONTINUOUS UNIVARIATE        #
+// #######################################
+
+//------------------------------------------------
+double runif_0_1() {
+  return dust::random::uniform(rng_state, 0.0, 1.0);
+}
+
+//------------------------------------------------
+double runif1(double a, double b) {
+  return dust::random::uniform(rng_state, a, b);
+}
+
+
+/*
 // #####################################
 // #        DISCRETE UNIVARIATE        #
 // #####################################

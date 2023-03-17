@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <cpp11.hpp>
 #include <numeric>
 #include <iostream>
 #include <vector>
@@ -8,6 +9,7 @@
 #include <cfloat>
 #include <fstream>
 #include <sstream>
+#include <string>
 
 //------------------------------------------------
 // define very large/small numbers for catching overflow/underflow problems
@@ -60,6 +62,28 @@ TYPE min_vec(const std::vector<TYPE> &x) {
 template<class TYPE>
 TYPE max_vec(std::vector<TYPE> x) {
   return *max_element(x.begin(), x.end());
+}
+
+//------------------------------------------------
+// min of matrix (vector of vectors)
+template<class TYPE>
+TYPE min_mat(const std::vector<std::vector<TYPE>> &x) {
+  TYPE ret = min_vec(x[0]);
+  for (size_t i = 1; i < x.size(); ++i) {
+    ret = std::min(ret, min_vec(x[i]));
+  }
+  return ret;
+}
+
+//------------------------------------------------
+// max of matrix (vector of vectors)
+template<class TYPE>
+TYPE max_mat(const std::vector<std::vector<TYPE>> &x) {
+  TYPE ret = max_vec(x[0]);
+  for (size_t i = 1; i < x.size(); ++i) {
+    ret = std::max(ret, max_vec(x[i]));
+  }
+  return ret;
 }
 
 //------------------------------------------------
@@ -264,7 +288,29 @@ void cubic_spline(std::vector<double> &x, std::vector<double> &y,
                   std::vector<double> &x_pred, std::vector<double> &y_pred);
 
 //------------------------------------------------
-// works with the R function update_progress() to increment a progress bar by
-// name. If display_updates is false then only update bar at 0% and 100%.
-//void update_progress_cpp(Rcpp::List args_progress, Rcpp::Function update_progress_R,
-//                         std::string pb_name, int i, int max_i, bool display_updates);
+// converts input from C++ format to bool format.
+int cpp_to_bool(SEXP x);
+
+//------------------------------------------------
+// converts input from C++ format to int format.
+int cpp_to_int(SEXP x);
+
+//------------------------------------------------
+// converts input from C++ format to double format.
+double cpp_to_double(SEXP x);
+
+//------------------------------------------------
+// converts input from C++ to string format.
+std::string cpp_to_string(SEXP x);
+
+//------------------------------------------------
+// converts input from C++ format to vector<int> format.
+std::vector<int> cpp_to_vector_int(SEXP x);
+
+//------------------------------------------------
+// converts input from C++ format to vector<double> format.
+std::vector<double> cpp_to_vector_double(SEXP x);
+
+//------------------------------------------------
+// converts input from C++ format to vector<vector<double>> format.
+std::vector<std::vector<double>> cpp_to_matrix_double(cpp11::list x);

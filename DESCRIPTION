@@ -23,7 +23,9 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3
 Imports: 
+    data.table,
     dplyr,
+    dust,
     ggplot2,
     magrittr
 Suggests: 
@@ -34,5 +36,6 @@ Suggests:
     devtools
 VignetteBuilder: knitr
 LinkingTo: 
-    cpp11
+    cpp11,
+    dust
 SystemRequirements: C++11

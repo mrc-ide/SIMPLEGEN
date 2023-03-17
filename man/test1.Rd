@@ -2,14 +2,13 @@
 % Please edit documentation in R/main.R
 \name{test1}
 \alias{test1}
-\title{Load system file}
+\title{text}
 \usage{
 test1(x)
 }
 \arguments{
-\item{name}{the name of a file within the inst/extdata folder.}
+\item{x}{text}
 }
 \description{
-Load a file from within the inst/extdata folder of the SIMPLEGEN
-  package. File extension must be one of .csv, .txt, or .rds.
+text
 }

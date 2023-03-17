@@ -5,10 +5,59 @@
 //#include <random>
 //#include <math.h>
 
-#include <dust/r/random.hpp>
-
+#include <dust/random/random.hpp>
 #include "misc_v17.hpp"
 
+
+// #####################################
+// #        DISCRETE UNIVARIATE        #
+// #####################################
+
+//------------------------------------------------
+// draw from binomial(N, p) distribution
+int rbinom1(int N, double p);
+
+
+// #######################################
+// #        CONTINUOUS UNIVARIATE        #
+// #######################################
+
+//------------------------------------------------
+// draw from continuous uniform distribution on interval [0,1]
+// (NB, need to work out whether 0 and 1 exactly are possible)
+double runif_0_1();
+
+//------------------------------------------------
+// draw from continuous uniform distribution on interval [a,b]
+// (NB, need to work out whether limits a and b exactly are possible)
+double runif1(double a, double b);
+
+
+// ######################
+// #        MISC        #
+// ######################
+
+//------------------------------------------------
+template<class TYPE>
+void reshuffle(std::vector<TYPE> &x) {
+  int rnd1;
+  TYPE tmp1;
+  int n = int(x.size());
+  for (int i = 0; i < n; ++i) {
+    
+    // draw random index from i to end of vector
+    rnd1 = floor(runif1(i, n));
+    
+    // swap for value at position i
+    tmp1 = x[rnd1];
+    x[rnd1] = x[i];
+    x[i] = tmp1;
+  }
+}
+
+
+// ##########################################################################
+// ##########################################################################
 
 // #####################################
 // #        DISCRETE UNIVARIATE        #
