@@ -13,10 +13,9 @@ void Parameters::load_params(cpp11::list args) {
   load_deme_params(args);
   load_migration_params(args);
   load_demog_params(args);
-  //load_sampling_params_daily(args);
-  //load_sampling_params_sweep(args);
-  //load_sampling_params_survey(args);
+  load_sampling_params(args);
   load_run_params(args);
+  define_samplers();
   
 }
 
@@ -27,7 +26,6 @@ void Parameters::load_model_params(cpp11::list args) {
   // scalar epi parameters
   a = cpp_to_double(args["a"]);
   p = cpp_to_double(args["p"]);
-  mu = cpp_to_double(args["mu"]);
   u = cpp_to_int(args["u"]);
   v = cpp_to_int(args["v"]);
   g = cpp_to_int(args["g"]);
@@ -109,199 +107,31 @@ void Parameters::load_demog_params(cpp11::list args) {
   n_life_table = int(life_table.size());
   age_death = cpp_to_vector_double(args["age_death"]);
   age_stable = cpp_to_vector_double(args["age_stable"]);
-  
-}
-/*
-//------------------------------------------------
-// load daily sampling strategy parameter values
-void sim_Parameters::load_sampling_params_daily(Rcpp::List args) {
-  
-  // return if no daily outputs
-  any_daily_outputs = args["any_daily_outputs"];
-  if (!any_daily_outputs) {
-    n_daily_outputs = 0;
-    return;
-  }
-  
-  // extract dataframe
-  Rcpp::List daily_df = args["daily"];
-  
-  // extract columns into vectors
-  daily_deme = cpp_to_vector_int(daily_df["deme"]);
-  n_daily_outputs = daily_deme.size();
-  
-  vector<int> daily_measure_int = cpp_to_vector_int(daily_df["measure"]);
-  daily_measure = vector<Measure>(daily_measure_int.size());
-  for (size_t i = 0; i < daily_measure_int.size(); ++i) {
-    daily_measure[i] = static_cast<Measure>(daily_measure_int[i]);
-  }
-  
-  vector<int> daily_state_int = cpp_to_vector_int(daily_df["state"]);
-  daily_state = vector<Model_state>(daily_state_int.size());
-  for (size_t i = 0; i < daily_state_int.size(); ++i) {
-    daily_state[i] = static_cast<Model_state>(daily_state_int[i]);
-  }
-  
-  vector<int> daily_diagnostic_int = cpp_to_vector_int(daily_df["diagnostic"]);
-  daily_diagnostic = vector<Diagnostic>(daily_diagnostic_int.size());
-  for (size_t i = 0; i < daily_diagnostic_int.size(); ++i) {
-    daily_diagnostic[i] = static_cast<Diagnostic>(daily_diagnostic_int[i]);
-  }
-  
-  daily_age_min = cpp_to_vector_int(daily_df["age_min"]);
-  daily_age_max = cpp_to_vector_int(daily_df["age_max"]);
-  
-  // Create a map to assist in working out if a host is required to produce
-  // daily output. The key to the map is a deme-&-age combination (1-year age
-  // groups). The value associated with this key is a list of all output indices
-  // (i.e. rows of the daily dataframe) that apply to this group.
-  //
-  // For example, if output row 2 needs to be the prevalence in 0-5 year olds
-  // in deme 1, then the map at key {1,0} and {1,1} etc. up to {1,5} will all
-  // contain the value 2 (the output index), along with any other output indices
-  // that apply to this group.
-  //
-  // A simpler vector object also exists just for checking if a deme is required
-  // in any outputs. This avoids looping through hosts in demes that are not
-  // required in any output.
-  //
-  // The function print_daily_maps() can be used to look at these objects.
-  
-  daily_flag_deme = vector<bool>(n_demes, false);
-  for (int i = 0; i < n_daily_outputs; i++) {
-    if (daily_deme[i] == -1) {
-      for (int k = 0; k < n_demes; ++k) {
-        daily_flag_deme[k] = true;
-        for (int j = daily_age_min[i]; j < (daily_age_max[i] + 1); ++j) {
-          daily_map[make_pair(k, j)].push_back(i);
-        }
-      }
-    } else {
-      int this_deme = daily_deme[i];
-      daily_flag_deme[this_deme] = true;
-      for (int j = daily_age_min[i]; j < (daily_age_max[i] + 1); ++j) {
-        daily_map[make_pair(this_deme, j)].push_back(i);
-      }
-    }
-  }
-  
+  max_age = int(age_stable.size()) - 1;
 }
 
 //------------------------------------------------
-// print maps that assist in working out which hosts are required to produce
-// daily output
-void sim_Parameters::print_daily_maps() {
+// load sampling data.frames
+void Parameters::load_sampling_params(cpp11::list args) {
   
-  // individual-level map
-  print("DAILY MAP:");
-  for (auto it = daily_map.cbegin(); it != daily_map.cend(); ++it) {
-    pair<int, int> map_key = it->first;
-    Rcpp::Rcout << "deme" << map_key.first << " age" << map_key.second << ": ";
-    for (size_t i = 0; i < it->second.size(); ++i) {
-      Rcpp::Rcout << it->second[i] << " ";
-    }
-    Rcpp::Rcout << "\n";
+  // daily outputs
+  any_daily_outputs = cpp_to_bool(args["any_daily_outputs"]);
+  if (any_daily_outputs) {
+    daily_df = args["daily"];
   }
   
-  // deme-level mep
-  print("DAILY DEME MAP:");
-  print_vector(daily_flag_deme);
+  // sweep outputs
+  any_sweep_outputs = cpp_to_bool(args["any_sweep_outputs"]);
+  if (any_sweep_outputs) {
+    sweeps_df = args["sweeps"];
+  }
   
+  // survey outputs
+  any_survey_outputs = cpp_to_bool(args["any_survey_outputs"]);
+  if (any_survey_outputs) {
+    surveys_df = args["surveys"];
+  }
 }
-
-//------------------------------------------------
-// load population sweep sampling strategy parameter values
-void sim_Parameters::load_sampling_params_sweep(Rcpp::List args) {
-  
-  // return if no sweep outputs
-  any_sweep_outputs = args["any_sweep_outputs"];
-  if (!any_sweep_outputs) {
-    n_sweep_outputs = 0;
-    return;
-  }
-  
-  // extract dataframe
-  Rcpp::List sweep_df = args["sweeps"];
-  
-  // extract columns into vectors
-  sweep_time = cpp_to_vector_int(sweep_df["time"]);
-  n_sweep_outputs = sweep_time.size();
-  sweep_time_ordered = cpp_to_vector_int(args["sweep_time_ordered"]);
-  sweep_deme = cpp_to_vector_int(sweep_df["deme"]);
-  
-  vector<int> sweep_measure_int = cpp_to_vector_int(sweep_df["measure"]);
-  sweep_measure = vector<Measure>(sweep_measure_int.size());
-  for (size_t i = 0; i < sweep_measure_int.size(); ++i) {
-    sweep_measure[i] = static_cast<Measure>(sweep_measure_int[i]);
-  }
-  
-  vector<int> sweep_state_int = cpp_to_vector_int(sweep_df["state"]);
-  sweep_state = vector<Model_state>(sweep_state_int.size());
-  for (size_t i = 0; i < sweep_state_int.size(); ++i) {
-    sweep_state[i] = static_cast<Model_state>(sweep_state_int[i]);
-  }
-  
-  vector<int> sweep_diagnostic_int = cpp_to_vector_int(sweep_df["diagnostic"]);
-  sweep_diagnostic = vector<Diagnostic>(sweep_diagnostic_int.size());
-  for (size_t i = 0; i < sweep_diagnostic_int.size(); ++i) {
-    sweep_diagnostic[i] = static_cast<Diagnostic>(sweep_diagnostic_int[i]);
-  }
-  
-  sweep_age_min = cpp_to_vector_int(sweep_df["age_min"]);
-  sweep_age_max = cpp_to_vector_int(sweep_df["age_max"]);
-  
-}
-
-//------------------------------------------------
-// load survey sampling strategy parameter values
-void sim_Parameters::load_sampling_params_survey(Rcpp::List args) {
-  
-  // return if no survey outputs
-  any_survey_outputs = args["any_survey_outputs"];
-  if (!any_survey_outputs) {
-    n_survey_outputs = 0;
-    return;
-  }
-  
-  // extract dataframes
-  Rcpp::List surveys_df = args["surveys"];
-  Rcpp::List surveys_expanded_df = args["surveys_expanded"];
-  
-  // extract surveys info
-  surveys_t_start = cpp_to_vector_int(surveys_df["t_start"]);
-  surveys_t_end = cpp_to_vector_int(surveys_df["t_end"]);
-  surveys_deme = cpp_to_vector_int(surveys_df["deme"]);
-  n_survey_outputs = surveys_deme.size();
-  
-  vector<int> surveys_measure_int = cpp_to_vector_int(surveys_df["measure"]);
-  surveys_measure = vector<Measure>(surveys_measure_int.size());
-  for (size_t i = 0; i < n_survey_outputs; ++i) {
-    surveys_measure[i] = static_cast<Measure>(surveys_measure_int[i]);
-  }
-  
-  vector<int> surveys_sampling_int = cpp_to_vector_int(surveys_df["sampling"]);
-  surveys_sampling = vector<Sampling>(surveys_sampling_int.size());
-  for (size_t i = 0; i < n_survey_outputs; ++i) {
-    surveys_sampling[i] = static_cast<Sampling>(surveys_sampling_int[i]);
-  }
-  
-  vector<int> surveys_diagnostic_int = cpp_to_vector_int(surveys_df["diagnostic"]);
-  surveys_diagnostic = vector<Diagnostic>(surveys_diagnostic_int.size());
-  for (size_t i = 0; i < n_survey_outputs; ++i) {
-    surveys_diagnostic[i] = static_cast<Diagnostic>(surveys_diagnostic_int[i]);
-  }
-  
-  surveys_age_min = cpp_to_vector_int(surveys_df["age_min"]);
-  surveys_age_max = cpp_to_vector_int(surveys_df["age_max"]);
-  surveys_sample_size = cpp_to_vector_double(surveys_df["sample_size"]);
-  surveys_n_days = cpp_to_vector_int(surveys_df["n_days"]);
-  
-  // extract expanded surveys info
-  surveys_expanded_study_ID = cpp_to_vector_int(surveys_expanded_df["study_ID"]);
-  surveys_expanded_sampling_time = cpp_to_vector_int(surveys_expanded_df["sampling_time"]);
-  surveys_expanded_reporting_time = cpp_to_vector_int(surveys_expanded_df["reporting_time"]);
-  
-}*/
 
 //------------------------------------------------
 // load run parameter values
@@ -313,7 +143,6 @@ void Parameters::load_run_params(cpp11::list args) {
   transmission_record_location = cpp_to_string(args["transmission_record_location"]);
   silent = cpp_to_bool(args["silent"]);
   pb_markdown = cpp_to_bool(args["pb_markdown"]);
-  
 }
 
 //------------------------------------------------
@@ -332,7 +161,120 @@ void Parameters::define_samplers() {
   sampler_time_treatment_acute = make_sampler_vec(time_treatment_acute, sampler_draws);
   sampler_time_treatment_chronic = make_sampler_vec(time_treatment_chronic, sampler_draws);
   sampler_duration_prophylactic = make_sampler_vec(duration_prophylactic, sampler_draws);
-  
+}
+
+//------------------------------------------------
+// draw from stable demography distribution
+int Parameters::draw_age_stable() {
+  return sampler_age_stable.draw();
+}
+
+//------------------------------------------------
+// draw from time to death distribution
+int Parameters::draw_age_death() {
+  return sampler_age_death.draw();
+}
+
+//------------------------------------------------
+// draw duration of acute bloodstage infection
+int Parameters::draw_duration_acute(int n) {
+  return sampler_duration_acute[min(n, n_duration_acute - 1)].draw() + 1;
+}
+
+//------------------------------------------------
+// draw duration of chronic bloodstage infection
+int Parameters::draw_duration_chronic(int n) {
+  return sampler_duration_chronic[min(n, n_duration_chronic - 1)].draw() + 1;
+}
+
+//------------------------------------------------
+// draw time to treatment of acute infection
+int Parameters::draw_time_treatment_acute(int n) {
+  return sampler_time_treatment_acute[min(n, n_time_treatment_acute - 1)].draw() + 1;
+}
+
+//------------------------------------------------
+// draw time to treatment of chronic infection
+int Parameters::draw_time_treatment_chronic(int n) {
+  return sampler_time_treatment_chronic[min(n, n_time_treatment_chronic - 1)].draw() + 1;
+}
+
+//------------------------------------------------
+// draw duration of prophylactic period
+int Parameters::draw_duration_prophylactic(int n) {
+  return sampler_duration_prophylactic[min(n, n_duration_prophylactic - 1)].draw() + 1;
+}
+
+//------------------------------------------------
+// return probability of becoming infected upon bite
+double Parameters::get_prob_infection(int n) {
+  return prob_infection[min(n, n_prob_infection - 1)];
+}
+
+//------------------------------------------------
+// return probability of transitioning from liverstage to acute bloodstage infection
+double Parameters::get_prob_acute(int n) {
+  return prob_acute[min(n, n_prob_acute - 1)];
+}
+
+//------------------------------------------------
+// return probability of transitioning from acute to chronic bloodstage infection
+double Parameters::get_prob_AC(int n) {
+  return prob_AC[min(n, n_prob_AC - 1)];
+}
+
+//------------------------------------------------
+// return probability of detection by microscopy in acute phase at time t, given
+// that entered phase at time t0
+double Parameters::get_detectability_microscopy_acute(int t, int t0, int n) {
+  int n_final = min(n, n_detectability_microscopy_acute - 1);
+  int t_final = min(t - t0, int(detectability_microscopy_acute[n_final].size()) - 1);
+  return detectability_microscopy_acute[n_final][t_final];
+}
+
+//------------------------------------------------
+// return probability of detection by microscopy in chronic phase at time t,
+// given that entered phase at time t0
+double Parameters::get_detectability_microscopy_chronic(int t, int t0, int n) {
+  int n_final = min(n, n_detectability_microscopy_chronic - 1);
+  int t_final = min(t - t0, int(detectability_microscopy_chronic[n_final].size()) - 1);
+  return detectability_microscopy_chronic[n_final][t_final];
+}
+
+//------------------------------------------------
+// return probability of detection by PCR in acute phase at time t, given that
+// entered phase at time t0
+double Parameters::get_detectability_PCR_acute(int t, int t0, int n) {
+  int n_final = min(n, n_detectability_PCR_acute - 1);
+  int t_final = min(t - t0, int(detectability_PCR_acute[n_final].size()) - 1);
+  return detectability_PCR_acute[n_final][t_final];
+}
+
+//------------------------------------------------
+// return probability of detection by PCR in chronic phase at time t, given that
+// entered phase at time t0
+double Parameters::get_detectability_PCR_chronic(int t, int t0, int n) {
+  int n_final = min(n, n_detectability_PCR_chronic - 1);
+  int t_final = min(t - t0, int(detectability_PCR_chronic[n_final].size()) - 1);
+  return detectability_PCR_chronic[n_final][t_final];
+}
+
+//------------------------------------------------
+// return probability of onward infection in acute sexual phase at time t, given
+// that entered phase at time t0
+double Parameters::get_infectivity_acute(int t, int t0, int n) {
+  int n_final = min(n, n_infectivity_acute - 1);
+  int t_final = min(t - t0, int(infectivity_acute[n_final].size()) - 1);
+  return infectivity_acute[n_final][t_final];
+}
+
+//------------------------------------------------
+// return probability of onward infection in chronic sexual phase at time t,
+// given that entered phase at time t0
+double Parameters::get_infectivity_chronic(int t, int t0, int n) {
+  int n_final = min(n, n_infectivity_chronic - 1);
+  int t_final = min(t - t0, int(infectivity_chronic[n_final].size()) - 1);
+  return infectivity_chronic[n_final][t_final];
 }
 
 //------------------------------------------------
@@ -342,7 +284,6 @@ void Parameters::summary() {
   // print epi scalars
   print("a:", a);
   print("p:", p);
-  print("mu:", mu);
   print("u:", u);
   print("v:", v);
   print("g:", g);

@@ -11,6 +11,7 @@
 #' @usage lhs \%>\% rhs
 NULL
 
+
 #------------------------------------------------
 # force objects that can be defined as list or vector into a list
 force_list <- function(x) {
@@ -135,5 +136,72 @@ get_demography <- function(life_table) {
   ret <- list(life_table = life_table,
               age_death = age_death,
               age_stable = age_stable)
+  return(ret)
+}
+
+#------------------------------------------------
+# convert epi model parameters to standardised types - for example, deals with
+# arguments that can be defined as either list or vector. Ensures that values
+# passed to downstream functions are unambiguous. NB. check_epi_model_params()
+# is run before process_epi_model_params()
+#' @noRd
+process_epi_model_params <- function(project) {
+  
+  # cpp11 requires integers to be defined as distinct from doubles
+  name_vec <- c("H", "seed_infections", "M")
+  project$epi_model_parameters[name_vec] <- mapply(as.integer, project$epi_model_parameters[name_vec], SIMPLIFY = FALSE)
+  
+  # force duration distributions and daily probabilities to lists
+  name_vec <- c("duration_acute", "duration_chronic",
+                "time_treatment_acute", "time_treatment_chronic",
+                "duration_prophylactic",
+                "detectability_microscopy_acute", "detectability_microscopy_chronic",
+                "detectability_PCR_acute", "detectability_PCR_chronic",
+                "infectivity_acute", "infectivity_chronic")
+  project$epi_model_parameters[name_vec] <- mapply(force_list, project$epi_model_parameters[name_vec], SIMPLIFY = FALSE)
+  
+  # force deme properties to vectors over demes
+  name_vec <- c("H", "M", "seed_infections")
+  n_demes <- nrow(project$epi_model_parameters$mig_mat)
+  project$epi_model_parameters[name_vec] <- mapply(force_veclength, project$epi_model_parameters[name_vec],
+                                                   MoreArgs = list(n = n_demes), SIMPLIFY = FALSE)
+  
+  # return
+  invisible(project)
+}
+
+#------------------------------------------------
+# process sampling data.frames to make compatible with cpp11 format. For daily
+# and sweep outputs this involves subsetting columns, converting everything to
+# numeric, and adding a time column if not present
+#' @noRd
+process_sweep <- function(sweep_df) {
+  
+  # subset columns
+  ret <- sweep_df %>%
+    dplyr::select(measure, state, diagnostic, deme, age_min, age_max)
+  
+  # add dummy time column if not present
+  if (!("time" %in% names(ret))) {
+    ret$time <- -1
+  }
+  
+  # convert all strings to numeric starting at 0
+  ret <- ret %>%
+    dplyr::mutate(measure = match(measure, c("count", "prevalence", "incidence_active", "incidence_passive", "EIR")) - 1,
+                  state = match(state, c("S", "E", "A", "C", "P", "H")) - 1,
+                  diagnostic = match(diagnostic, c("True", "Microscopy", "PCR")) - 1)
+  
+  # start deme index at 0
+  ret$deme[ret$deme != -1] <- ret$deme[ret$deme != -1] - 1
+  
+  # convert all NAs to -1
+  ret$state[is.na(ret$state)] <- -1
+  ret$diagnostic[is.na(ret$diagnostic)] <- -1
+  
+  # convert numeric values to integer type (cpp11 makes this distinction)
+  ret <- mapply(as.integer, ret) %>%
+    as.data.frame()
+  
   return(ret)
 }

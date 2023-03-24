@@ -13,6 +13,7 @@ SIMPLEGEN works using projects, which are essentially just lists
   demonstrated in the examples below.
 }
 \examples{
-# comment?
+# define a new project and modify this project to hold parameters of the
+# epidemiological model
 myproj <- simplegen_project()
 }

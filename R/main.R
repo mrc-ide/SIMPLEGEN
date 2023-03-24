@@ -1,25 +1,5 @@
 
 #------------------------------------------------
-#' @title text
-#'
-#' @description text
-#'
-#' @param x text
-#'
-#' @importFrom utils txtProgressBar
-#' @export
-
-test1 <- function(x) {
-  
-  # make progress bars
-  pb_sim <- txtProgressBar(min = 0, max = 1e8, initial = NA, style = 3)
-  args_progress <- list(pb_sim = pb_sim)
-  
-  # run cpp function
-  sim_indiv_deploy(args_progress)
-}
-
-#------------------------------------------------
 #' @title Define parameters of transmission simulation model
 #'
 #' @description Define the parameters that will be used when simulating data
@@ -122,27 +102,27 @@ test1 <- function(x) {
 
 define_epi_model_parameters <- function(project,
                                         a = 0.3,
-                                        p = 0.85,
+                                        p = 0.868,
                                         mu = -log(p),
                                         u = 12,
                                         v = 10,
                                         g = 12,
-                                        prob_infection = 0.6,
+                                        prob_infection = 0.5,
                                         prob_acute = 1.0,
                                         prob_AC = 1.0,
-                                        duration_acute = dgeom(1:25, 1/5),
-                                        duration_chronic = dgeom(1:250, 1/50),
-                                        detectability_microscopy_acute = 1,
-                                        detectability_microscopy_chronic = 0.1,
+                                        duration_acute = dgeom(1:25, 1 / 5),
+                                        duration_chronic = dgeom(1:1000, 1 / 200),
+                                        detectability_microscopy_acute = 0.8,
+                                        detectability_microscopy_chronic = 0.2,
                                         detectability_PCR_acute = 1,
-                                        detectability_PCR_chronic = 1,
-                                        time_treatment_acute = dgeom(1:100, 1/20),
+                                        detectability_PCR_chronic = 0.8,
+                                        time_treatment_acute = dgeom(1:25, 1 / 5),
                                         time_treatment_chronic = dgeom(1:100, 1/20),
                                         treatment_seeking_mean = 0.5,
                                         treatment_seeking_sd = 0.1,
                                         duration_prophylactic = dgeom(1:25, 1/5),
-                                        infectivity_acute = 0.07,
-                                        infectivity_chronic = 0.07,
+                                        infectivity_acute = 0.115,
+                                        infectivity_chronic = 0.078,
                                         max_inoculations = 5,
                                         H = 1000,
                                         seed_infections = 100,
@@ -186,31 +166,57 @@ define_epi_model_parameters <- function(project,
 }
 
 #------------------------------------------------
-# convert epi model parameters to standardised types - for example, deals with
-# arguments that can be defined as either list or vector. Ensures that values
-# passed to downstream functions are unambiguous. NB. check_epi_model_params()
-# is run before process_epi_model_params()
-#' @noRd
-process_epi_model_params <- function(project) {
+#' @title Define outputs produced from the transmission model
+#'
+#' @description Loads one or more dataframes into the SIMPLEGEN project that
+#'   specify which outputs will be returned from the epidemiological model.
+#'
+#' @param project a SIMPLEGEN project, as produced by the
+#'   \code{simplegen_project()} function.
+#' @param daily a dataframe of daily outputs.
+#' @param sweeps a dataframe of outputs at specific time points.
+#' @param surveys a dataframe specifying surveys to be conducted on the
+#'   population.
+#'
+#' @export
+
+define_epi_sampling_parameters <- function(project,
+                                           daily = NULL,
+                                           sweeps = NULL,
+                                           surveys = NULL) {
   
-  # cpp11 requires integers to be defined as distinct from doubles
-  name_vec <- c("H", "seed_infections", "M")
-  project$epi_model_parameters[name_vec] <- mapply(as.integer, project$epi_model_parameters[name_vec], SIMPLIFY = FALSE)
+  # NB. This function is written so that only parameters specified by the user
+  # are updated. Any parameters that already have values within the project are
+  # left alone
   
-  # force duration distributions and daily probabilities to lists
-  name_vec <- c("duration_acute", "duration_chronic",
-                "time_treatment_acute", "time_treatment_chronic",
-                "duration_prophylactic",
-                "detectability_microscopy_acute", "detectability_microscopy_chronic",
-                "detectability_PCR_acute", "detectability_PCR_chronic",
-                "infectivity_acute", "infectivity_chronic")
-  project$epi_model_parameters[name_vec] <- mapply(force_list, project$epi_model_parameters[name_vec], SIMPLIFY = FALSE)
+  # basic checks on inputs (more thorough checks on parameter values will be
+  # carried out later)
+  assert_class(project, "simplegen_project")
   
-  # force deme properties to vectors over demes
-  name_vec <- c("H", "M", "seed_infections")
-  n_demes <- nrow(project$epi_model_parameters$mig_mat)
-  project$epi_model_parameters[name_vec] <- mapply(force_veclength, project$epi_model_parameters[name_vec],
-                                                   MoreArgs = list(n = n_demes), SIMPLIFY = FALSE)
+  # at least one input must be non-NULL
+  if (is.null(daily) & is.null(sweeps) & is.null(surveys)) {
+    stop("must define at least one output type")
+  }
+  
+  # get list of all input values, including those set by default
+  all_args <- within(as.list(environment()), rm(project))
+  
+  # if there are no defined parameters then create all parameters from
+  # scratch using default values
+  if (is.null(project$epi_sampling_parameters)) {
+    project$epi_sampling_parameters <- all_args
+  }
+  
+  # get list of only input values defined by user
+  user_arg_names <- names(as.list(match.call()))
+  user_arg_names <- setdiff(user_arg_names, c("", "project"))
+  user_args <- all_args[user_arg_names]
+  
+  # overwrite parameters defined by user
+  project$epi_sampling_parameters[user_arg_names] <- user_args
+  
+  # TODO - perform checks on final parameters
+  #check_epi_sampling_params(project)
   
   # return
   invisible(project)
@@ -249,9 +255,8 @@ sim_epi <- function(project,
                     pb_markdown = FALSE,
                     silent = FALSE) {
   
-  
   # avoid "no visible binding" warning
-  numer <- denom <- measure <- NULL
+  #numer <- denom <- measure <- NULL
   
   # ---------- check inputs ----------
   
@@ -272,7 +277,7 @@ sim_epi <- function(project,
   
   # ensure that parameters are loaded and pass checks
   check_epi_model_params(project)
-  #check_epi_sampling_params(project)
+  # TODO - check_epi_sampling_params(project)
   
   
   # ---------- define arguments  ----------
@@ -281,7 +286,7 @@ sim_epi <- function(project,
   args <- c(project$epi_model_parameters,
             project$epi_sampling_parameters)
   
-  # append function arguments
+  # append values that were arguments to this function
   args <- c(args,
             list(max_time = max_time,
                  save_transmission_record = save_transmission_record,
@@ -297,16 +302,17 @@ sim_epi <- function(project,
   args <- c(args, list(age_death = demog$age_death,
                        age_stable = demog$age_stable))
   
-  # establish which outputs are required
+  # establish which sampling outputs are required. This is because C++ cannot
+  # interpret a NULL input value, so we need to flag which input elements to
+  # avoid
   args$any_daily_outputs <- !is.null(args$daily)
   args$any_sweep_outputs <- !is.null(args$sweeps)
   args$any_survey_outputs <- !is.null(args$surveys)
   
-  # # replace "proportion" with "prevalence", as this uses the same calculation
-  # if (args$any_daily_outputs) {
-  #   args$daily$measure <- replace(args$daily$measure, args$daily$measure == "proportion", "prevalence")
-  # }
-  # 
+  # process sampling objects to make compatible with cpp11 format
+  args$daily_name <- args$daily$name
+  args$daily <- process_sweep(args$daily)
+  
   # # get sampling strategy indices into 0-indexed numerical format
   # sampling_to_cpp_format <- function(x) {
   #   if (is.null(x)) {
@@ -360,58 +366,56 @@ sim_epi <- function(project,
   # run efficient C++ function
   output_raw <- sim_indiv_deploy(args, args_progress)
   
-  return(output_raw)
+  #return(output_raw)
   
   # ---------- process output ----------
   
   # wrangle daily output
   daily_output <- NULL
   if (args$any_daily_outputs) {
-    
-    # make output dataframe with raw values
-    daily_df <- project$epi_sampling_parameters$daily
-    daily_output <- cbind(time = rep(seq_len(max_time), each = nrow(daily_df)),
-                          daily_df,
-                          value = unlist(output_raw$daily_output),
-                          row.names = NULL)
+    daily_output <- output_raw$daily %>%
+      as.data.frame() %>%
+      setNames(args$daily_name) %>%
+      dplyr::mutate(time = seq_len(max_time), .before = 1)
   }
-  
-  # wrangle sweep output
+
+  # # wrangle sweep output
   sweeps_output <- NULL
-  if (args$any_sweep_outputs) {
-    
-    # make output dataframe with raw values
-    sweeps_output <- cbind(project$epi_sampling_parameters$sweeps,
-                           value = unlist(output_raw$sweep_output),
-                           row.names = NULL)
-  }
-  
-  # wrangle surveys output
-  sample_details <- surveys_output <- NULL
-  if (args$any_survey_outputs) {
-    
-    # make individual-level output dataframe
-    sample_details <- mapply(as.data.frame, output_raw$survey_output, SIMPLIFY = FALSE) %>%
-      dplyr::bind_rows()
-    sample_details$infection_IDs <- output_raw$survey_output_infection_IDs
-    sample_details <- dplyr::arrange(sample_details, .data$study_ID)
-    
-    # get summary output from individual-level
-    surveys_output <- get_survey_summary(sample_details,
-                                         surveys_raw,
-                                         args$surveys_expanded)
-    
-  }
-  
+  # if (args$any_sweep_outputs) {
+  #   
+  #   # make output dataframe with raw values
+  #   sweeps_output <- cbind(project$epi_sampling_parameters$sweeps,
+  #                          value = unlist(output_raw$sweep_output),
+  #                          row.names = NULL)
+  # }
+  # 
+  # # wrangle surveys output
+  surveys_output <- NULL
+  sample_details <- NULL
+  # if (args$any_survey_outputs) {
+  #   
+  #   # make individual-level output dataframe
+  #   sample_details <- mapply(as.data.frame, output_raw$survey_output, SIMPLIFY = FALSE) %>%
+  #     dplyr::bind_rows()
+  #   sample_details$infection_IDs <- output_raw$survey_output_infection_IDs
+  #   sample_details <- dplyr::arrange(sample_details, .data$study_ID)
+  #   
+  #   # get summary output from individual-level
+  #   surveys_output <- get_survey_summary(sample_details,
+  #                                        surveys_raw,
+  #                                        args$surveys_expanded)
+  #   
+  # }
+  # 
   # append to project
   project$epi_output <- list(daily = daily_output,
                              sweeps = sweeps_output,
                              surveys = surveys_output)
-  
-  if (!is.null(sample_details)) {
-    project$sample_details <- sample_details
-  }
-  
+
+  # if (!is.null(sample_details)) {
+  #   project$sample_details <- sample_details
+  # }
+  # 
   # return
   invisible(project)
 }

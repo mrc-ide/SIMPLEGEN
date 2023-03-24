@@ -9,11 +9,17 @@
 #include "sim_indiv/sim_indiv.cpp"
 #include "sim_indiv/Parameters.cpp"
 #include "sim_indiv/Dispatcher.cpp"
+#include "sim_indiv/Host.cpp"
+#include "sim_indiv/Host_inoc.cpp"
+#include "sim_indiv/Mosquito.cpp"
+#include "sim_indiv/Mosquito_pop.cpp"
+#include "sim_indiv/Host_pop.cpp"
+#include "sim_indiv/Sweep.cpp"
 
 using namespace std;
 
 //------------------------------------------------
 [[cpp11::register]]
-void sim_indiv_deploy(cpp11::list args, cpp11::list args_progress) {
-  sim_indiv(args, args_progress);
+cpp11::list sim_indiv_deploy(cpp11::list args, cpp11::list args_progress) {
+  return sim_indiv(args, args_progress);
 }

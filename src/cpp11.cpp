@@ -6,11 +6,10 @@
 #include <R_ext/Visibility.h>
 
 // deploy_sub.cpp
-void sim_indiv_deploy(cpp11::list args, cpp11::list args_progress);
+cpp11::list sim_indiv_deploy(cpp11::list args, cpp11::list args_progress);
 extern "C" SEXP _SIMPLEGEN_sim_indiv_deploy(SEXP args, SEXP args_progress) {
   BEGIN_CPP11
-    sim_indiv_deploy(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(args), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(args_progress));
-    return R_NilValue;
+    return cpp11::as_sexp(sim_indiv_deploy(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(args), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(args_progress)));
   END_CPP11
 }
 

@@ -11,4 +11,4 @@
 #include "Dispatcher.hpp"
 
 //------------------------------------------------
-void sim_indiv(cpp11::list args, cpp11::list args_progress);
+cpp11::list sim_indiv(cpp11::list args, cpp11::list args_progress);

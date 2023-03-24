@@ -26,7 +26,7 @@ public:
   // PUBLIC OBJECTS
   
   // scalar epi parameters
-  double a, p, mu;
+  double a, p;
   int u, v, g, max_inoculations;
   
   // state transition probabilities and durations
@@ -62,6 +62,13 @@ public:
   int n_time_treatment_chronic;
   int n_duration_prophylactic;
   
+  // onward infectivity
+  std::vector<std::vector<double>> infectivity_acute;
+  std::vector<std::vector<double>> infectivity_chronic;
+  int n_infectivity_acute;
+  int n_infectivity_chronic;
+  double max_infectivity;
+  
   // objects for sampling from probability distributions
   Sampler sampler_age_stable;
   Sampler sampler_age_death;
@@ -70,13 +77,6 @@ public:
   std::vector<Sampler> sampler_time_treatment_acute;
   std::vector<Sampler> sampler_time_treatment_chronic;
   std::vector<Sampler> sampler_duration_prophylactic;
-  
-  // onward infectivity
-  std::vector<std::vector<double>> infectivity_acute;
-  std::vector<std::vector<double>> infectivity_chronic;
-  int n_infectivity_acute;
-  int n_infectivity_chronic;
-  double max_infectivity;
   
   // deme parameters
   std::vector<int> H_init;
@@ -92,48 +92,16 @@ public:
   int n_life_table;
   std::vector<double> age_death;
   std::vector<double> age_stable;
+  int max_age;
   
-  /*
+  
   // sampling parameters
   bool any_daily_outputs;
-  std::map<std::pair<int, int>, std::vector<int>> daily_map;
-  std::vector<bool> daily_flag_deme;
-  std::vector<int> daily_deme;
-  std::vector<Measure> daily_measure;
-  std::vector<Model_state> daily_state;
-  std::vector<Diagnostic> daily_diagnostic;
-  std::vector<int> daily_age_min;
-  std::vector<int> daily_age_max;
-  int n_daily_outputs;
-  
   bool any_sweep_outputs;
-  std::vector<int> sweep_time;
-  std::vector<int> sweep_time_ordered;
-  std::vector<int> sweep_deme;
-  std::vector<Measure> sweep_measure;
-  std::vector<Model_state> sweep_state;
-  std::vector<Diagnostic> sweep_diagnostic;
-  std::vector<int> sweep_age_min;
-  std::vector<int> sweep_age_max;
-  int n_sweep_outputs;
-  
   bool any_survey_outputs;
-  std::vector<int> surveys_t_start;
-  std::vector<int> surveys_t_end;
-  std::vector<int> surveys_deme;
-  std::vector<Measure> surveys_measure;
-  std::vector<Sampling> surveys_sampling;
-  std::vector<Diagnostic> surveys_diagnostic;
-  std::vector<int> surveys_age_min;
-  std::vector<int> surveys_age_max;
-  std::vector<double> surveys_sample_size;
-  std::vector<int> surveys_n_days;
-  int n_survey_outputs;
-  
-  std::vector<int> surveys_expanded_study_ID;
-  std::vector<int> surveys_expanded_sampling_time;
-  std::vector<int> surveys_expanded_reporting_time;
-  */
+  cpp11::data_frame daily_df;
+  cpp11::data_frame sweeps_df;
+  cpp11::data_frame surveys_df;
   
   // run parameters
   int max_time;
@@ -153,14 +121,28 @@ public:
   void load_deme_params(cpp11::list args);
   void load_migration_params(cpp11::list args);
   void load_demog_params(cpp11::list args);
-  //void load_sampling_params_daily(Rcpp::List args);
-  //void load_sampling_params_sweep(Rcpp::List args);
-  //void load_sampling_params_survey(Rcpp::List args);
+  void load_sampling_params(cpp11::list args);
   void load_run_params(cpp11::list args);
   
   void define_samplers();
+  int draw_age_stable();
+  int draw_age_death();
+  int draw_duration_acute(int n);
+  int draw_duration_chronic(int n);
+  int draw_time_treatment_acute(int n);
+  int draw_time_treatment_chronic(int n);
+  int draw_duration_prophylactic(int n);
+  double get_prob_infection(int n);
+  double get_prob_acute(int n);
+  double get_prob_AC(int n);
+  
+  double get_detectability_microscopy_acute(int t, int t0, int n);
+  double get_detectability_microscopy_chronic(int t, int t0, int n);
+  double get_detectability_PCR_acute(int t, int t0, int n);
+  double get_detectability_PCR_chronic(int t, int t0, int n);
+  double get_infectivity_acute(int t, int t0, int n);
+  double get_infectivity_chronic(int t, int t0, int n);
   
   void summary();
-  //void print_daily_maps();
 };
 
