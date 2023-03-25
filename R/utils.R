@@ -177,6 +177,9 @@ process_epi_model_params <- function(project) {
 #' @noRd
 process_sweep <- function(sweep_df) {
   
+  # avoid "no visible bindings"
+  measure <- state <- diagnostic <- deme <- age_min <- age_max <- NULL
+  
   # subset columns
   ret <- sweep_df %>%
     dplyr::select(measure, state, diagnostic, deme, age_min, age_max)
@@ -213,6 +216,12 @@ process_sweep <- function(sweep_df) {
 #'   confidence interval for the incidence under a Poisson model. This is
 #'   two-tailed with significance level alpha.
 #'
+#' @param n the number of events.
+#' @param R the time at risk.
+#' @param alpha the significance level of the confidence interval (two-tailed).
+#'
+#'
+#' @importFrom stats qchisq
 #' @export
 
 CI_inc <- function(n, R, alpha = 0.05) {

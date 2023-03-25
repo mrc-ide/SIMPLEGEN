@@ -4,11 +4,11 @@
 #include <cpp11.hpp>
 #include <dust/random/random.hpp>
 #include <iostream>
-#include "../misc_v17.hpp"
-#include "../probability.hpp"
-#include "../Sampler_v6.hpp"
-#include "Parameters.hpp"
-#include "Dispatcher.hpp"
+#include "../misc_v17.h"
+#include "../probability.h"
+#include "../Sampler_v6.h"
+#include "Parameters.h"
+#include "Dispatcher.h"
 
 //------------------------------------------------
 cpp11::list sim_indiv(cpp11::list args, cpp11::list args_progress);

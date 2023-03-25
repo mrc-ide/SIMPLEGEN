@@ -1,5 +1,5 @@
 
-#include "Sweep.hpp"
+#include "Sweep.h"
 
 using namespace std;
 

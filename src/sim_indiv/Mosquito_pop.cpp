@@ -1,6 +1,6 @@
 
-#include "Mosquito_pop.hpp"
-#include "Host_pop.hpp"
+#include "Mosquito_pop.h"
+#include "Host_pop.h"
 
 using namespace std;
 

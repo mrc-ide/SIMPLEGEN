@@ -3,9 +3,9 @@
 
 #include <cpp11.hpp>
 //#include <list>
-#include "../misc_v17.hpp"
-#include "../Sampler_v6.hpp"
-#include "../utils.hpp"
+#include "../misc_v17.h"
+#include "../Sampler_v6.h"
+#include "../utils.h"
 
 
 //------------------------------------------------

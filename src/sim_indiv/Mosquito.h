@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include "Parameters.hpp"
-#include "Host.hpp"
-#include "../misc_v17.hpp"
+#include "Parameters.h"
+#include "Host.h"
+#include "../misc_v17.h"
 
 //------------------------------------------------
 // class defining mosquito

@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include "Parameters.hpp"
-#include "Host_inoc.hpp"
-#include "../misc_v17.hpp"
+#include "Parameters.h"
+#include "Host_inoc.h"
+#include "../misc_v17.h"
 
 //------------------------------------------------
 // enumerate possible host states

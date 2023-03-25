@@ -1,5 +1,5 @@
 
-#include "Sampler_v6.hpp"
+#include "Sampler_v6.h"
 
 using namespace std;
 

@@ -245,6 +245,7 @@ define_epi_sampling_parameters <- function(project,
 #' @param silent whether to suppress written messages to the console.
 #'
 #' @importFrom utils txtProgressBar
+#' @importFrom stats setNames
 #' @export
 
 sim_epi <- function(project,

@@ -3,8 +3,8 @@
 
 #include <cpp11.hpp>
 #include <vector>
-#include "misc_v17.hpp"
-#include "probability.hpp"
+#include "misc_v17.h"
+#include "probability.h"
 
 //------------------------------------------------
 // Sampler class allowing fast random draws from any discrete distribution

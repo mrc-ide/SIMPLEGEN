@@ -2,12 +2,12 @@
 #pragma once
 
 #include <cpp11.hpp>
-#include "Parameters.hpp"
-#include "Host.hpp"
-#include "Mosquito_pop.hpp"
-#include "Host_pop.hpp"
-#include "Sweep.hpp"
-#include "../utils.hpp"
+#include "Parameters.h"
+#include "Host.h"
+#include "Mosquito_pop.h"
+#include "Host_pop.h"
+#include "Sweep.h"
+#include "../utils.h"
 
 //------------------------------------------------
 // class for dispatching main simulation
