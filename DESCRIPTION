@@ -43,4 +43,3 @@ SystemRequirements: C++11
  Depends:
     R (>= 3.5.0)
 RdMacros: Rdpack
-Remotes: git::https://github.com/mrc-ide/dust
