@@ -205,3 +205,17 @@ process_sweep <- function(sweep_df) {
   
   return(ret)
 }
+
+#------------------------------------------------
+#' @title Get confidence intervals on incidence data
+#'
+#' @description Given a number of events n and a time at risk R, calculates a
+#'   confidence interval for the incidence under a Poisson model. This is
+#'   two-tailed with significance level alpha.
+#'
+#' @export
+
+CI_inc <- function(n, R, alpha = 0.05) {
+  data.frame(lower = qchisq(alpha / 2, 2*n) / (2*R),
+             upper = qchisq(1 - alpha / 2, 2*(n + 1)) / (2*R))
+}

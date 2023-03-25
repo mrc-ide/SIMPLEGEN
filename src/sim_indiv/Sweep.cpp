@@ -103,8 +103,8 @@ void Sweep::calculate(vector<double> &ret, Host_pop &host_pop, vector<Mosquito_p
         }
       }
       
-      // incidence by active case detection at time of treatment
-      if (measure[this_row] == Measure_incidence_active) {
+      // incidence by passive case detection at time of treatment
+      if (measure[this_row] == Measure_incidence_passive) {
         if ((host_pop.host_vec[i].get_time_treatment() == t) && (host_pop.host_vec[i].get_time_host_state_change() == t) && (host_pop.host_vec[i].get_host_state() == Host_Ah) && ((host_pop.host_vec[i].get_host_state_previous() == Host_Eh) || (host_pop.host_vec[i].get_host_state_previous() == Host_Ch))) {
           if (diagnostic[this_row] == Diagnostic_true) {
             ret[this_row] += 1.0;
@@ -116,8 +116,8 @@ void Sweep::calculate(vector<double> &ret, Host_pop &host_pop, vector<Mosquito_p
         }
       }
       
-      // incidence by passive case detection (100% of cases detected)
-      if (measure[this_row] == Measure_incidence_passive) {
+      // incidence by active case detection (100% of cases detected)
+      if (measure[this_row] == Measure_incidence_active) {
         if (state[this_row] == Samp_A) {
           if ((host_pop.host_vec[i].get_time_host_state_change() == t) && (host_pop.host_vec[i].get_host_state() == Host_Ah) && ((host_pop.host_vec[i].get_host_state_previous() == Host_Eh) || (host_pop.host_vec[i].get_host_state_previous() == Host_Ch))) {
             if (diagnostic[this_row] == Diagnostic_true) {
