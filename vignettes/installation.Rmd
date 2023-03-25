@@ -1,0 +1,50 @@
+---
+title: "Installation"
+author: "Bob Verity"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Installation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+### Installing and loading SIMPLEGEN
+
+SIMPLEGEN uses the [cpp11](https://cpp11.r-lib.org/articles/cpp11.html) package to run C++ code from within R, meaning you will need a C++ compiler. To get one:
+
+    - On Windows, install [Rtools](https://cran.r-project.org/bin/windows/Rtools/)
+    - On Mac, install Xcode from the app store.
+    - On Linux, sudo apt-get install r-base-dev or similar.
+
+Next, in R, ensure that you have the [devtools](https://www.rstudio.com/products/rpackages/devtools/) package installed by running
+
+```{r, eval = FALSE}
+find.package("devtools")
+```
+
+If you already have devtools you should see a link to the package's installation, or if not you will see an error. You can install devtools by running
+
+```{r, eval = FALSE}
+install.packages("devtools", repos = 'http://cran.us.r-project.org')
+```
+
+Now you can install the SIMPLEGEN package directly from GitHub by running
+
+```{r, eval = FALSE}
+devtools::install_github("mrc-ide/SIMPLEGEN")
+```
+
+Assuming everything installed correctly, load the package using
+
+```{r}
+library(SIMPLEGEN)
+```
+
+You can test that the package is loaded and working by running the following command, which should produce the following output:
+
+```{r}
+check_SIMPLEGEN_loaded()
+```
+
+If you have any problems installing, please [raise an issue](https://github.com/mrc-ide/SIMPLEGEN/issues) on github.
