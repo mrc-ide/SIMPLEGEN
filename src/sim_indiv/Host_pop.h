@@ -1,11 +1,11 @@
 
 #pragma once
 
-#include "Parameters.hpp"
-#include "Host.hpp"
-#include "Mosquito.hpp"
-//#include "Mosquito_pop.hpp"
-#include "../misc_v17.hpp"
+#include "Parameters.h"
+#include "Host.h"
+#include "Mosquito.h"
+//#include "Mosquito_pop.h"
+#include "../misc_v17.h"
 
 class Mosquito_pop; // forwards declaration
 

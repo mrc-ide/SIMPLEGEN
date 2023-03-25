@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Sampler_v6.hpp"
+#include "Sampler_v6.h"
 
 //------------------------------------------------
 // create vector of sampler objects from array of probabilities

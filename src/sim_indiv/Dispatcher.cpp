@@ -1,5 +1,5 @@
 
-#include "Dispatcher.hpp"
+#include "Dispatcher.h"
 
 using namespace std;
 
@@ -127,7 +127,7 @@ void Dispatcher::run_simulation(cpp11::list &args_progress) {
     }
     
     // update progress bar
-    //update_progress(args_progress, "pb_sim", t, params->max_time, true);
+    update_progress(args_progress, "pb_sim", t, params->max_time, true);
     
   } // end t loop
   

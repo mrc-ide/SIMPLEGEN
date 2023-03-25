@@ -1,5 +1,5 @@
 
-#include "probability.hpp"
+#include "probability.h"
 
 using namespace std;
 

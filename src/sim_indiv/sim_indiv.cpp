@@ -1,5 +1,5 @@
 
-#include "sim_indiv.hpp"
+#include "sim_indiv.h"
 
 using namespace std;
 

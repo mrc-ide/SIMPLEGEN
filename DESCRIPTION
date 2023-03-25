@@ -27,7 +27,8 @@ Imports:
     dplyr,
     dust,
     ggplot2,
-    magrittr
+    magrittr,
+    Rdpack
 Suggests: 
     testthat (>= 2.1.0),
     covr,
@@ -39,3 +40,6 @@ LinkingTo:
     cpp11,
     dust
 SystemRequirements: C++11
+ Depends:
+    R (>= 3.5.0)
+RdMacros: Rdpack

@@ -1,12 +1,12 @@
 
 #pragma once
 
-#include "Parameters.hpp"
-#include "Host.hpp"
-#include "Mosquito.hpp"
-#include "../misc_v17.hpp"
-#include "Host_pop.hpp"
-#include "Mosquito_pop.hpp"
+#include "Parameters.h"
+#include "Host.h"
+#include "Mosquito.h"
+#include "../misc_v17.h"
+#include "Host_pop.h"
+#include "Mosquito_pop.h"
 
 //------------------------------------------------
 // enumerate sampling elements
