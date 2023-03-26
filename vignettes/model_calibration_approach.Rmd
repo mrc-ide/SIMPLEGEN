@@ -1,0 +1,46 @@
+---
+title: "Approach to model calibration"
+author: "Bob Verity"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Approach to model calibration}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<!---
+Set the font size of figure captions
+Currently not used because figures inserted with html method
+-->
+<style>
+p.caption {
+  font-size: 0.9em;
+}
+</style>
+
+
+### What's the problem?
+
+Coming up with a model of malaria transmission is easy, but coming up with a model that matches to data is much more difficult! There are several reasons for this: first, the real world is messy and data are often noisy or subject to bias. This doesn't necessarily mean we should discard this information, but we need to be able to interpret information when drawing general conclusions. Second, the universe is often much more complicated than we can represent mathematically or computationally, and so when constructing a model we need to decide what we want to include and what we want to discard. There are arguments for being at different points on the complexity spectrum, depending on whether our aim is to develop a simple "intuition pump" type model that captures key principles, or to represent the real world in high fidelity. Finally, the real world is often much stranger than we can envision in our simple brains. Often, we will find new datasets that seem completely at odds with our understanding, in which case we need to revisit our assumptions and hopefully capture something that was missing before. The process of modelling is therefore completely linked to the process of data analysis, otherwise we are just making toys to keep ourselves occupied.
+
+### Why "calibration"?
+
+We use the term "calibration" here to refer to any approach aimed at getting a model to line up with observed data. Model calibration can be as formal or informal as you like, and in fact the word is carefully chosen to get away from the more narrow idea of model "fitting", which implies a stronger set of statistical principles. In some sense the ideal form of calibration would be a full likelihood-based model fit, perhaps with full Bayesian uncertainty estimates, sensitivity analyses and posterior predictive checks...but realistically that is not going to happen most of the time. The guiding philosophy here is that, no matter how complex your calibration process, at some point you are going to have to show that you line up against data. By making a simple "arena" consisting of a series of datasets that cover different aspects of malaria genomic epidemiology, we can compare models in terms of what patterns they can/cannot recapitulate. This is not a competition between models, as if someone really wanted to make a model that fitted all these datasets perfectly then I'm sure they could (it would probably be highly over-fitted and useless, but nonethless...)! Rather, the aim of this excercise is to guide us towards modelling principles that are important, and towards models that are practically useful in some situations.
+
+### Focus on reproducibility
+
+Our aim is that multiple model calibrations against data will be shown here, starting with the inbuilt SIMPLEGEN model and hopefully expanding to other models. A key part of this approach is reproducibility, as showing a series of model predictions with no information on how they are generated is not particularly useful for anyone. Although this may seem obvious, we should recognise that this is part of a wider reproducibility crisis in science, in which epidemiological modelling is no exception. The fact is that it takes effort to ensure reproducility, as even well-documented software pacakges may be updated over time in ways that cause results to diverge. For this reason, we impose the following strict rules on any model results displayed here:
+
+- Results must be generated from a properly version-controlled software package with a unique tag. There should be no possible ambiguity as to which version of the software was used.
+- For models distributed as part of the SIMPLEGEN repository, all code used to produce output should be included in the repository and made available to the user.
+- For external models, all code used to produce output should be provided as part of a [DockerHub](https://hub.docker.com/) image. This ensures that the model and all of its dependencies can be reliably run on *any* system that can run Docker.
+- Stochastic model output should be produced using a defined RNG seed to ensure reproducibility.
+
+These rules only apply to results displayed here and to models that are distributed as part of the SIMPLEGEN pipeline. If you want to develop your own models and play around with SIMPLEGEN then there is no need for you to follow any of these steps (although good for you if you choose to)!
+
+### What if my model assumptions change?
+
+Finally, this is not intended to be a static document. Model assumptions may change over time as new data are included or new calibration methods are used. The advantage to having complete reproducibility is that we can move forward with model development while always maintaining a trail of previous versions so nothing is lost along the way. The first few calibrations will probably look a bit ropey, but hopefully over time the models will start to look reasonable - bear with us! As a user, this just means you should always specify exactly which version of SIMPLEGEN you used in your analysis.
+
+

@@ -97,7 +97,7 @@
 #'   in each one-year age group. Defaults to a life table taken from Mali - see
 #'   \code{?life_table_Mali} for details.
 #'
-#' @importFrom stats dgeom
+#' @importFrom stats dgeom dpois
 #' @export
 
 define_epi_model_parameters <- function(project,
@@ -107,15 +107,15 @@ define_epi_model_parameters <- function(project,
                                         u = 12,
                                         v = 10,
                                         g = 12,
-                                        prob_infection = 0.5,
-                                        prob_acute = 1.0,
+                                        prob_infection = seq(0.8, 0.5, l = 50),
+                                        prob_acute = seq(1, 0.1, l = 50),
                                         prob_AC = 1.0,
-                                        duration_acute = dgeom(1:25, 1 / 5),
-                                        duration_chronic = dgeom(1:1000, 1 / 200),
+                                        duration_acute = dpois(1:100, 10),
+                                        duration_chronic = dpois(1:500, 100),
                                         detectability_microscopy_acute = 0.8,
-                                        detectability_microscopy_chronic = 0.2,
+                                        detectability_microscopy_chronic = 0.8 * 100 * dgeom(0:500, 1 / 100),
                                         detectability_PCR_acute = 1,
-                                        detectability_PCR_chronic = 0.8,
+                                        detectability_PCR_chronic = seq(0.8, 0.2, l = 100),
                                         time_treatment_acute = dgeom(1:25, 1 / 5),
                                         time_treatment_chronic = dgeom(1:100, 1/20),
                                         treatment_seeking_mean = 0.5,

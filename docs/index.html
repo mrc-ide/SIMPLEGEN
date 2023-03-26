@@ -11,7 +11,8 @@
 <script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
-<script src="pkgdown.js"></script><meta property="og:title" content="Simulating Plasmodium Epidemiological and Genetic Data">
+<script src="pkgdown.js"></script><link href="extra.css" rel="stylesheet">
+<meta property="og:title" content="Simulating Plasmodium Epidemiological and Genetic Data">
 <meta property="og:description" content="Forwards-in time simulation of Plasmodium falciparum genetic data can be
     computationally intensive, as many genotypes are tracked but ultimately lost. SIMPLEGEN
     avoids this problem by splitting simulation into three steps - first, simulating
@@ -49,13 +50,79 @@
       <ul class="nav navbar-nav">
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Vignettes
+    Get started
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
       <a href="articles/installation.html">Installation</a>
+    </li>
+    <li class="divider">
+    </li>
+<li class="dropdown-header">Working through the pipeline</li>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Simulating malaria transmission</a>
+      <ul class="dropdown-menu" role="menu">
+<li>
+          <a href="404.html">A simple model</a>
+        </li>
+        <li>
+          <a href="404.html">Population surveys</a>
+        </li>
+      </ul>
+</li>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Overlaying genetics</a>
+      <ul class="dropdown-menu" role="menu">
+<li>
+          <a href="404.html">Pruning the transmission record</a>
+        </li>
+        <li>
+          <a href="404.html">Pedigrees and relatedness</a>
+        </li>
+      </ul>
+</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    The models
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li class="dropdown-header">Detailed descriptions</li>
+    <li>
+      <a href="articles/model_description.html">The inbuilt transmission model</a>
+    </li>
+    <li class="divider">
+    </li>
+<li class="dropdown-header">Model calibration</li>
+    <li>
+      <a href="articles/model_calibration_approach.html">Aims</a>
+    </li>
+    <li>
+      <a href="articles/model_calibration_prev_inc.html">Prevalence, incidence and EIR</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    The data
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li class="dropdown-header">Epidemiological data</li>
+    <li>
+      <a href="articles/data_prev_inc.html">Prevalence, incidence and EIR</a>
+    </li>
+    <li class="divider">
+    </li>
+<li class="dropdown-header">Genetic data</li>
+    <li>
+      <a href="404.html">TODO</a>
     </li>
   </ul>
 </li>
@@ -84,10 +151,11 @@
   <div class="contents col-md-9">
 
 <p><img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/simplegenlogo.png" height="123px" width="533px"></p>
-<div class="section level2">
-<h2 id="watch-this-space">Watch this space…<a class="anchor" aria-label="anchor" href="#watch-this-space"></a>
-</h2>
+<div class="section level3">
+<h3 id="watch-this-space">Watch this space…<a class="anchor" aria-label="anchor" href="#watch-this-space"></a>
+</h3>
 <p><strong>SIMPLEGEN is currently in development and is not yet ready for real analysis sorry!</strong> We hope to have a working release version start of 2024.</p>
+<hr>
 <p>SIMPLEGEN is an R package for <strong>sim</strong>ulating <strong>Pl</strong>asmodium <strong>e</strong>pidemiological and <strong>gen</strong>etic data. The rationalle behind SIMPLEGEN is that computationally intensive forwards-simulation of <em>P. falciparum</em> genetic data can be avoided by splitting the process into multiple stages. These stages make up the SIMPLEGEN pipeline:</p>
 <p><img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/pipeline.png" height="185px" width="800px"></p>
 <p>Notice that genotypes are not actually generated until near the end of the pipeline, at which point we have already discarded many unimportant events. For example, we never need to model the genetics of infections that eventually clear, or infections in hosts that are not connected to our final sample. By discarding unimportant events like this we get significant gains in speed, which has a knock-on effect on the size and spatial scale that we can handle. For example, the final software is aiming to simulate a population of thousands of hosts distributed across hundreds of connected demes, and to sample whole <em>P. falciparum</em> genomes.</p>

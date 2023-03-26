@@ -7,10 +7,22 @@
     <loc>/LICENSE-text.html</loc>
   </url>
   <url>
+    <loc>/articles/data_prev_inc.html</loc>
+  </url>
+  <url>
     <loc>/articles/index.html</loc>
   </url>
   <url>
     <loc>/articles/installation.html</loc>
+  </url>
+  <url>
+    <loc>/articles/model_calibration_approach.html</loc>
+  </url>
+  <url>
+    <loc>/articles/model_calibration_prev_inc.html</loc>
+  </url>
+  <url>
+    <loc>/articles/model_description.html</loc>
   </url>
   <url>
     <loc>/authors.html</loc>
@@ -101,6 +113,12 @@
   </url>
   <url>
     <loc>/reference/pipe.html</loc>
+  </url>
+  <url>
+    <loc>/reference/plot_flex_distribution.html</loc>
+  </url>
+  <url>
+    <loc>/reference/plot_treatment_seeking.html</loc>
   </url>
   <url>
     <loc>/reference/prev_inc_griffin2014.html</loc>
