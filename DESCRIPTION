@@ -1,9 +1,10 @@
 Package: SIMPLEGEN
 Type: Package
 Title: Simulating Plasmodium Epidemiological and Genetic Data
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: as.person(c(
     "Bob Verity <r.verity@imperial.ac.uk> [aut, cre]", 
+    "Shazia Ruybal [aut]",
     "Isobel Routledge [aut]",
     "Sophie Berube [aut]",
     "Daniel Larremore [aut]"
