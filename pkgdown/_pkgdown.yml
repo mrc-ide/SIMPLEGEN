@@ -70,7 +70,7 @@ navbar:
     - text: Misc
       menu:
         - text: Integrating with SLiM
-          href: 404.html
+          href: articles/SLiM_review.html
     - text: Functions
       href: reference/index.html
   right:

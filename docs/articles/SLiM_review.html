@@ -57,7 +57,7 @@
       <a href="../404.html">A simple model</a>
     </li>
     <li>
-      <a href="../404.html">Population surveys</a>
+      <a href="../404.html">Sampling from the population</a>
     </li>
     <li class="divider">
     </li>
@@ -72,35 +72,69 @@
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    The models
+    The pipeline
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-<li class="dropdown-header">Detailed descriptions</li>
-    <li>
-      <a href="../articles/model_description.html">The inbuilt transmission model</a>
-    </li>
-    <li class="divider">
-    </li>
-<li class="dropdown-header">Model calibration</li>
-    <li>
-      <a href="../articles/calibration_approach.html">Overall approach</a>
+<li>
+      <a href="../404.html">What is the SIMPLEGEN pipeline?</a>
     </li>
     <li>
-      <a href="../articles/calibration_prev_inc.html">Prevalence, incidence and EIR</a>
-    </li>
-    <li>
-      <a href="../articles/calibration_diagnostics.html">Diagnostic sensitivity</a>
-    </li>
-    <li>
-      <a href="../articles/calibration_age_inc.html">Age-incidence</a>
+      <a href="../articles/transmission_record.html">The transmission record</a>
     </li>
   </ul>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    The data
+    Models and calibration
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li class="dropdown-header">Overall approach</li>
+    <li>
+      <a href="../articles/calibration_approach.html">Model development and calibration</a>
+    </li>
+    <li class="divider">
+    </li>
+<li class="dropdown-header">Transmission models</li>
+    <li>
+      <a href="../articles/model_description.html">The inbuilt transmission model</a>
+    </li>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Calibration</a>
+      <ul class="dropdown-menu" role="menu">
+<li>
+          <a href="../articles/calibration_prev_inc.html">Prevalence, incidence and EIR</a>
+        </li>
+        <li>
+          <a href="../articles/calibration_diagnostics.html">Diagnostics</a>
+        </li>
+        <li>
+          <a href="../articles/calibration_age_inc.html">Age-incidence</a>
+        </li>
+      </ul>
+</li>
+    <li class="divider">
+    </li>
+<li class="dropdown-header">Genetic models</li>
+    <li>
+      <a href="../404.html">TODO - description</a>
+    </li>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Calibration</a>
+      <ul class="dropdown-menu" role="menu">
+<li>
+          <a href="../404.html">TODO - genetic calibration</a>
+        </li>
+      </ul>
+</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Data
      
     <span class="caret"></span>
   </a>
@@ -156,7 +190,9 @@
 
       
 
-      </header><div class="row">
+      </header><script src="SLiM_review_files/htmlwidgets-1.5.3/htmlwidgets.js"></script><script src="SLiM_review_files/plotly-binding-4.10.0/plotly.js"></script><script src="SLiM_review_files/typedarray-0.1/typedarray.min.js"></script><link href="SLiM_review_files/crosstalk-1.1.1/css/crosstalk.css" rel="stylesheet">
+<script src="SLiM_review_files/crosstalk-1.1.1/js/crosstalk.min.js"></script><link href="SLiM_review_files/plotly-htmlwidgets-css-2.5.1/plotly-htmlwidgets.css" rel="stylesheet">
+<script src="SLiM_review_files/plotly-main-2.5.1/plotly-latest.min.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>SLiM: review and profiling for malaria
@@ -178,16 +214,16 @@ Ruybal-Pesántez</h4>
 <h2 id="background">Background<a class="anchor" aria-label="anchor" href="#background"></a>
 </h2>
 <p>This notebook documents the review of the forward genetic simulation
-tool <a href="https://messerlab.org/slim/" class="external-link">SLiM</a> <span class="citation">[@haller2019; @haller2016; @messer2013;
-@haller2019]</span>. We are testing whether this tool can be used as a
-part of the <a href="mrc-ide.github.io/SIMPLEGEN">SIMPLEGEN</a>
-pipeline. Some key advantages of SLiM that would be beneficial for our
-purposes is the ability to simulate haploid genomes and because of its
-well-integrated <code>tskit</code> tree structure format for genetic
-data, which is already debugged and working seamlessly with simulation
-output from SLiM. However we will test whether SLiM is suitable for
-large population sizes and to build an appropriate malaria model (eg
-Ross-MacDonald). <em>(Potentially other things to test as well)</em></p>
+tool <a href="https://messerlab.org/slim/" class="external-link">SLiM</a> <span class="citation">(Benjamin C. Haller and Messer 2019, 2019; Benjamin C.
+Haller and Messer 2016; Messer 2013)</span>. We are testing whether this
+tool can be used as a part of the <a href="mrc-ide.github.io/SIMPLEGEN">SIMPLEGEN</a> pipeline. Some key
+advantages of SLiM that would be beneficial for our purposes is the
+ability to simulate haploid genomes and because of its well-integrated
+<code>tskit</code> tree structure format for genetic data, which is
+already debugged and working seamlessly with simulation output from
+SLiM. However we will test whether SLiM is suitable for large population
+sizes and to build an appropriate malaria model (eg Ross-MacDonald).
+<em>(Potentially other things to test as well)</em></p>
 <div class="section level4">
 <h4 id="main-aims">
 <strong>Main aims:</strong><a class="anchor" aria-label="anchor" href="#main-aims"></a>
@@ -249,22 +285,22 @@ can write vcf files from <code>.trees</code></p></li>
 </ul>
 </div>
 <div class="section level4">
-<h4 id="tree-sequence-recording-in-slim">
-<em>Tree-sequence recording in SLiM</em><a class="anchor" aria-label="anchor" href="#tree-sequence-recording-in-slim"></a>
+<h4 id="tree_sequence_recording">
+<em>Tree-sequence recording in SLiM</em><a class="anchor" aria-label="anchor" href="#tree_sequence_recording"></a>
 </h4>
 <p>One of the key features of SLiM is the ability to output genetic data
-in tree-sequence format, <code>.trees</code> <span class="citation">[@kelleher2018]</span> to track population history and
-true local ancestry. This type of output then enables seamless
-integration with <a href="https://tskit.dev/tskit/docs/stable/introduction.html" class="external-link"><code>tskit</code></a>
+in tree-sequence format, <code>.trees</code> <span class="citation">(Kelleher et al. 2018)</span> to track population
+history and true local ancestry. This type of output then enables
+seamless integration with <a href="https://tskit.dev/tskit/docs/stable/introduction.html" class="external-link"><code>tskit</code></a>
 and <a href="https://tskit.dev/msprime/docs/stable/intro.html" class="external-link"><code>msprime</code></a>
 and can be analyzed downstream with Python and <a href="https://tskit.dev/pyslim/docs/stable/introduction.html" class="external-link"><code>pyslim</code></a>,
 a Python API developed specifically for interchangeability between SLiM,
 <code>tskit</code>, <code>msprime</code> etc. Similarly R can be used
 downstream and there are also specific R packages such as <a href="https://www.slendr.net" class="external-link">{slendr}</a> developed specifically for
-this (see <span class="citation">[@petr2022]</span>). There are several
-advantages to tree-sequence recording such as but not limited to (for
-more details see <span class="citation">[@haller2019a]</span> and SLiM
-manual Chapter 1.7 and 17):</p>
+this (see <span class="citation">(Petr et al. 2022)</span>). There are
+several advantages to tree-sequence recording such as but not limited to
+(for more details see <span class="citation">(Benjamin C. Haller et al.
+2019)</span> and SLiM manual Chapter 1.7 and 17):</p>
 <ul>
 <li><p><strong>Overlaying neutral mutations:</strong> forward
 simulations can be run without neutral mutations to significantly
@@ -299,54 +335,505 @@ history of inheritance/recombination)</p></li>
 <h4 id="multi-species-models">
 <em>Multi-species models</em><a class="anchor" aria-label="anchor" href="#multi-species-models"></a>
 </h4>
-<p>The most recent release of SLiM, 4 <span class="citation">[@haller2022]</span> allows multi-species simulations
-and the ability for custom scripting to deal with spatial landscapes
+<p>The most recent release of SLiM, 4 <span class="citation">(Benjamin
+C. Haller and Messer 2022)</span> allows multi-species simulations and
+the ability for custom scripting to deal with spatial landscapes
 (continuous-space models). This version now also allows simulation of
 “non-genetic” species, enabling modeling of ecological scenarios (eg fox
 and mouse), with the flexibility to simulate genetics for one or more
 species or none, but also allowing interactions between them as needed.
-We explore this possibility for building a vector-host model (see
-[Profiling SLiM: basic Ross-Macdonald epidemiological model of malaria]
-section below).</p>
+We explore this possibility for building a vector-host model (see <a href="#profiling-slim-basic-ross-macdonald-epidemiological-model-of-malaria">Profiling
+SLiM: basic Ross-Macdonald epidemiological model of malaria</a> section
+below).</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="brief-literature-review-of-slim-for-plasmodium-spp">Brief literature review of SLiM for <em>Plasmodium</em> spp<a class="anchor" aria-label="anchor" href="#brief-literature-review-of-slim-for-plasmodium-spp"></a>
+</h2>
+<p>Out literature review identified only three publications where SLiM
+was used for simulations in malaria, described below:</p>
+<p><a href="https://doi.org/10.1371/journal.pgen.1007279" class="external-link">Henden et al,
+PLOS Genetics 2018, <em>Identity-by-descent analyses for measuring
+population dynamics and selection in recombining pathogens</em></a>
+<span class="citation">(Henden et al. 2018)</span></p>
+<ul>
+<li>SLiM was used to simulate SNP data and hard sweeps with an
+evolutionary model appropriate for <em>P. falciparum</em> to test
+whether their IBD method was able to detect the expected positive
+selection signatures. The simulations were also used to benchmark the
+IBD method compared to integrated haplotype score (iHS) and extended
+haplotype homozygosity (EHH) in detecting these signatures of
+selection.</li>
+<li>Parameters used:
+<ul>
+<li><p>Constant effective population size of <em>P. falciparum</em> of
+100,000 (as per <span class="citation">(Hughes and Vierra
+2001)</span>)</p></li>
+<li><p>Mutation rate of 1.7x10<sup>-9</sup> per base pair per generation
+(as per <span class="citation">(Bopp et al. 2013)</span>)</p></li>
+<li><p>Recombination rate of 7.4 x 10<sup>-7</sup> per base pair per
+generation (or 13.5 kb/cM as per <span class="citation">(Miles et al.
+2016)</span>)</p></li>
+<li><p>Generation time: 400,000 generations</p></li>
+<li><p>Genomic element: Chromosome 12, 2.2Mb</p></li>
+<li><p>Sample of 10,000 haplotypes randomly drawn to undergo hard and
+soft sweeps (see Materials and Methods of paper for more details).
+<em>Note: from methods text “We note that it would have been desirable
+to run the simulation over more generations [<a href="https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1007279#pgen.1007279.ref020" class="external-link">20</a>],
+however this was not computationally feasible with the forward
+simulator.”</em></p></li>
+</ul>
+</li>
+</ul>
+<p><a href="https://doi.org/10.1093/molbev/msaa294" class="external-link">Tennessen and
+Duraisingh, Molecular Biology and Evolution 2020, <em>Three Signatures
+of Adaptive Polymorphism Exemplified by Malaria-Associated
+Genes</em></a> <span class="citation">(Tennessen and Duraisingh
+2020)</span></p>
+<ul>
+<li>SLiM was used to simulate <strong>human</strong> genetics and
+explore malaria-associated balancing selection signatures.</li>
+<li>Parameters used (1000 replicate simulations for each set of params):
+<ul>
+<li><p>Population size: 10,000 individuals</p></li>
+<li><p>Mutation rate: 1x10<sup>-7</sup> or 2x10<sup>-7</sup></p></li>
+<li><p>Recombination rate: 0.01 or 0.001 (population-scaled)</p></li>
+<li><p>Genomic element: 10,001 bp</p></li>
+<li>
+<p>Polymorphisms neutral except for overdominant balanced
+polymorphism in the center (dominance coefficient 1e6; selection
+coefficient 1e-8 or dominance coeff 1.1; selection coeff 0.1)</p>
+<ul>
+<li>also ran simulations where all polymorphisms selectively
+neutral</li>
+</ul>
+</li>
+<li><p>Generation time: 50000, 100000, 200000</p></li>
+</ul>
+</li>
+</ul>
+<p><a href="https://doi.org/10.7554/eLife.63177" class="external-link">Hamid et al, eLife
+2021, <em>Rapid adaptation to malaria facilitated by admixture in the
+human population of Cabo Verde</em></a> <span class="citation">(Hamid et
+al. 2021)</span></p>
+<ul>
+<li><p>SLiM was used to simulate <strong>human</strong> genetics and
+explore adaptation to malaria in admixed human populations using
+tree-sequence recording.</p></li>
+<li>
+<p>Parameters used (the combinations of which produced 8 different
+demographic scenarios - 1000 replicate simulations for each):</p>
+<ul>
+<li>
+<p>Population size: 1000 or 10,000</p>
+<ul>
+<li><p>either constant population size or exponential growth at rate
+0.05 per generation</p></li>
+<li><p>either single pulse of admixture at start of simulation or
+continuous admixture at 1% total new migrants per generation</p></li>
+</ul>
+</li>
+<li><p>Generation time: 20</p></li>
+<li><p>Genomic element: human chr1</p></li>
+<li><p>Admixture from two source pops forming a third admixed
+pop</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="building-a-simple-model-for-p--falciparum-genetics-in-slim">Building a simple model for <em>P. falciparum</em> genetics in
+SLiM<a class="anchor" aria-label="anchor" href="#building-a-simple-model-for-p--falciparum-genetics-in-slim"></a>
+</h2>
+<p>Given the limited application of SLiM in the malaria literature, and
+even more so for simulating <em>Plasmodium</em> spp, we replicated the
+model of Henden et al. <span class="citation">(Henden et al.
+2018)</span> with a few modifications (detailed below) to gauge the
+simulation run times in SLiM.</p>
+<div class="section level4">
+<h4 id="model-details">
+<em>Model details</em><a class="anchor" aria-label="anchor" href="#model-details"></a>
+</h4>
+<p>We implemented a simple Wright-Fisher model in SLiM with only neutral
+mutations. The parameters we used are indicated below:</p>
+<ul>
+<li>
+<p>Effective population size, N<sub>e</sub>= 100,000</p>
+<ul>
+<li>An acceptable range in the literature is reported as:
+10<sup>4</sup>-10<sup>6</sup> as per <span class="citation">(Hughes and
+Vierra 2001)</span>
+</li>
+</ul>
+</li>
+<li>
+<p>Mutation rate: 1.7x10<sup>-9</sup></p>
+<ul>
+<li><p>This mutation rate is often used, 1.7x10<sup>-9</sup> per base
+pair per generation (range: 1.7-3.2x10<sup>-9</sup> as per <span class="citation">(Bopp et al. 2013)</span>).</p></li>
+<li><p>However it is worth noting there are other studies documenting
+average mutation rate of 2x10<sup>-10</sup> per base pair per
+generation, where a generation corresponds to a 48hr intra-erythrocytic
+asexual cycle (range: 3.82-4.28x10<sup>-10</sup> as per <span class="citation">(Claessens et al. 2014; Hamilton et al. 2016)</span>).
+Mutation rate estimates are reviewed in Anderson et al <span class="citation">(T. J. C. Anderson et al. 2016)</span>, see Table 4. In
+this paper, mutation rates are converted from a per cycle rate to a
+generation mutation rate, assuming 2-month generation time for duration
+of entire parasite life cycle, ie mosquito-human-mosquito. In this model
+we did not convert between generations and cycles, but this is worth
+considering in future if <em>Plasmodium</em> genetics are to be
+simulated appropriately</p></li>
+</ul>
+</li>
+<li>
+<p>Recombination rate: 7.4x10<sup>-7</sup> and assumed to be uniform
+across genome</p>
+<ul>
+<li>This recombination rate (cross-over) average of 7.4x10<sup>-7</sup>
+or 13.5kb/cM (95%CI: 12.7-14.3) is reported in <span class="citation">(Miles et al. 2016)</span> <em>(note: IsoRelate and
+hmmIBD implement the same recombination rate)</em>
+</li>
+</ul>
+</li>
+<li><p>Genomic element: 2.2Mb (corresponding to <em>P. falciparum</em>
+chromosome 12 as per Henden et al)</p></li>
+<li><p>Generation time: 400,000</p></li>
+</ul>
 </div>
 <div class="section level4">
-<h4 id="note-to-self-some-notable-and-useful-resourcespapers">
-<em>Note to self: some notable and useful resources/papers</em><a class="anchor" aria-label="anchor" href="#note-to-self-some-notable-and-useful-resourcespapers"></a>
+<h4 id="results-and-considerations">
+<em>Results and considerations</em><a class="anchor" aria-label="anchor" href="#results-and-considerations"></a>
+</h4>
+<p>This simulation took an extremely long time to run (&gt;3 days),
+acknowledging that the generation time was also long given it is more
+representative of a “burn-in” period rather than comparative simulations
+to what we will perform in SIMPLEGEN. From this exercise we note that
+SLiM can potentially be used for simulating a <em>P. falciparum</em>
+burn-in where, for instance, neutral mutations are overlaid after the
+fact (as described in <a href="#tree_sequence_recording">Tree-sequence
+recording in SLiM</a>). This output could be saved and used as a initial
+state for further forward simulation. SLiM can thus potentially be used
+to generate a “null” <em>P. falciparum</em> population with realistic
+sequence variation if an appropriate evolutionary history can be
+simulated. This would require more robust parameterization of
+<em>Plasmodium</em> genetics than what we simulated above.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="profiling-slim-basic-ross-macdonald-epidemiological-model-of-malaria">Profiling SLiM: basic Ross-Macdonald epidemiological model of
+malaria<a class="anchor" aria-label="anchor" href="#profiling-slim-basic-ross-macdonald-epidemiological-model-of-malaria"></a>
+</h2>
+<p>One of the key features of SIMPLEGEN is the ability to generate <a href="https://mrc-ide.github.io/SIMPLEGEN/articles/transmission_record.html" class="external-link">transmission
+records</a>) where the transmission history of every infection is
+tracked and recorded (eg. human to mosquito transmission, followed by
+the next blood meal and transmission to another human, etc.). We are not
+interested in simulating genetics in SLiM per se, rather we are
+interested in the ability to generate tree-sequence recording of such a
+transmission history. We explore the possibility of implementing a
+simple Ross-Macdonald epidemiological model with no genetics in SLiM
+with tree-sequence recording below.</p>
+<div class="section level4">
+<h4 id="model_details">
+<em>Model details</em><a class="anchor" aria-label="anchor" href="#model_details"></a>
+</h4>
+<p>To build the Ross-Macdonald epidemiological model we use the
+multi-species functionality of SLiM to create both human and mosquito
+species. There are two equations that drive the dynamics in this simple
+model, as described by Aron and May <span class="citation">(Aron and May
+1982)</span> (also see Smith et al. for a comprehensive review of
+Ross-Macdonald model theory and an overview of the model notation in Box
+2 <span class="citation">(Smith et al. 2012)</span>). The first equation
+describes the change in human states:</p>
+<p><span class="math inline">\(\frac{dx}{dt} =
+mabx(1-x)-rx\)</span>,</p>
+<p>where <span class="math inline">\(x\)</span> is the number of
+infected humans, <span class="math inline">\(m\)</span> is the ratio of
+mosquitoes to humans, <span class="math inline">\(a\)</span> is the
+human blood feeding rate or proportion of mosquitoes that feed each day,
+<span class="math inline">\(b\)</span> is the proportion of bites by
+infectious mosquitoes that infect a human, and <span class="math inline">\(r\)</span> is the daily rate each human recovers
+from infection. The parameter <span class="math inline">\(ma\)</span> is
+a measurable parameter corresponding to the human biting rate or the
+number of bites by vectors per humans per day. The second equation
+describes the change in mosquito states:</p>
+<p><span class="math inline">\(\frac{dz}{dt} = ax(1-z)-gz\)</span>,</p>
+<p>where <span class="math inline">\(z\)</span> is the number of
+infected mosquitoes, and <span class="math inline">\(g\)</span> is the
+instantaneous death rate of mosquitoes.</p>
+<p>Both humans and mosquitoes can transition from a susceptible to
+infected state and the population sizes of humans and mosquitoes are
+fixed. We used the following parameters (Table 1), with fixed fixed
+parameters indicated in bold:</p>
+<p>Table 1. Simulation parameters for Ross-Macdonald implementation in
+SLiM</p>
+<table class="table">
+<colgroup>
+<col width="24%">
+<col width="26%">
+<col width="24%">
+<col width="24%">
+</colgroup>
+<thead><tr class="header">
+<th align="left"><strong>Parameter</strong></th>
+<th align="left"><strong>Description</strong></th>
+<th align="left"><strong>Value</strong></th>
+<th align="left"><strong>Notes</strong></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left"><span class="math inline">\(N_h\)</span></td>
+<td align="left">Number of human hosts</td>
+<td align="left">1000, 10000, 100000, 1000000</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><span class="math inline">\(N_v\)</span></td>
+<td align="left">Number of mosquito vectors</td>
+<td align="left">50000, 500000, 5000000</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><span class="math inline">\(ma\)</span></td>
+<td align="left"><strong>Human biting rate</strong></td>
+<td align="left"><strong>0.1</strong></td>
+<td align="left">This is equivalent to a mosquito biting every 10
+days</td>
+</tr>
+<tr class="even">
+<td align="left"><span class="math inline">\(r\)</span></td>
+<td align="left"><strong>Human infection clearance rate</strong></td>
+<td align="left"><strong>0.05</strong></td>
+<td align="left">This is equivalent to a human clearing their infection
+every 3 weeks</td>
+</tr>
+<tr class="odd">
+<td align="left"><span class="math inline">\(g\)</span></td>
+<td align="left"><strong>Mosquito mortality rate</strong></td>
+<td align="left"><strong>0.2</strong></td>
+<td align="left">This is equivalent to every mosquito having a
+probability of survival of 0.8 (see <span class="citation">(Hendry,
+Kwiatkowski, and McVean 2021)</span>)</td>
+</tr>
+</tbody>
+</table>
+<p>It is worth noting that the aim was not to fully parameterize the
+model itself as we were more interested in profiling SLiM simulations in
+terms of CPU time and memory usage.</p>
+<p>We seed the model at day 50 with 100 infected individuals and the let
+simulation run for 5, 10, 25 or 50 years for the following combinations
+of <span class="math inline">\(N_h\)</span> and <span class="math inline">\(V_h\)</span>:</p>
+<ul>
+<li><p><span class="math inline">\(N_h\)</span>= 1000; <span class="math inline">\(V_h\)</span>= 50,000</p></li>
+<li><p><span class="math inline">\(N_h\)</span>= 10,000; <span class="math inline">\(V_h\)</span>= 500,000</p></li>
+<li><p><span class="math inline">\(N_h\)</span>= 100,000; <span class="math inline">\(V_h\)</span>= 5,000,000</p></li>
+<li><p><span class="math inline">\(N_h\)</span>= 1,000,000; <span class="math inline">\(V_h\)</span>= 5,000,000 (<em>note: for the 25 and
+50 year simulations we did not run this)</em></p></li>
+</ul>
+<p>There are no genetics included in this model but according to the
+SLiM manual, strain properties infecting an individual could in theory
+be “tracked” throughout the time series. Another possibility would be to
+have a three-species model where <em>Plasmodium</em> spp is modeled
+including host-parasitoid interactions (eg. parasite density, parasite
+strain ID tracking, for details see SLiM manual Chapters 19.3 and 19.4).
+However, for our purposes even the multi-species SLiM model is not
+suitable for tree-sequence recording outputs because this functionality
+is only available for tracking within one species. In our case, the
+ability to record tree “branches” between mosquito to human and human to
+mosquito are necessary to fully capture the ancestral “infection” tree
+for downstream genetic analyses.</p>
+</div>
+<div class="section level4">
+<h4 id="results-of-profiling-the-model">
+<em>Results of profiling the model</em><a class="anchor" aria-label="anchor" href="#results-of-profiling-the-model"></a>
+</h4>
+<p>We tested the speed of the simulations by varying human and mosquito
+populations sizes (1e3 to 1e6 and 5e4 to 5e6, respectively), as well as
+the number of years the simulation was run (5, 10, 25 and 50 years) as
+described in <a href="#model_details">Model details</a>.</p>
+<p>By using the clock feature on the SLiM GUI we can profile each
+simulation run, which outputs useful information like CPU time elapsed
+during the run (we are interested in the “Elapsed wall clock time inside
+SLiM core (corrected)”, which is measured in seconds) as well as average
+memory usage across all “ticks” or generations (we are interested in the
+“Average tick SLiM memory use”, which is measured in megabytes).</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">profile_stats</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>test<span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"H=1e3, M=5e4"</span>, <span class="st">"H=1e4, M=5e5"</span>, <span class="st">"H=1e5, M=5e6"</span>, <span class="st">"H=1e6, M=5e6"</span>,</span>
+<span>                                    <span class="st">"H=1e3, M=5e4"</span>, <span class="st">"H=1e4, M=5e5"</span>, <span class="st">"H=1e5, M=5e6"</span>,</span>
+<span>                                    <span class="st">"H=1e3, M=5e4"</span>, <span class="st">"H=1e4, M=5e5"</span>, <span class="st">"H=1e5, M=5e6"</span>,</span>
+<span>                                    <span class="st">"H=1e3, M=5e4"</span>, <span class="st">"H=1e4, M=5e5"</span>, <span class="st">"H=1e5, M=5e6"</span><span class="op">)</span>,</span>
+<span>                            pop_size_humans <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1e3</span>, <span class="fl">1e4</span>, <span class="fl">1e5</span>, <span class="fl">1e6</span>,</span>
+<span>                                                <span class="fl">1e3</span>, <span class="fl">1e4</span>, <span class="fl">1e5</span>,</span>
+<span>                                                <span class="fl">1e3</span>, <span class="fl">1e4</span>, <span class="fl">1e5</span>,</span>
+<span>                                                <span class="fl">1e3</span>, <span class="fl">1e4</span>, <span class="fl">1e5</span><span class="op">)</span>,</span>
+<span>                            pop_size_mosquito <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5e4</span>, <span class="fl">5e5</span>, <span class="fl">5e6</span>, <span class="fl">5e6</span>,</span>
+<span>                                                  <span class="fl">5e4</span>, <span class="fl">5e5</span>, <span class="fl">5e6</span>,</span>
+<span>                                                  <span class="fl">5e4</span>, <span class="fl">5e5</span>, <span class="fl">5e6</span>,</span>
+<span>                                                  <span class="fl">5e4</span>, <span class="fl">5e5</span>, <span class="fl">5e6</span><span class="op">)</span>,</span>
+<span>                            years <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">5</span>, <span class="fl">5</span>, <span class="fl">5</span>,</span>
+<span>                                      <span class="fl">10</span>, <span class="fl">10</span>, <span class="fl">10</span>,</span>
+<span>                                      <span class="fl">25</span>, <span class="fl">25</span>, <span class="fl">25</span>,</span>
+<span>                                      <span class="fl">50</span>, <span class="fl">50</span>, <span class="fl">50</span><span class="op">)</span>,</span>
+<span>                            cpu_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">19.12</span>, <span class="fl">270.03</span>, <span class="fl">2440.64</span>, <span class="fl">6544.94</span>,</span>
+<span>                                         <span class="fl">38.36</span>, <span class="fl">501.69</span>, <span class="fl">5210.31</span>,</span>
+<span>                                         <span class="fl">117.17</span>, <span class="fl">1188.88</span>, <span class="fl">22804.75</span>,</span>
+<span>                                         <span class="fl">200.18</span>, <span class="fl">2715.99</span>, <span class="fl">41697.93</span><span class="op">)</span>,</span>
+<span>                            avg_memory <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">29.02</span>, <span class="fl">192.06</span>, <span class="fl">1800</span>, <span class="fl">2100</span>,</span>
+<span>                                           <span class="fl">29.03</span>, <span class="fl">192.11</span>, <span class="fl">1800</span>,</span>
+<span>                                           <span class="fl">29.03</span>, <span class="fl">192.14</span>, <span class="fl">1800</span>,</span>
+<span>                                           <span class="fl">29.03</span>, <span class="fl">192.14</span>, <span class="fl">1800</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>We found that the simulation run times were extremely slow,
+especially for human population sizes above 1000 (Figure 1). Even for 5
+year simulations the CPU time required was between 4.5 to 109 minutes
+when the human population size was 10,000 up to the 1,000,000 value
+tested. The average memory usage was consistent regardless of simulation
+run time, but increased by an order of magnitude in line with increases
+in human population size (see Figure 1, or Figure 2 for interactive
+plot). When varying the mosquito population sizes we found similar
+trends as for increases in human population sizes (Figure 3).</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">profile_stats</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu">ggplot</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">pop_size_humans</span>, y <span class="op">=</span> <span class="va">cpu_time</span><span class="op">/</span><span class="fl">60</span>, group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">years</span><span class="op">)</span>, color <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">years</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">geom_point</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">geom_line</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">scale_x_continuous</span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/pretty_breaks.html" class="external-link">pretty_breaks</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">6</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">scale_y_continuous</span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/pretty_breaks.html" class="external-link">pretty_breaks</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">scale_color_manual</span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hotpink3"</span>, <span class="st">"goldenrod3"</span>, <span class="st">"lightblue3"</span>, <span class="st">"olivedrab3"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">xlim</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1e5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Human population size"</span>, </span>
+<span>         y <span class="op">=</span> <span class="st">"CPU time (in minutes)"</span>,</span>
+<span>         color <span class="op">=</span> <span class="st">"Simulation run time (in years)"</span>,</span>
+<span>         title <span class="op">=</span> <span class="st">"Simple Ross-Macdonald model"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">theme_minimal</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">theme</span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span></span>
+<span><span class="op">(</span><span class="va">profile_stats</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu">ggplot</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">pop_size_humans</span>, y <span class="op">=</span> <span class="va">avg_memory</span>, group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">years</span><span class="op">)</span>, color <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">years</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_point</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_line</span><span class="op">(</span>alpha<span class="op">=</span><span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span>    </span>
+<span>  <span class="fu">scale_y_continuous</span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/pretty_breaks.html" class="external-link">pretty_breaks</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">5</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">scale_color_manual</span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hotpink3"</span>, <span class="st">"goldenrod3"</span>, <span class="st">"lightblue3"</span>, <span class="st">"olivedrab3"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">xlim</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1e5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Human population size"</span>, </span>
+<span>       y <span class="op">=</span> <span class="st">"Average memory used (in megabytes)"</span>,</span>
+<span>       color <span class="op">=</span> <span class="st">"Simulation run time (in years)"</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">theme_minimal</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  </span>
+<span>  <span class="fu">plot_layout</span><span class="op">(</span>guides <span class="op">=</span> <span class="st">"collect"</span><span class="op">)</span></span></code></pre></div>
+<div class="figure">
+<img src="SLiM_review_files/figure-html/profiling-results-1.png" alt="Figure 1. The profiling results showing the CPU times and memory usage for simulation runs with varying human population sizes" width="768"><p class="caption">
+Figure 1. The profiling results showing the CPU times and memory usage
+for simulation runs with varying human population sizes
+</p>
+</div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">ggplotly</span><span class="op">(</span><span class="va">profile_stats</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu">ggplot</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">pop_size_humans</span>, y <span class="op">=</span> <span class="va">cpu_time</span><span class="op">/</span><span class="fl">60</span>, group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">years</span><span class="op">)</span>, color <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">years</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">geom_point</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">geom_line</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">scale_y_continuous</span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/pretty_breaks.html" class="external-link">pretty_breaks</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">scale_color_manual</span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hotpink3"</span>, <span class="st">"goldenrod3"</span>, <span class="st">"lightblue3"</span>, <span class="st">"olivedrab3"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">xlim</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1e5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Human population size"</span>, </span>
+<span>         y <span class="op">=</span> <span class="st">"CPU time (in minutes)"</span>,</span>
+<span>         color <span class="op">=</span> <span class="st">"Simulation run time (in years)"</span>,</span>
+<span>         title <span class="op">=</span> <span class="st">"Simple Ross-Macdonald model"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">theme_minimal</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="figure">
+<div id="htmlwidget-a47dc9029f7b05506638" style="width:576px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-a47dc9029f7b05506638">{"x":{"data":[{"x":[1000,10000,100000,null],"y":[0.318666666666667,4.5005,40.6773333333333,109.082333333333],"text":["pop_size_humans: 1e+03<br />cpu_time/60:   0.3186667<br />factor(years): 5<br />factor(years): 5","pop_size_humans: 1e+04<br />cpu_time/60:   4.5005000<br />factor(years): 5<br />factor(years): 5","pop_size_humans: 1e+05<br />cpu_time/60:  40.6773333<br />factor(years): 5<br />factor(years): 5","pop_size_humans: 1e+06<br />cpu_time/60: 109.0823333<br />factor(years): 5<br />factor(years): 5"],"type":"scatter","mode":"markers+lines","marker":{"autocolorscale":false,"color":"rgba(205,96,144,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(205,96,144,1)"}},"hoveron":"points","name":"5","legendgroup":"5","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","line":{"width":null,"color":"rgba(205,96,144,1)","dash":"solid"},"frame":null},{"x":[1000,10000,100000],"y":[0.639333333333333,8.3615,86.8385],"text":["pop_size_humans: 1e+03<br />cpu_time/60:   0.6393333<br />factor(years): 10<br />factor(years): 10","pop_size_humans: 1e+04<br />cpu_time/60:   8.3615000<br />factor(years): 10<br />factor(years): 10","pop_size_humans: 1e+05<br />cpu_time/60:  86.8385000<br />factor(years): 10<br />factor(years): 10"],"type":"scatter","mode":"markers+lines","marker":{"autocolorscale":false,"color":"rgba(205,155,29,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(205,155,29,1)"}},"hoveron":"points","name":"10","legendgroup":"10","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","line":{"width":null,"color":"rgba(205,155,29,1)","dash":"solid"},"frame":null},{"x":[1000,10000,100000],"y":[1.95283333333333,19.8146666666667,380.079166666667],"text":["pop_size_humans: 1e+03<br />cpu_time/60:   1.9528333<br />factor(years): 25<br />factor(years): 25","pop_size_humans: 1e+04<br />cpu_time/60:  19.8146667<br />factor(years): 25<br />factor(years): 25","pop_size_humans: 1e+05<br />cpu_time/60: 380.0791667<br />factor(years): 25<br />factor(years): 25"],"type":"scatter","mode":"markers+lines","marker":{"autocolorscale":false,"color":"rgba(154,192,205,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(154,192,205,1)"}},"hoveron":"points","name":"25","legendgroup":"25","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","line":{"width":null,"color":"rgba(154,192,205,1)","dash":"solid"},"frame":null},{"x":[1000,10000,100000],"y":[3.33633333333333,45.2665,694.9655],"text":["pop_size_humans: 1e+03<br />cpu_time/60:   3.3363333<br />factor(years): 50<br />factor(years): 50","pop_size_humans: 1e+04<br />cpu_time/60:  45.2665000<br />factor(years): 50<br />factor(years): 50","pop_size_humans: 1e+05<br />cpu_time/60: 694.9655000<br />factor(years): 50<br />factor(years): 50"],"type":"scatter","mode":"markers+lines","marker":{"autocolorscale":false,"color":"rgba(154,205,50,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(154,205,50,1)"}},"hoveron":"points","name":"50","legendgroup":"50","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","line":{"width":null,"color":"rgba(154,205,50,1)","dash":"solid"},"frame":null}],"layout":{"margin":{"t":42.3013698630137,"r":7.30593607305936,"b":38.7214611872146,"l":43.1050228310502},"font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"title":{"text":"Simple Ross-Macdonald model","font":{"color":"rgba(0,0,0,1)","family":"","size":17.5342465753425},"x":0,"xref":"paper"},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-5000,105000],"tickmode":"array","ticktext":["0","25000","50000","75000","100000"],"tickvals":[0,25000,50000,75000,100000],"categoryorder":"array","categoryarray":["0","25000","50000","75000","100000"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"Human population size","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-34.413675,729.697841666667],"tickmode":"array","ticktext":["0","100","200","300","400","500","600","700"],"tickvals":[0,100,200,300,400,500,600,700],"categoryorder":"array","categoryarray":["0","100","200","300","400","500","600","700"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"CPU time (in minutes)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":true,"legend":{"bgcolor":null,"bordercolor":null,"borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895},"title":{"text":"Simulation run time (in years)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"b796f109de5":{"x":{},"y":{},"colour":{},"type":"scatter"},"b792bee5e5a":{"x":{},"y":{},"colour":{}}},"cur_data":"b796f109de5","visdat":{"b796f109de5":["function (y) ","x"],"b792bee5e5a":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script><p class="caption">
+Figure 2. An interactive plot showing the profiling results for
+simulation runs with varying human population sizes
+</p>
+</div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">profile_stats</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">test</span> <span class="op">!=</span> <span class="st">"H=1e6, M=5e6"</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span>  <span class="co"># remove the test with human n=1e6 and m=5e6 as skews the trend visualization since two points have same mosq pop size</span></span>
+<span>  <span class="fu">ggplot</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">pop_size_mosquito</span>, y <span class="op">=</span> <span class="va">cpu_time</span><span class="op">/</span><span class="fl">60</span>, group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">years</span><span class="op">)</span>, color <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">years</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">geom_point</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">geom_line</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">scale_x_continuous</span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/pretty_breaks.html" class="external-link">pretty_breaks</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">5</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">scale_y_continuous</span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/pretty_breaks.html" class="external-link">pretty_breaks</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">scale_color_manual</span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hotpink3"</span>, <span class="st">"goldenrod3"</span>, <span class="st">"lightblue3"</span>, <span class="st">"olivedrab3"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Mosquito population size"</span>, </span>
+<span>         y <span class="op">=</span> <span class="st">"CPU time (in minutes)"</span>,</span>
+<span>         color <span class="op">=</span> <span class="st">"Simulation run time (in years)"</span>,</span>
+<span>         title <span class="op">=</span> <span class="st">"Simple Ross-Macdonald model"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">theme_minimal</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">theme</span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span></span>
+<span><span class="op">(</span><span class="va">profile_stats</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">test</span> <span class="op">!=</span> <span class="st">"H=1e6, M=5e6"</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span>  <span class="co"># remove the test with human n=1e6 and m=5e6 as skews the trend visualization since two points have same mosq pop size</span></span>
+<span>  <span class="fu">ggplot</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">pop_size_mosquito</span>, y <span class="op">=</span> <span class="va">avg_memory</span>, group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">years</span><span class="op">)</span>, color <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">years</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_point</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_line</span><span class="op">(</span>alpha<span class="op">=</span><span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">scale_x_continuous</span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/pretty_breaks.html" class="external-link">pretty_breaks</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">5</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">scale_y_continuous</span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/pretty_breaks.html" class="external-link">pretty_breaks</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">5</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">scale_color_manual</span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hotpink3"</span>, <span class="st">"goldenrod3"</span>, <span class="st">"lightblue3"</span>, <span class="st">"olivedrab3"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Mosquito population size"</span>, </span>
+<span>       y <span class="op">=</span> <span class="st">"Average memory used (in megabytes)"</span>,</span>
+<span>       color <span class="op">=</span> <span class="st">"Simulation run time (in years)"</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">theme_minimal</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  </span>
+<span>  <span class="fu">plot_layout</span><span class="op">(</span>guides <span class="op">=</span> <span class="st">"collect"</span><span class="op">)</span></span></code></pre></div>
+<div class="figure">
+<img src="SLiM_review_files/figure-html/profiling-results-mosq-1.png" alt="Figure 3. The profiling results showing the CPU times and memory usage for simulation runs with varying mosquito population sizes" width="768"><p class="caption">
+Figure 3. The profiling results showing the CPU times and memory usage
+for simulation runs with varying mosquito population sizes
+</p>
+</div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="conclusions">Conclusions<a class="anchor" aria-label="anchor" href="#conclusions"></a>
+</h2>
+<p>Although SLiM is a powerful forward genetic simulation tools with
+extensive potential applications, unfortunately it does not seem
+appropriate for our use-case. The main appeal for integration with the
+SIMPLEGEN pipeline was the ability to use tree-sequence recording,
+however, this functionality is not available in the multi-species model
+that we would require for our simulations. In addition, given SLiM was
+developed with other genetic applications in mind, it is not
+computationally efficient for epidemiological models such as a
+vector-host model. Future considerations for SIMPLEGEN will be to
+integrate conversion of the transmission record into a
+<code>tskit</code>-appropriate <code>.tree</code> structure for more
+efficient storage and downstream use of <code>msprime</code> and
+<code>tskit</code> functionalities such as genetic statistic
+calculations.</p>
+<div class="section level4">
+<h4 id="some-notable-and-useful-resourcespapers">
+<em>Some notable and useful resources/papers</em><a class="anchor" aria-label="anchor" href="#some-notable-and-useful-resourcespapers"></a>
 </h4>
 <p>Below is a list of some useful papers citing SLiM as well as other
 useful resources.</p>
 <ul>
-<li><p>Champer et al <span class="citation">[@champer2022]</span> use
-SLiM for simulations of <em>Anopheles</em> mosquito gene drive. Their
-SLIM models are available on GitHub (useful to look at): <a href="https://github.com/jchamper/ChamperLab/blob/main/Mosquito-Drive-Modeling/models/anoph_pan.slim" class="external-link">https://github.com/jchamper/ChamperLab/blob/main/Mosquito-Drive-Modeling/</a></p></li>
-<li><p><span class="citation">[@matthey-doret2021]</span> describes R
+<li><p>Champer et al <span class="citation">(Champer et al. 2022)</span>
+use SLiM for simulations of <em>Anopheles</em> mosquito gene drive.
+Their SLIM models are available on GitHub (useful to look at): <a href="https://github.com/jchamper/ChamperLab/blob/main/Mosquito-Drive-Modeling/models/anoph_pan.slim" class="external-link">https://github.com/jchamper/ChamperLab/blob/main/Mosquito-Drive-Modeling/</a></p></li>
+<li><p><span class="citation">(Matthey-Doret 2021)</span> describes R
 wrapper {<code>SimBit</code>} that implements tree structures for output
 (might be useful to see how tskit is implemented in another C++/R
 framework)</p></li>
+<li><p><span class="citation">(Cury et al. 2022)</span> useful guide on
+how to build appropriate bacterial models in SLiM, and with a good
+overview of implemented models in SLiM with rationale for model
+parameters and coding choices etc. They use nonWF SLiM model with
+tree-sequence recording + recapitation in <code>msprime</code>, first
+run forward simulation and then use recapitation on ancestral branches
+to produce coalescence.</p></li>
+<li><p><span class="citation">(Cao et al. 2021)</span> useful guide on
+how to build haploid simulations in SLiM</p></li>
+<li><p><span class="citation">(Hardy 2022)</span> simulates
+subpopulations (ie. demes) usng SLiM to model individual genomes, which
+can reproduce, mutate, recombine and die</p></li>
+<li><p><span class="citation">(Sabin et al. 2022)</span> use SLiM to
+model Mycobacterium based on nucleotide sequences, SLiM model parameters
+available on github, eg: <a href="https://github.com/sjsabin/mcan_popgen/blob/main/simulations/base/base.slim" class="external-link uri">https://github.com/sjsabin/mcan_popgen/blob/main/simulations/base/base.slim</a></p></li>
+<li><p><code>{stdpopsim}</code> (<span class="citation">(Adrion et al.
+2020)</span>) catalog of different species and demographic history
+(include <em>Anopheles</em> as per Miles 2017 params)</p></li>
 <li>
-<p><span class="citation">[@cury2022]</span> useful guide on how to
-build appropriate bacterial models in SLiM (and useful with a good
-overview of implemented models in SLiM with rationale for model params
-and coding choices etc)</p>
-<ul>
-<li>they use nonWF SLiM model with tree-sequence recording +
-recapitation in <code>msprime</code>, first run forward simulation and
-then use recapitation on ancestral branches to produce coalescence</li>
-</ul>
-</li>
-<li><p><span class="citation">[@cao2021]</span> useful guide on how to
-build haploid simulations in SLiM</p></li>
-<li><p><span class="citation">[@hardy2022]</span> simulates subpops (ie
-demes) sing SLiM to model individual genomes, which can reproduce,
-mutate, recombine and die</p></li>
-<li><p><span class="citation">[@sabin2022]</span> use SLiM to model
-Mycobacterium based on nucleotide sequences, SLiM model params available
-on github, eg: <a href="https://github.com/sjsabin/mcan_popgen/blob/main/simulations/base/base.slim" class="external-link uri">https://github.com/sjsabin/mcan_popgen/blob/main/simulations/base/base.slim</a></p></li>
-<li><p><code>{stdpopsim}</code> (<span class="citation">[@adrion2020]</span>) catalog of different species and
-demographic history (include <em>Anopheles</em> as per Miles 2017
-params)</p></li>
-<li>
-<p><code>{slimr}</code> R package <span class="citation">[@dinnage2021]</span> that interfaces with SLiM 3.0: <a href="https://github.com/rdinnager/slimr/" class="external-link uri">https://github.com/rdinnager/slimr/</a></p>
+<p><code>{slimr}</code> R package <span class="citation">(Dinnage et
+al. 2021)</span> that interfaces with SLiM 3.0: <a href="https://github.com/rdinnager/slimr/" class="external-link uri">https://github.com/rdinnager/slimr/</a></p>
 <ul>
 <li><p>Downside: seems like its not compatible with SLiM 4.0</p></li>
 <li><p>Workshop recording: <a href="https://zoom.us/rec/share/T5thlw67U8T3-BNQUJoZiaKTCSk2xeQTkyDpvOwvtUnPRO7VCE8tvJzUJsGTYnkd.xHFECYM5vDtJdp12" class="external-link uri">https://zoom.us/rec/share/T5thlw67U8T3-BNQUJoZiaKTCSk2xeQTkyDpvOwvtUnPRO7VCE8tvJzUJsGTYnkd.xHFECYM5vDtJdp12</a>
@@ -355,32 +842,222 @@ params)</p></li>
 </ul>
 </li>
 <li>
-<p><code>fwddpp</code> (C++ template library) <span class="citation">[@thornton2014]</span> orders of magnitude faster than
-SLiM - haploids??</p>
+<p><code>fwddpp</code> (C++ template library) <span class="citation">(Thornton 2014)</span> orders of magnitude faster than
+SLiM</p>
 <ul>
 <li><p>use cases: large Ns and selection</p></li>
 <li><p>fastest algorithm</p></li>
 <li><p>nonstandard fitness models and/or modeling fitness-to-fitness
 relationships</p></li>
 <li><p>maximize runtime efficiency for particular demo scenario</p></li>
+<li><p>unsure if can handle haploids</p></li>
 </ul>
 </li>
 <li>
 <p>Some useful examples of how others have used SLiM and documented
 their workflows are below:</p>
 <ul>
-<li><p><span class="citation">[@blischak2020]</span> exported individual
-genotype data from each simulation as vcfs
-(<code>.outputVCFSample()</code>, they also have publicly available code
-for their SLiM models implemented in python (<a href="https://github.com/pblischak/inbreeding-sfs/tree/master/sims/SLiM" class="external-link uri">https://github.com/pblischak/inbreeding-sfs/tree/master/sims/SLiM</a>)</p></li>
-<li><p><span class="citation">[@anderson2021]</span> provides useful a
-description of SLiM as part of larger pipeline (the SLiM output can be
-used downstream using R package {<code>CKMRpop}</code>). <em>Note: the
-output described here seems very similar to the transmission record of
-IDs produced by SIMPLEGEN.</em></p></li>
+<li><p><span class="citation">(Blischak, Barker, and Gutenkunst
+2020)</span> exported individual genotype data from each simulation as
+vcfs (<code>.outputVCFSample()</code>). They also have publicly
+available code for their SLiM models implemented in python (<a href="https://github.com/pblischak/inbreeding-sfs/tree/master/sims/SLiM" class="external-link uri">https://github.com/pblischak/inbreeding-sfs/tree/master/sims/SLiM</a>)</p></li>
+<li><p><span class="citation">(E. C. Anderson 2021)</span> provides
+useful a description of SLiM as part of larger pipeline (the SLiM output
+can be used downstream using R package {<code>CKMRpop}</code>).
+<em>Note: the output described here seems very similar to the
+transmission record of IDs produced by SIMPLEGEN.</em></p></li>
 </ul>
 </li>
 </ul>
+</div>
+</div>
+<div class="section level2 unnumbered">
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-adrion2020" class="csl-entry">
+Adrion, Jeffrey R, Christopher B Cole, Noah Dukler, Jared G Galloway,
+Ariella L Gladstein, Graham Gower, Christopher C Kyriazis, et al. 2020.
+<span>“A Community-Maintained Standard Library of Population Genetic
+Models.”</span> <em>eLife</em> 9 (June). <a href="https://doi.org/10.7554/elife.54967" class="external-link">https://doi.org/10.7554/elife.54967</a>.
+</div>
+<div id="ref-anderson2021" class="csl-entry">
+Anderson, Eric C. 2021. <span>“CKMRpop:
+Forward<span>-</span>in<span>-</span>Time Simulation and Tabulation of
+Pairwise Kin Relationships in Age<span>-</span>Structured
+Populations.”</span> <em>Molecular Ecology Resources</em> 22 (3):
+1190–99. <a href="https://doi.org/10.1111/1755-0998.13513" class="external-link">https://doi.org/10.1111/1755-0998.13513</a>.
+</div>
+<div id="ref-anderson2016a" class="csl-entry">
+Anderson, Timothy J. C., Shalini Nair, Marina McDew-White, Ian H.
+Cheeseman, Standwell Nkhoma, Fatma Bilgic, Rose McGready, et al. 2016.
+<span>“Population Parameters Underlying an Ongoing Soft Sweep in
+Southeast Asian Malaria Parasites.”</span> <em>Molecular Biology and
+Evolution</em> 34 (1): 131–44. <a href="https://doi.org/10.1093/molbev/msw228" class="external-link">https://doi.org/10.1093/molbev/msw228</a>.
+</div>
+<div id="ref-aron1982" class="csl-entry">
+Aron, Joan L., and Robert M. May. 1982. <span>“The Population Dynamics
+of Malaria.”</span> In, 139–79. Springer US. <a href="https://doi.org/10.1007/978-1-4899-2901-3_5" class="external-link">https://doi.org/10.1007/978-1-4899-2901-3_5</a>.
+</div>
+<div id="ref-blischak2020" class="csl-entry">
+Blischak, Paul D, Michael S Barker, and Ryan N Gutenkunst. 2020.
+<span>“Inferring the Demographic History of Inbred Species from
+Genome-Wide SNP Frequency Data.”</span> Edited by Daniel Falush.
+<em>Molecular Biology and Evolution</em> 37 (7): 2124–36. <a href="https://doi.org/10.1093/molbev/msaa042" class="external-link">https://doi.org/10.1093/molbev/msaa042</a>.
+</div>
+<div id="ref-bopp2013" class="csl-entry">
+Bopp, Selina E. R., Micah J. Manary, A. Taylor Bright, Geoffrey L.
+Johnston, Neekesh V. Dharia, Fabio L. Luna, Susan McCormack, et al.
+2013. <span>“Mitotic Evolution of Plasmodium Falciparum Shows a Stable
+Core Genome but Recombination in Antigen Families.”</span> Edited by
+Nancy Maizels. <em>PLoS Genetics</em> 9 (2): e1003293. <a href="https://doi.org/10.1371/journal.pgen.1003293" class="external-link">https://doi.org/10.1371/journal.pgen.1003293</a>.
+</div>
+<div id="ref-cao2021" class="csl-entry">
+Cao, Chen, Jingni He, Lauren Mak, Deshan Perera, Devin Kwok, Jia Wang,
+Minghao Li, et al. 2021. <span>“Reconstruction of Microbial Haplotypes
+by Integration of Statistical and Physical Linkage in
+Scaffolding.”</span> Edited by Evelyne Heyer. <em>Molecular Biology and
+Evolution</em>, February. <a href="https://doi.org/10.1093/molbev/msab037" class="external-link">https://doi.org/10.1093/molbev/msab037</a>.
+</div>
+<div id="ref-champer2022" class="csl-entry">
+Champer, Samuel E, Isabel K Kim, Andrew G Clark, Philipp W Messer, and
+Jackson Champer. 2022. <span>“Anopheles Homing Suppression Drive
+Candidates Exhibit Unexpected Performance Differences in Simulations
+with Spatial Structure.”</span> <em>eLife</em> 11 (October). <a href="https://doi.org/10.7554/elife.79121" class="external-link">https://doi.org/10.7554/elife.79121</a>.
+</div>
+<div id="ref-claessens2014" class="csl-entry">
+Claessens, Antoine, William L. Hamilton, Mihir Kekre, Thomas D. Otto,
+Adnan Faizullabhoy, Julian C. Rayner, and Dominic Kwiatkowski. 2014.
+<span>“Generation of Antigenic Diversity in Plasmodium Falciparum by
+Structured Rearrangement of Var Genes During Mitosis.”</span> Edited by
+Kirk Deitsch. <em>PLoS Genetics</em> 10 (12): e1004812. <a href="https://doi.org/10.1371/journal.pgen.1004812" class="external-link">https://doi.org/10.1371/journal.pgen.1004812</a>.
+</div>
+<div id="ref-cury2022" class="csl-entry">
+Cury, Jean, Benjamin C. Haller, Guillaume Achaz, and Flora Jay. 2022.
+<span>“Simulation of Bacterial Populations with SLiM.”</span> <em>Peer
+Community Journal</em> 2 (January). <a href="https://doi.org/10.24072/pcjournal.72" class="external-link">https://doi.org/10.24072/pcjournal.72</a>.
+</div>
+<div id="ref-dinnage2021" class="csl-entry">
+Dinnage, Russell, Stephen D. Sarre, Richard P. Duncan, Christopher R.
+Dickman, Scott V. Edwards, Aaron Greenville, Glenda Wardle, and Bernd
+Gruber. 2021. <span>“Slimr: An r Package for Integrating Data and
+Tailor-Made Population Genomic Simulations over Space and Time.”</span>
+<a href="http://dx.doi.org/10.1101/2021.08.05.455258" class="external-link">http://dx.doi.org/10.1101/2021.08.05.455258</a>.
+</div>
+<div id="ref-haller2019a" class="csl-entry">
+Haller, Benjamin C., Jared Galloway, Jerome Kelleher, Philipp W. Messer,
+and Peter L. Ralph. 2019. <span>“Tree<span>-</span>Sequence Recording in
+SLiM Opens New Horizons for Forward<span>-</span>Time Simulation of
+Whole Genomes.”</span> <em>Molecular Ecology Resources</em> 19 (2):
+552–66. <a href="https://doi.org/10.1111/1755-0998.12968" class="external-link">https://doi.org/10.1111/1755-0998.12968</a>.
+</div>
+<div id="ref-haller2016" class="csl-entry">
+Haller, Benjamin C., and Philipp W. Messer. 2016. <span>“SLiM 2:
+Flexible, Interactive Forward Genetic Simulations.”</span> <em>Molecular
+Biology and Evolution</em> 34 (1): 230–40. <a href="https://doi.org/10.1093/molbev/msw211" class="external-link">https://doi.org/10.1093/molbev/msw211</a>.
+</div>
+<div id="ref-haller2022" class="csl-entry">
+———. 2022. <span>“SLiM 4: Multispecies Eco-Evolutionary
+Modeling.”</span> <em>The American Naturalist</em>, November. <a href="https://doi.org/10.1086/723601" class="external-link">https://doi.org/10.1086/723601</a>.
+</div>
+<div id="ref-haller2019" class="csl-entry">
+Haller, Benjamin C, and Philipp W Messer. 2019. <span>“SLiM 3: Forward
+Genetic Simulations Beyond the Wright<span></span>Fisher Model.”</span>
+Edited by Ryan Hernandez. <em>Molecular Biology and Evolution</em> 36
+(3): 632–37. <a href="https://doi.org/10.1093/molbev/msy228" class="external-link">https://doi.org/10.1093/molbev/msy228</a>.
+</div>
+<div id="ref-hamid2021" class="csl-entry">
+Hamid, Iman, Katharine L Korunes, Sandra Beleza, and Amy Goldberg. 2021.
+<span>“Rapid Adaptation to Malaria Facilitated by Admixture in the Human
+Population of Cabo Verde.”</span> <em>eLife</em> 10 (January). <a href="https://doi.org/10.7554/elife.63177" class="external-link">https://doi.org/10.7554/elife.63177</a>.
+</div>
+<div id="ref-hamilton2016" class="csl-entry">
+Hamilton, William L., Antoine Claessens, Thomas D. Otto, Mihir Kekre,
+Rick M. Fairhurst, Julian C. Rayner, and Dominic Kwiatkowski. 2016.
+<span>“Extreme Mutation Bias and High AT Content in<span><em>Plasmodium
+Falciparum</em></span>.”</span> <em>Nucleic Acids Research</em>,
+December, gkw1259. <a href="https://doi.org/10.1093/nar/gkw1259" class="external-link">https://doi.org/10.1093/nar/gkw1259</a>.
+</div>
+<div id="ref-hardy2022" class="csl-entry">
+Hardy, Nate B. 2022. <span>“Delaying Quantitative Resistance to
+Pesticides and Antibiotics.”</span> <em>Evolutionary Applications</em>
+15 (12): 2067–77. <a href="https://doi.org/10.1111/eva.13497" class="external-link">https://doi.org/10.1111/eva.13497</a>.
+</div>
+<div id="ref-henden2018" class="csl-entry">
+Henden, Lyndal, Stuart Lee, Ivo Mueller, Alyssa Barry, and Melanie
+Bahlo. 2018. <span>“Identity-by-Descent Analyses for Measuring
+Population Dynamics and Selection in Recombining Pathogens.”</span>
+Edited by Xavier Didelot. <em>PLOS Genetics</em> 14 (5): e1007279. <a href="https://doi.org/10.1371/journal.pgen.1007279" class="external-link">https://doi.org/10.1371/journal.pgen.1007279</a>.
+</div>
+<div id="ref-hendry2021" class="csl-entry">
+Hendry, Jason A., Dominic Kwiatkowski, and Gil McVean. 2021.
+<span>“Elucidating Relationships Between P.falciparum Prevalence and
+Measures of Genetic Diversity with a Combined Genetic-Epidemiological
+Model of Malaria.”</span> Edited by Alex Perkins. <em>PLOS Computational
+Biology</em> 17 (8): e1009287. <a href="https://doi.org/10.1371/journal.pcbi.1009287" class="external-link">https://doi.org/10.1371/journal.pcbi.1009287</a>.
+</div>
+<div id="ref-hughes2001" class="csl-entry">
+Hughes, Austin L., and Federica Vierra. 2001. <span>“Very Large
+Long<span></span>term Effective Population Size in the Virulent Human
+Malaria Parasite<span><em>Plasmodium Falciparum</em></span>.”</span>
+<em>Proceedings of the Royal Society of London. Series B: Biological
+Sciences</em> 268 (1478): 1855–60. <a href="https://doi.org/10.1098/rspb.2001.1759" class="external-link">https://doi.org/10.1098/rspb.2001.1759</a>.
+</div>
+<div id="ref-kelleher2018" class="csl-entry">
+Kelleher, Jerome, Kevin R. Thornton, Jaime Ashander, and Peter L. Ralph.
+2018. <span>“Efficient Pedigree Recording for Fast Population Genetics
+Simulation.”</span> Edited by Sergei L. Kosakovsky Pond. <em>PLOS
+Computational Biology</em> 14 (11): e1006581. <a href="https://doi.org/10.1371/journal.pcbi.1006581" class="external-link">https://doi.org/10.1371/journal.pcbi.1006581</a>.
+</div>
+<div id="ref-matthey-doret2021" class="csl-entry">
+Matthey-Doret, Remi. 2021. <span>“SimBit: A High Performance, Flexible
+and Easy<span>-</span>to<span>-</span>Use Population Genetic
+Simulator.”</span> <em>Molecular Ecology Resources</em> 21 (5): 1745–54.
+<a href="https://doi.org/10.1111/1755-0998.13372" class="external-link">https://doi.org/10.1111/1755-0998.13372</a>.
+</div>
+<div id="ref-messer2013" class="csl-entry">
+Messer, Philipp W. 2013. <span>“SLiM: Simulating Evolution with
+Selection and Linkage.”</span> <em>Genetics</em> 194 (4): 1037–39. <a href="https://doi.org/10.1534/genetics.113.152181" class="external-link">https://doi.org/10.1534/genetics.113.152181</a>.
+</div>
+<div id="ref-miles2016" class="csl-entry">
+Miles, Alistair, Zamin Iqbal, Paul Vauterin, Richard Pearson, Susana
+Campino, Michel Theron, Kelda Gould, et al. 2016. <span>“Indels,
+Structural Variation, and Recombination Drive Genomic Diversity in
+<span><em>Plasmodium Falciparum</em></span>.”</span> <em>Genome
+Research</em> 26 (9): 1288–99. <a href="https://doi.org/10.1101/gr.203711.115" class="external-link">https://doi.org/10.1101/gr.203711.115</a>.
+</div>
+<div id="ref-petr2022" class="csl-entry">
+Petr, Martin, Benjamin C. Haller, Peter L. Ralph, and Fernando Racimo.
+2022. <span>“<span><em>Slendr</em></span>: A Framework for
+Spatio-Temporal Population Genomic Simulations on Geographic
+Landscapes.”</span> <a href="http://dx.doi.org/10.1101/2022.03.20.485041" class="external-link">http://dx.doi.org/10.1101/2022.03.20.485041</a>.
+</div>
+<div id="ref-sabin2022" class="csl-entry">
+Sabin, Susanna, Ana Y Morales-Arce, Susanne P Pfeifer, and Jeffrey D
+Jensen. 2022. <span>“The Impact of Frequently Neglected Model Violations
+on Bacterial Recombination Rate Estimation: A Case Study
+in<span><em>Mycobacterium Canettii</em></span>and<span><em>Mycobacterium
+Tuberculosis</em></span>.”</span> Edited by A Wong. <em>G3
+Genes|Genomes|Genetics</em> 12 (5). <a href="https://doi.org/10.1093/g3journal/jkac055" class="external-link">https://doi.org/10.1093/g3journal/jkac055</a>.
+</div>
+<div id="ref-smith2012" class="csl-entry">
+Smith, David L., Katherine E. Battle, Simon I. Hay, Christopher M.
+Barker, Thomas W. Scott, and F. Ellis McKenzie. 2012. <span>“Ross,
+Macdonald, and a Theory for the Dynamics and Control of
+Mosquito-Transmitted Pathogens.”</span> Edited by Chetan E. Chitnis.
+<em>PLoS Pathogens</em> 8 (4): e1002588. <a href="https://doi.org/10.1371/journal.ppat.1002588" class="external-link">https://doi.org/10.1371/journal.ppat.1002588</a>.
+</div>
+<div id="ref-tennessen2020a" class="csl-entry">
+Tennessen, Jacob A, and Manoj T Duraisingh. 2020. <span>“Three
+Signatures of Adaptive Polymorphism Exemplified by Malaria-Associated
+Genes.”</span> Edited by Rebekah Rogers. <em>Molecular Biology and
+Evolution</em> 38 (4): 1356–71. <a href="https://doi.org/10.1093/molbev/msaa294" class="external-link">https://doi.org/10.1093/molbev/msaa294</a>.
+</div>
+<div id="ref-thornton2014" class="csl-entry">
+Thornton, Kevin R. 2014. <span>“A C++ Template Library for Efficient
+Forward-Time Population Genetic Simulation of Large Populations.”</span>
+<em>Genetics</em> 198 (1): 157–66. <a href="https://doi.org/10.1534/genetics.114.165019" class="external-link">https://doi.org/10.1534/genetics.114.165019</a>.
+</div>
 </div>
 </div>
   </div>
