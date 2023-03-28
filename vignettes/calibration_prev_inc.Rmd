@@ -29,14 +29,14 @@ library(dplyr)
 
 This report aims to:
 
-- Explore the relationships bewteen key transmission-related quantities, such as prevalence, incidence and the entomological inoculation rate (EIR).
+- Explore the relationships between key transmission-related quantities, such as prevalence, incidence and the entomological inoculation rate (EIR).
 - Compare model fits against datasets obtained from the literature.
 - Gain insights to help with future model development.
 
 
 ### EIR vs. prevalence
 
-Our first dataset comes from an alalysis by [Hay et al. (2005)](https://www.ncbi.nlm.nih.gov/pubmed/15608702) looking into the impact of urbanisation on malaria transmission in Africa. We will merge this with a second dataset on EIR vs. prevalence relationships by [Beier et al. (1999)](https://www.ncbi.nlm.nih.gov/pubmed/10432066) - see [here](www.TODO) for further information on both these datasets.
+Our first dataset comes from an analysis by [Hay et al. (2005)](https://www.ncbi.nlm.nih.gov/pubmed/15608702) looking into the impact of urbanisation on malaria transmission in Africa. We will merge this with a second dataset on EIR vs. prevalence relationships by [Beier et al. (1999)](https://www.ncbi.nlm.nih.gov/pubmed/10432066) - see [here](www.TODO) for further information on both these datasets.
 
 ```{r}
 # take a quick look at Hay dataset (Beier is same format)
