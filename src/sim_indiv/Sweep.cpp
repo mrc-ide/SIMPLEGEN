@@ -5,7 +5,7 @@ using namespace std;
 
 //------------------------------------------------
 // initialise
-void Sweep::init(Parameters &params_, cpp11::data_frame sweep_df) {
+void Sweep::init(Parameters &params_, cpp11::data_frame &sweep_df) {
   
   // store pointer to parameters
   params = &params_;

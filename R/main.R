@@ -97,7 +97,7 @@
 #'   in each one-year age group. Defaults to a life table taken from Mali - see
 #'   \code{?life_table_Mali} for details.
 #'
-#' @importFrom stats dgeom
+#' @importFrom stats dgeom dpois
 #' @export
 
 define_epi_model_parameters <- function(project,
@@ -107,15 +107,15 @@ define_epi_model_parameters <- function(project,
                                         u = 12,
                                         v = 10,
                                         g = 12,
-                                        prob_infection = 0.5,
-                                        prob_acute = 1.0,
+                                        prob_infection = seq(0.8, 0.5, l = 50),
+                                        prob_acute = seq(1, 0.1, l = 50),
                                         prob_AC = 1.0,
-                                        duration_acute = dgeom(1:25, 1 / 5),
-                                        duration_chronic = dgeom(1:1000, 1 / 200),
+                                        duration_acute = dpois(1:100, 10),
+                                        duration_chronic = dpois(1:500, 100),
                                         detectability_microscopy_acute = 0.8,
-                                        detectability_microscopy_chronic = 0.2,
+                                        detectability_microscopy_chronic = 0.8 * 100 * dgeom(0:500, 1 / 100),
                                         detectability_PCR_acute = 1,
-                                        detectability_PCR_chronic = 0.8,
+                                        detectability_PCR_chronic = 1,
                                         time_treatment_acute = dgeom(1:25, 1 / 5),
                                         time_treatment_chronic = dgeom(1:100, 1/20),
                                         treatment_seeking_mean = 0.5,
@@ -391,9 +391,11 @@ sim_epi <- function(project,
   # }
   # 
   # # wrangle surveys output
-  surveys_output <- NULL
   sample_details <- NULL
-  # if (args$any_survey_outputs) {
+  if (args$any_survey_outputs) {
+    sample_details <- data.frame(host_ID = output_raw$host_ID) %>%
+      mutate(inoc_ID = output_raw$inoc_ID)
+  }
   #   
   #   # make individual-level output dataframe
   #   sample_details <- mapply(as.data.frame, output_raw$survey_output, SIMPLIFY = FALSE) %>%
@@ -411,12 +413,88 @@ sim_epi <- function(project,
   # append to project
   project$epi_output <- list(daily = daily_output,
                              sweeps = sweeps_output,
-                             surveys = surveys_output)
-
-  # if (!is.null(sample_details)) {
-  #   project$sample_details <- sample_details
-  # }
-  # 
+                             surveys = NULL)
+  
+  # append sample details
+  project$sample_details <- sample_details
+  
   # return
+  invisible(project)
+}
+
+#------------------------------------------------
+#' @title Prune the transmission record
+#'
+#' @description Reads in a saved transmission record from file. Combines this
+#'   with sampling information in the project to produce a pruned version of the
+#'   transmission record that contains only the events relevant to the final
+#'   sample. This pruned record is saved to the project.
+#'
+#' @param project a SIMPLEGEN project, as produced by the
+#'   \code{simplegen_project()} function.
+#' @param transmission_record_location the file path to a transmission record
+#'   already written to file.
+#' @param silent whether to suppress written messages to the console.
+#' 
+#' @importFrom  utils read.csv
+#' @export
+
+prune_transmission_record <- function(project,
+                                      transmission_record_location = "",
+                                      silent = FALSE) {
+  
+  # check inputs
+  assert_class(project, "simplegen_project")
+  assert_string(transmission_record_location)
+  assert_single_logical(silent)
+  
+  # check that project contains individual-level info
+  sample_details <- project$sample_details
+  #indlevel_error <- "project must contain a dataframe in project$sample_details slot, and this dataframe must contain the columns 'study_ID' and 'infection_IDs'"
+  #assert_dataframe(sample_details, message = indlevel_error)
+  #assert_in(c("study_ID", "infection_IDs"), names(sample_details), message = indlevel_error)
+  #assert_vector_pos_int(sample_details$study_ID, name = "study_ID")
+  #assert_vector_pos_int(unlist(sample_details$infection_IDs), name = "infection_IDs")
+  
+  # check transmission record exists
+  if (!file.exists(transmission_record_location)) {
+    stop(sprintf("could not find file at %s", transmission_record_location))
+  }
+  
+  # check that headers formatted correctly
+  first_row <- read.csv(transmission_record_location, nrows = 1)
+  required_names <- c("time", "event", "human_ID", "mosquito_ID", "child_inoc_ID", "parent_inoc_ID")
+  assert_in(required_names, names(first_row), message = sprintf("transmission record must contain the following column headers: {%s}", paste(required_names, collapse = ", ")))
+  
+  # extract starting inoc IDs from sample info
+  inoc_IDs <- unlist(project$sample_details$inoc_ID)
+  if (length(inoc_IDs) == 0) {
+    stop("no inoc_ID values found in sample details. Check that there is at least one malaria positive host")
+  }
+  
+  # define argument list
+  args <- list(transmission_record_location = transmission_record_location,
+               inoc_IDs = inoc_IDs,
+               silent = silent)
+  
+  # run efficient C++ code
+  output_raw <- prune_transmission_record_deploy(args)
+  
+  #return(output_raw)
+  
+  # process output into dataframe. parent_infection_ID column needs to be dealt
+  # with separately because each element can be a vector
+  output_processed <- output_raw[-which(names(output_raw) == "parent_infection_ID")] %>%
+    as.data.frame() %>%
+    dplyr::mutate(parent_infection_ID = output_raw$parent_infection_ID, .after = "child_infection_ID")
+  
+  # reverse order so same as original transmission record
+  output_processed <- output_processed[rev(seq_len(nrow(output_processed))),]
+  row.names(output_processed) <- NULL
+  
+  # add to project
+  project$pruned_record <- output_processed
+  
+  # return project
   invisible(project)
 }

@@ -46,7 +46,7 @@ public:
   Sweep() {};
   
   // main methods
-  void init(Parameters &params_, cpp11::data_frame sweep_df);
+  void init(Parameters &params_, cpp11::data_frame &sweep_df);
   void calculate(std::vector<double> &ret, Host_pop &host_pop, std::vector<Mosquito_pop> &mosq_pop, int t);
   void print_df();
   void print_samp_key();

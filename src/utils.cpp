@@ -25,3 +25,14 @@ cpp11::writable::doubles_matrix<> copy_mat(vector<vector<double>> &c_mat) {
   }
   return ret;
 }
+cpp11::writable::integers_matrix<> copy_mat(vector<vector<int>> &c_mat) {
+  int n_row = int(c_mat.size());
+  int n_col = int(c_mat[0].size());
+  cpp11::writable::integers_matrix<> ret(n_row, n_col);
+  for (int i = 0; i < n_row; ++i) {
+    for (int j = 0; j < n_col; ++j) {
+      ret(i, j) = c_mat[i][j];
+    }
+  }
+  return ret;
+}

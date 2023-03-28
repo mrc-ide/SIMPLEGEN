@@ -1,0 +1,33 @@
+---
+title: "Diagnostic sensitivity"
+author: "Bob Verity"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Diagnostic sensitivity}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<!---
+Set the font size of figure captions
+Currently not used because figures inserted with html method
+-->
+<style>
+p.caption {
+  font-size: 0.9em;
+}
+</style>
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+set.seed(1)
+library(SIMPLEGEN)
+library(ggplot2)
+library(dplyr)
+```
+
+
+### TODO
+
+

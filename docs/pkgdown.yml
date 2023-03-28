@@ -2,6 +2,15 @@ pandoc: 2.19.2
 pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
+  SLiM_review: SLiM_review.html
+  calibration_age_inc: calibration_age_inc.html
+  calibration_approach: calibration_approach.html
+  calibration_diagnostics: calibration_diagnostics.html
+  calibration_prev_inc: calibration_prev_inc.html
+  data_age_inc: data_age_inc.html
+  data_diagnostics: data_diagnostics.html
+  data_prev_inc: data_prev_inc.html
   installation: installation.html
-last_built: 2023-03-25T20:27Z
+  model_description: model_description.html
+last_built: 2023-03-28T08:17Z
 
