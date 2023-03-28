@@ -7,6 +7,7 @@
 #include "Mosquito_pop.h"
 #include "Host_pop.h"
 #include "Sweep.h"
+#include "Survey.h"
 #include "../utils.h"
 
 //------------------------------------------------
@@ -29,10 +30,10 @@ public:
   // population of mosquitoes per deme
   std::vector<Mosquito_pop> mosq_pop;
   
-  // objects for sampling from human and mosquito populations in either "daily"
-  // or "sweep" formats
+  // objects for sampling from human and mosquito populations
   Sweep daily;
   Sweep sweeps;
+  Survey survey;
   
   // output
   std::vector<std::vector<double>> daily_output;

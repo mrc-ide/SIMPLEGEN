@@ -34,7 +34,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">SIMPLEGEN</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0</span>
       </span>
     </div>
 
@@ -52,29 +52,22 @@
     </li>
     <li class="divider">
     </li>
-<li class="dropdown-header">Working through the pipeline</li>
-    <li class="dropdown-submenu">
-      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Simulating malaria transmission</a>
-      <ul class="dropdown-menu" role="menu">
-<li>
-          <a href="../404.html">A simple model</a>
-        </li>
-        <li>
-          <a href="../404.html">Population surveys</a>
-        </li>
-      </ul>
-</li>
-    <li class="dropdown-submenu">
-      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Overlaying genetics</a>
-      <ul class="dropdown-menu" role="menu">
-<li>
-          <a href="../404.html">Pruning the transmission record</a>
-        </li>
-        <li>
-          <a href="../404.html">Pedigrees and relatedness</a>
-        </li>
-      </ul>
-</li>
+<li class="dropdown-header">Simulating malaria transmission</li>
+    <li>
+      <a href="../404.html">A simple model</a>
+    </li>
+    <li>
+      <a href="../404.html">Population surveys</a>
+    </li>
+    <li class="divider">
+    </li>
+<li class="dropdown-header">Overlaying genetics</li>
+    <li>
+      <a href="../404.html">Pruning the transmission record</a>
+    </li>
+    <li>
+      <a href="../404.html">Pedigrees and relatedness</a>
+    </li>
   </ul>
 </li>
 <li class="dropdown">
@@ -92,10 +85,16 @@
     </li>
 <li class="dropdown-header">Model calibration</li>
     <li>
-      <a href="../articles/model_calibration_approach.html">Aims</a>
+      <a href="../articles/calibration_approach.html">Overall approach</a>
     </li>
     <li>
-      <a href="../articles/model_calibration_prev_inc.html">Prevalence, incidence and EIR</a>
+      <a href="../articles/calibration_prev_inc.html">Prevalence, incidence and EIR</a>
+    </li>
+    <li>
+      <a href="../articles/calibration_diagnostics.html">Diagnostic sensitivity</a>
+    </li>
+    <li>
+      <a href="../articles/calibration_age_inc.html">Age-incidence</a>
     </li>
   </ul>
 </li>
@@ -110,11 +109,29 @@
     <li>
       <a href="../articles/data_prev_inc.html">Prevalence, incidence and EIR</a>
     </li>
+    <li>
+      <a href="../articles/data_diagnostics.html">Diagnostic sensitivity</a>
+    </li>
+    <li>
+      <a href="../articles/data_age_inc.html">Age-incidence</a>
+    </li>
     <li class="divider">
     </li>
 <li class="dropdown-header">Genetic data</li>
     <li>
-      <a href="../404.html">TODO</a>
+      <a href="../404.html">Complexity of infection</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Misc
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li>
+      <a href="../articles/SLiM_review.html">Integrating with SLiM</a>
     </li>
   </ul>
 </li>
@@ -145,7 +162,7 @@
       <h1 data-toc-skip>Population prevalence, incidence and EIR</h1>
                         <h4 data-toc-skip class="author">Bob Verity</h4>
             
-            <h4 data-toc-skip class="date">2023-03-26</h4>
+            <h4 data-toc-skip class="date">2023-03-28</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/mrc-ide/SIMPLEGEN/blob/HEAD/vignettes/data_prev_inc.Rmd" class="external-link"><code>vignettes/data_prev_inc.Rmd</code></a></small>
       <div class="hidden name"><code>data_prev_inc.Rmd</code></div>
@@ -243,7 +260,7 @@ public health effect due to an associated EIR.</p>
 
       <footer><div class="copyright">
   <p></p>
-<p>Developed by Bob Verity, Isobel Routledge, Sophie Berube, Daniel Larremore.</p>
+<p>Developed by Bob Verity, Shazia Ruybal, Isobel Routledge, Sophie Berube, Daniel Larremore.</p>
 </div>
 
 <div class="pkgdown">

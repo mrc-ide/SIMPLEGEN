@@ -15,6 +15,8 @@
 #include "sim_indiv/Mosquito_pop.cpp"
 #include "sim_indiv/Host_pop.cpp"
 #include "sim_indiv/Sweep.cpp"
+#include "sim_indiv/Survey.cpp"
+#include "prune_record/prune_main.cpp"
 
 using namespace std;
 
@@ -22,4 +24,10 @@ using namespace std;
 [[cpp11::register]]
 cpp11::list sim_indiv_deploy(cpp11::list args, cpp11::list args_progress) {
   return sim_indiv(args, args_progress);
+}
+
+//------------------------------------------------
+[[cpp11::register]]
+cpp11::list prune_transmission_record_deploy(cpp11::list args) {
+  return prune_transmission_record(args);
 }

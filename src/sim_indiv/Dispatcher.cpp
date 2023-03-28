@@ -37,6 +37,9 @@ void Dispatcher::init(Parameters &params_) {
     daily.init(*params, params->daily_df);
     daily_output = vector<vector<double>>(params->max_time, vector<double>(daily.n_rows));
   }
+  if (params->any_survey_outputs) {
+    survey.init(*params, params->surveys_df);
+  }
   
 }
 
@@ -122,17 +125,31 @@ void Dispatcher::run_simulation(cpp11::list &args_progress) {
     // 5) STORE OUTPUT
     // - get host states
     
+    // store daily output
     if (params->any_daily_outputs) {
       daily.calculate(daily_output[t], host_pop, mosq_pop, t);
     }
+    
+    // store survey output
+    if (params->any_survey_outputs) {
+      survey.take_survey(host_pop);
+    }
+    
     
     // update progress bar
     //update_progress(args_progress, "pb_sim", t, params->max_time, true);
     
   } // end t loop
   
-  // dummy output
+  // store output
   cpp11::writable::doubles_matrix<> daily_output_final = copy_mat(daily_output);
   
+  cpp11::writable::list survey_inoc_ID;
+  for (size_t i = 0; i < survey.inoc_ID.size(); ++i) {
+    survey_inoc_ID.push_back({cpp11::literals::operator""_nm("ID", 0) = survey.inoc_ID[i]});
+  }
+  
   tmp_output.push_back({cpp11::literals::operator""_nm("daily", 0) = daily_output_final});
+  tmp_output.push_back({cpp11::literals::operator""_nm("inoc_ID", 0) = survey_inoc_ID});
+  tmp_output.push_back({cpp11::literals::operator""_nm("host_ID", 0) = survey.host_ID});
 }

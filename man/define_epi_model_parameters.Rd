@@ -20,7 +20,7 @@ define_epi_model_parameters(
   detectability_microscopy_acute = 0.8,
   detectability_microscopy_chronic = 0.8 * 100 * dgeom(0:500, 1/100),
   detectability_PCR_acute = 1,
-  detectability_PCR_chronic = seq(0.8, 0.2, l = 100),
+  detectability_PCR_chronic = 1,
   time_treatment_acute = dgeom(1:25, 1/5),
   time_treatment_chronic = dgeom(1:100, 1/20),
   treatment_seeking_mean = 0.5,

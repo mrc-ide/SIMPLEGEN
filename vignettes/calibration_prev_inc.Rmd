@@ -47,12 +47,12 @@ EIR_prev_combined <- rbind(cbind(EIR_prev_hay2005, study = "Hay etal. 2005"),
                            cbind(EIR_prev_beier1999, study = "Beier etal. 1999"))
 ```
 
-We will compare this against model output obtained by taking a range of values of mosquito population size relative to human population size. Measured values include the annualised EIR over the whole population, and the prevalence by microscopy (acute + chronic) in children less than 15 years of age. For each simulation, model output is run for 20 years and values are taken as the average over the final 10 years.
+We will compare this against model output produced by taking a range of mosquito relative population densities. Measured values include the annualised EIR over the whole population, and the prevalence by microscopy (acute + chronic) in children less than 15 years of age. For each simulation, model output is run for 20 years and values are taken as the average over the final 10 years.
 
 ```{r}
 # load precomputed model output
-# code to produce this output: R_ignore/Calibration/model_calibration_prev_inc1.R
-df_model <- readRDS("../inst/extdata/model_calibration_prev_inc1.rds")
+# code to produce this output: R_ignore/calibration/calibration_prev_inc1.R
+df_model <- readRDS("../inst/extdata/calibration_prev_inc1.rds")
 ```
 
 This model prediction is shown below in red against the raw data:

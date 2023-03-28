@@ -9,14 +9,6 @@
 
 
 //------------------------------------------------
-// enumerate sampling strategy methods
-//enum Model_state {Model_S, Model_E, Model_A, Model_C, Model_P, Model_H, Model_Sv, Model_Ev, Model_Iv, Model_M};
-//enum Measure {Measure_count, Measure_prevalence, Measure_incidence, Measure_EIR};
-//enum Sampling {Sampling_none, Sampling_ACD, Sampling_PCD};
-//enum Diagnostic {Diagnostic_true, Diagnostic_microscopy, Diagnostic_PCR};
-//enum Case_detection {Case_active, Case_passive};
-
-//------------------------------------------------
 // class defining all transmission model parameters. Also contains all Sampler
 // objects, and provides methods for taking draws from these distributions
 class Parameters {
@@ -93,7 +85,6 @@ public:
   std::vector<double> age_death;
   std::vector<double> age_stable;
   int max_age;
-  
   
   // sampling parameters
   bool any_daily_outputs;

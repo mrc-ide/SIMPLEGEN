@@ -3,3 +3,7 @@
 sim_indiv_deploy <- function(args, args_progress) {
   .Call(`_SIMPLEGEN_sim_indiv_deploy`, args, args_progress)
 }
+
+prune_transmission_record_deploy <- function(args) {
+  .Call(`_SIMPLEGEN_prune_transmission_record_deploy`, args)
+}

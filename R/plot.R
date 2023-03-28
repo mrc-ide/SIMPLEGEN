@@ -1,7 +1,11 @@
 
 #------------------------------------------------
-# a series of internally-used colours
-#' @noRd
+#' @title A series of internally-used colours
+#'
+#' @description These colours are purely used to make plots look consistent.
+#' 
+#' @export
+
 simplegen_cols <- function() {
   c("firebrick1", "chartreuse3", "dodgerblue", "dodgerblue4", "purple", "darkorange", "firebrick4")
 }

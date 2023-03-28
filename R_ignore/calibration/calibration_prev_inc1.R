@@ -1,4 +1,4 @@
-# model_calibration_prev_inc1.R
+# calibration_prev_inc1.R
 #
 # Author: Bob Verity
 # Date: 2023-03-25
@@ -12,6 +12,8 @@
 #
 # ------------------------------------------------------------------
 
+library(tidyverse)
+
 # define parameter combinations to explore
 H <- 1e3
 df_model <- data.frame(H = H,
@@ -23,8 +25,7 @@ df_model <- data.frame(H = H,
 
 # create project, load parameters and sampling design
 s <- simplegen_project() %>%
-  define_epi_model_parameters(H = H,
-                              seed_infections = floor(H * 0.1)) %>%
+  define_epi_model_parameters() %>%
   define_epi_sampling_parameters(daily = rbind(data.frame(name = "EIR", measure = "EIR", state = NA, diagnostic = NA, deme = -1, age_min = 0, age_max = 100),
                                                data.frame(name = "prev_A", measure = "prevalence", state = "A", diagnostic = "Microscopy", deme = -1, age_min = 0, age_max = 15),
                                                data.frame(name = "prev_C", measure = "prevalence", state = "C", diagnostic = "Microscopy", deme = -1, age_min = 0, age_max = 15)))
@@ -34,7 +35,9 @@ for (i in 1:nrow(df_model)) {
   
   # finalise parameters and run model
   s <- s %>%
-    define_epi_model_parameters(M = df_model$M[i]) %>%
+    define_epi_model_parameters(H = H,
+                                seed_infections = floor(H * 0.1),
+                                M = df_model$M[i]) %>%
     sim_epi(max_time = 20*365,
             silent = TRUE)
   
@@ -74,5 +77,5 @@ EIR_prev_hay2005 %>%
 
 # save model output to inst/extdata directory
 if (FALSE) {
-  saveRDS(df_model, file = "inst/extdata/model_calibration_prev_inc1.rds")
+  saveRDS(df_model, file = "inst/extdata/calibration_prev_inc1.rds")
 }

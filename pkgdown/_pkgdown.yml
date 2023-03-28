@@ -12,19 +12,17 @@ navbar:
         - text: Installation
           href: articles/installation.html
         - text: -------
-        - text: Working through the pipeline
         - text: Simulating malaria transmission
-          menu:
-            - text: A simple model
-              href: 404.html
-            - text: Population surveys
-              href: 404.html
+        - text: A simple model
+          href: 404.html
+        - text: Population surveys
+          href: 404.html
+        - text: -------
         - text: Overlaying genetics
-          menu:
-            - text: Pruning the transmission record
-              href: 404.html
-            - text: Pedigrees and relatedness
-              href: 404.html
+        - text: Pruning the transmission record
+          href: 404.html
+        - text: Pedigrees and relatedness
+          href: 404.html
     - text: The models
       menu:
         - text: Detailed descriptions
@@ -32,21 +30,47 @@ navbar:
           href: articles/model_description.html
         - text: -------
         - text: Model calibration
-        - text: Aims
-          href: articles/model_calibration_approach.html
+        - text: Overall approach
+          href: articles/calibration_approach.html
         - text: Prevalence, incidence and EIR
-          href: articles/model_calibration_prev_inc.html
+          href: articles/calibration_prev_inc.html
+        - text: Diagnostic sensitivity
+          href: articles/calibration_diagnostics.html
+        - text: Age-incidence
+          href: articles/calibration_age_inc.html
     - text: The data
       menu:
         - text: Epidemiological data
         - text: Prevalence, incidence and EIR
           href: articles/data_prev_inc.html
+        - text: Diagnostic sensitivity
+          href: articles/data_diagnostics.html
+        - text: Age-incidence
+          href: articles/data_age_inc.html
         - text: -------
         - text: Genetic data
-        - text: TODO
+        - text: Complexity of infection
           href: 404.html
+    - text: Misc
+      menu:
+        - text: Integrating with SLiM
+          href: articles/SLiM_review.html
     - text: Functions
       href: reference/index.html
   right:
    - icon: fa-github
      href: https://github.com/mrc-ide/SIMPLEGEN
+
+# here is an example of how sub-menus can be used:
+#    - text: Get started
+#      menu:
+#        - text: Installation
+#          href: articles/installation.html
+#        - text: -------
+#        - text: Working through the pipeline
+#        - text: Simulating malaria transmission
+#          menu:
+#            - text: A simple model
+#              href: 404.html
+#            - text: Population surveys
+#              href: 404.html
