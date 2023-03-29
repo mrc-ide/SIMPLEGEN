@@ -36,7 +36,7 @@ This report aims to:
 
 ### Prevalence by microscopy vs. PCR
 
-The data used here come from a systematic review by [Whittaker et al. (2021)](https://doi.org/10.1016/S2666-5247(21)00055-0) looking into global patterns of submicroscopic *P. falciparum* infection - see [here](www.TODO) for further information on this dataset. Let's start by plotting the raw data:
+The data used here come from a systematic review by [Whittaker et al. (2021)](https://doi.org/10.1016/S2666-5247(21)00055-0) looking into global patterns of submicroscopic *P. falciparum* infection - see [here](https://mrc-ide.github.io/SIMPLEGEN/articles/data_diagnostics.html) for further information on this dataset. Let's start by plotting the raw data:
 
 ```{r, fig.width=6, fig.height=4}
 # plot data and model
