@@ -27,7 +27,56 @@ library(ggplot2)
 library(dplyr)
 ```
 
+This report aims to:
 
-### TODO
+- Explore the sensitivity to detect malaria by microscopy, rapid diagnostic test (RDT) and polymerase chain reaction (PCR)
+- Gain insights to help with future model development.
 
+
+## Prevalence by microscopy vs. PCR
+
+### Whittaker et al. (2021)
+Data: `PCR_micro_full_whittaker2021`
+
+The data come from a systematic review by [Whittaker et al. (2021)](https://doi.org/10.1016/S2666-5247(21)00055-0) looking into global patterns of submicroscopic *P. falciparum* infection. This review collates data from 166 studies containing 551 distinct cross-sectional surveys in which surveyed individuals had malaria infection assessed by both PCR and microscopy from a given location. Of these surveys, 164 were done in a specific age-group (0–5 years, 6–15 years, and >15 years) and 387 were from cross-sectional surveys done in populations that spanned more than one age-group. 
+
+Below we can take a look at the variables included in the dataset: 
+```{r}
+head(PCR_micro_full_whittaker2021)
+```
+
+The authors found that microscopy detected 44.9% (95% CI 42.0–47.8) of all PCR-detectable infections. This varied by setting, with more submicroscopic infections (60-70%) in areas with lower PCR prevalence such as South America, but <20% submicroscopic infections in areas with the highest PCR prevalence such as West Africa. The authors found that both historical and current transmission levels are important determinants of the submicroscopic reservoir size.
+```{r}
+PCR_micro_full_whittaker2021 %>% 
+  ggplot(aes(x = PCR_Prev, y = Micro_Prev, group = Global_Region, color = Global_Region)) +
+    geom_point() +
+    geom_smooth(method = "loess", formula = "y ~ x", se = F) +
+    scale_x_continuous(labels = scales::percent_format(accuracy = 1)) +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+    scale_color_manual(values = c("hotpink3", "goldenrod3", "lightblue3", "olivedrab3")) +
+    labs(x = "PCR prevalence (%)",
+         y = "Microscopy prevalence (%)") +
+    theme_minimal()
+```
+
+
+Data: `PCR_micro_age_whittaker2021`
+
+The authors also aggregated the surveys carried out in specific age groups into three categories: young children (0–5 years), n=49 sureveys, older children (6–15 years) n=62 surveys, and adults (>15 years) n=53 surveys. This age-disaggregated dataset is also available, below we can take a look at the variables included in this dataset: 
+```{r}
+head(PCR_micro_age_whittaker2021)
+```
+
+The authors found that a greater proportion of submicroscopic infections was observed in adults compared to young and older children. This was less pronounced in areas with higher transmission. 
+```{r}
+PCR_micro_age_whittaker2021 %>% 
+  ggplot(aes(x = PCR_Prev, y = Micro_Prev, group = Age_Group, color = Age_Group)) +
+    geom_point() +
+    geom_smooth(method = "loess", formula = "y ~ x", se = F) +
+    scale_x_continuous(labels = scales::percent_format(accuracy = 1)) +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+    labs(x = "PCR prevalence (%)",
+         y = "Microscopy prevalence (%)") +
+    theme_minimal()
+```
 
