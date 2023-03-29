@@ -59,7 +59,7 @@ df_data %>%
   facet_wrap(~plot_title, ncol = 4, scales = "free_y")
 ```
 
-These panels are in order of increasing transmission intensity, as measured in the original publication. We can see that most cases are concenrated in children, and we can see hints that cases are concentrated in younger children as transmission intensity increases, however, there is also significant variation around this pattern.
+These panels are in order of increasing transmission intensity, as measured in the original publication. We can see that most cases are concentrated in children, and we can see hints that cases are concentrated in younger children as transmission intensity increases, however, there is also significant variation around this pattern.
 
 When comparing against model output, we will restrict our attention to active case detection only. The model output shown below was obtained by manually choosing a distinct mosquito density (and implied EIR) for each site that best matched the data. The resulting EIRs are given in the title for each site.
 
