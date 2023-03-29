@@ -36,7 +36,7 @@ This report aims to:
 
 ### Prevalence by microscopy vs. PCR
 
-The data used here come from a systematic review by [Whittaker et al. (2021)](https://doi.org/10.1016/S2666-5247(21)00055-0) looking into global patterns of submicroscopic *P. falciparum* infection - see [here](www.TODO) for further information on this dataset. Let's start by plotting the raw data:
+The data used here come from a systematic review by [Whittaker et al. (2021)](https://doi.org/10.1016/S2666-5247(21)00055-0) looking into global patterns of submicroscopic *P. falciparum* infection - see [here](https://mrc-ide.github.io/SIMPLEGEN/articles/data_diagnostics.html) for further information on this dataset. Let's start by plotting the raw data:
 
 ```{r, fig.width=6, fig.height=4}
 # plot data and model
@@ -82,6 +82,6 @@ plot2 +
   geom_line(aes(x = PCR, y = Micro, color = Age_Group), data = df_model)
 ```
 
-We can see that our model captures the overall pattern in the data, but it fails to capture the differences between the age groups. This implies that we need a stronger relationship between detectibility and age in our model, such that older age groups contain many sub-microscopic infections. As we only model detectibility changing as a function of exposure and not age, we need this to be an exposure-driven effect in the current setup. However, any changes also need to make sense in terms of age-incidence patterns (see [here](www.TODO)).
+We can see that our model captures the overall pattern in the data, but it fails to capture the differences between the age groups. This implies that we need a stronger relationship between detectability and age in our model, such that older age groups contain many sub-microscopic infections. As we only model detectability changing as a function of exposure and not age, we need this to be an exposure-driven effect in the current setup. However, any changes also need to make sense in terms of age-incidence patterns (see [here](https://mrc-ide.github.io/SIMPLEGEN/articles/data_age_inc.html)).
 
-We also find that the model is too linear, having a slight upwards curve at very high prevalence but nothing like what we see in the data. At extremely high transmission it is likely that the vast majority of infections are asymptomatic, but based on the patterns above we would also expect them to be microscopy-positive, rather than purely sub-patent. Hence, we perhaps need to revisit the implied connection between clinical status and detectibility in our model.
+We also find that the model is too linear, having a slight upwards curve at very high prevalence but nothing like what we see in the data. At extremely high transmission it is likely that the vast majority of infections are asymptomatic, but based on the patterns above we would also expect them to be microscopy-positive, rather than purely sub-patent. Hence, we perhaps need to revisit the implied connection between clinical status and detectability in our model.

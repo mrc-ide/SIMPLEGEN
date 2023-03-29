@@ -36,7 +36,7 @@ This report aims to:
 
 ### Age-incidence relationships
 
-The data used here come from an analysis by [Griffin et al. (2014)](https://pubmed.ncbi.nlm.nih.gov/24518518/) looking at the changing age-burden of *P. falciparum* malaria disease in sub-Saharan Africa - see [here](www.TODO) for further information on this dataset. The data giv both prevalence and incidence data over 23 distinct sites. We will focus on incidence data, and will begin by plotting confidence intervals on the raw data:
+The data used here come from an analysis by [Griffin et al. (2014)](https://pubmed.ncbi.nlm.nih.gov/24518518/) looking at the changing age-burden of *P. falciparum* malaria disease in sub-Saharan Africa - see [here](https://mrc-ide.github.io/SIMPLEGEN/articles/data_age_inc.html) for further information on this dataset. The data give both prevalence and incidence data over 23 distinct sites. We will focus on incidence data, and will begin by plotting confidence intervals on the raw data:
 
 ```{r, fig.width=9, fig.height=9}
 # get CIs on raw incidence data
@@ -59,7 +59,7 @@ df_data %>%
   facet_wrap(~plot_title, ncol = 4, scales = "free_y")
 ```
 
-These panels are in order of increasing transmission intensity, as measured in the original publication. We can see that most cases are concenrated in children, and we can see hints that cases are concentrated in younger children as transmission intensity increases, however, there is also significant variation around this pattern.
+These panels are in order of increasing transmission intensity, as measured in the original publication. We can see that most cases are concentrated in children, and we can see hints that cases are concentrated in younger children as transmission intensity increases, however, there is also significant variation around this pattern.
 
 When comparing against model output, we will restrict our attention to active case detection only. The model output shown below was obtained by manually choosing a distinct mosquito density (and implied EIR) for each site that best matched the data. The resulting EIRs are given in the title for each site.
 
