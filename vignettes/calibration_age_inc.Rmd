@@ -36,7 +36,7 @@ This report aims to:
 
 ### Age-incidence relationships
 
-The data used here come from an analysis by [Griffin et al. (2014)](https://pubmed.ncbi.nlm.nih.gov/24518518/) looking at the changing age-burden of *P. falciparum* malaria disease in sub-Saharan Africa - see [here](www.TODO) for further information on this dataset. The data giv both prevalence and incidence data over 23 distinct sites. We will focus on incidence data, and will begin by plotting confidence intervals on the raw data:
+The data used here come from an analysis by [Griffin et al. (2014)](https://pubmed.ncbi.nlm.nih.gov/24518518/) looking at the changing age-burden of *P. falciparum* malaria disease in sub-Saharan Africa - see [here](https://mrc-ide.github.io/SIMPLEGEN/articles/data_age_inc.html) for further information on this dataset. The data give both prevalence and incidence data over 23 distinct sites. We will focus on incidence data, and will begin by plotting confidence intervals on the raw data:
 
 ```{r, fig.width=9, fig.height=9}
 # get CIs on raw incidence data
