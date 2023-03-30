@@ -1,7 +1,7 @@
 ---
 title: "Diagnostic sensitivity"
-author: "Bob Verity"
-date: "`r Sys.Date()`"
+author: "Shazia Ruybal-Pesántez"
+date: "Last updated: `r format(Sys.Date(), '%d %b %Y')`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Diagnostic sensitivity}

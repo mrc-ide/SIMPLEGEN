@@ -1,7 +1,7 @@
 ---
 title: "Calibration to data on age-incidence"
 author: "Bob Verity"
-date: "`r Sys.Date()`"
+date: "Last updated: `r format(Sys.Date(), '%d %b %Y')`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Calibration to data on age-incidence}
@@ -52,7 +52,7 @@ df_data <- prev_inc_griffin2014 %>%
 df_data %>%
   mutate(plot_title = factor(plot_title, levels = unique(plot_title))) %>% # set order
   ggplot() + theme_bw() +
-  geom_hline(yintercept = 0, alpha = 0) + # force y-axis range to start at 0
+  expand_limits(x = 0, y = 0) +
   geom_errorbar(aes(x = age_mid, ymin = lower, ymax = upper, color = case_detection)) +
   geom_point(aes(x = age_mid, y = inc, color = case_detection)) +
   xlim(c(0, 20)) + xlab("Age, years") + ylab("Incidence per year") +
@@ -73,7 +73,7 @@ df_data  %>%
   dplyr::filter(case_detection != "PCD") %>%
   left_join(model_output$df_order) %>%
   ggplot() + theme_bw() +
-  geom_hline(yintercept = 0, alpha = 0) + # force y-axis range to start at 0
+  expand_limits(x = 0, y = 0) +
   geom_errorbar(aes(x = age_mid, ymin = lower, ymax = upper, color = case_detection)) +
   geom_point(aes(x = age_mid, y = inc, color = case_detection)) +
   xlim(c(0, 20)) + xlab("Age, years") + ylab("Incidence per year") +

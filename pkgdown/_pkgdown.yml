@@ -13,20 +13,20 @@ navbar:
           href: articles/installation.html
         - text: -------
         - text: Simulating malaria transmission
-        - text: A simple model
+        - text: TODO - A simple model
           href: 404.html
-        - text: Sampling from the population
+        - text: TODO - Sampling from the population
           href: 404.html
         - text: -------
         - text: Overlaying genetics
-        - text: Pruning the transmission record
+        - text: TODO - Pruning the transmission record
           href: 404.html
-        - text: Pedigrees and relatedness
+        - text: TODO - Pedigrees and relatedness
           href: 404.html
     - text: The pipeline
       menu:
         - text: What is the SIMPLEGEN pipeline?
-          href: 404.html
+          href: articles/what_is_simplegen.html
         - text: The transmission record
           href: articles/transmission_record.html
     - text: Models and calibration
@@ -40,6 +40,8 @@ navbar:
           href: articles/model_description.html
         - text: Calibration
           menu:
+            - text: Calibrating the in-built transmission model
+              href: articles/calibration_intro.html
             - text: Prevalence, incidence and EIR
               href: articles/calibration_prev_inc.html
             - text: Diagnostics
@@ -48,11 +50,11 @@ navbar:
               href: articles/calibration_age_inc.html
         - text: -------
         - text: Genetic models
-        - text: TODO - description
+        - text: TODO - Description
           href: 404.html
         - text: Calibration
           menu:
-            - text: TODO - genetic calibration
+            - text: TODO - Genetic calibration
               href: 404.html
     - text: Data
       menu:
@@ -65,7 +67,7 @@ navbar:
           href: articles/data_age_inc.html
         - text: -------
         - text: Genetic data
-        - text: Complexity of infection
+        - text: TODO - Complexity of infection
           href: 404.html
     - text: Misc
       menu:

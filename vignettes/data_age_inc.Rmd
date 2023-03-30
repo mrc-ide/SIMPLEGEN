@@ -1,7 +1,7 @@
 ---
 title: "Age-incidence and age-prevalence patterns"
-author: "Bob Verity"
-date: "`r Sys.Date()`"
+author: "Shazia Ruybal-Pesántez"
+date: "Last updated: `r format(Sys.Date(), '%d %b %Y')`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Age-incidence and age-prevalence patterns}
@@ -40,21 +40,26 @@ Data: `prev_inc_griffin2014`
 The data come from an analysis by [Griffin et al. (2014)](https://doi.org/10.1038/ncomms4136) describing age-specific patterns of disease at different transmission intensities. This analysis collates data from 14 studies containing prevalence and incidence estimates, as well as entomological inoculation rates (EIRs) from 23 distinct sites. The majority of the studies repoeted incidence data over a whole number of years, but where they did not, the authors adjusted the time at risk based on the length of the malaria season as reported in each publication. The studies that recorded cases using active case detection (ACD) were categorized into daily or weekly ACD, and the rest of the studies cases were recorded via passive case detection (PCD), i.e. on presentation at the health facility. 
 
 Below we can take a look at the variables included in the dataset: 
+
 ```{r}
 head(prev_inc_griffin2014)
 ```
 
-The authors explored incidence by age in each site. They found that there is a pronounced peak in young children in some of the high transmission sites. In lower transmission sites the distribution of cases widens to include older ages. The magnitude and location of this peak does however vary across sites. The figure below plots incidence in <20 year olds across the different sites, with the panels ordered by increasing transmission intensity/EIR.
-```{r}
+The authors explored incidence by age in each site. They found that there is a pronounced peak in young children in some of the high transmission sites. In lower transmission sites the distribution of cases widens to include older ages. The magnitude and location of this peak does however vary across sites. The figure below plots incidence in <20 year olds across the different sites, with the panels ordered by increasing transmission intensity/EIR. Confidence intervals are calculated here using the `CI_inc()` function (from SIMPLEGEN package).
+
+```{r, fig.width=9, fig.height=7}
 prev_inc_griffin2014 %>% 
-  filter(type == "incidence") %>% 
-  mutate(age_mid = (age1+age0)/2,
-         incidence = numer/denom) %>% 
+  filter(type == "incidence") %>%
+  mutate(age_mid = (age1 + age0) / 2,
+         incidence = numer / denom) %>% 
+  do(cbind(., CI_inc(.$numer, .$denom))) %>%
   filter(age_mid < 20) %>% 
   ggplot(aes(x = age_mid, y = incidence, group = case_detection, color = case_detection)) +
     geom_point() +
+    geom_errorbar(aes(ymin = lower, ymax = upper)) +
     labs(x = "Age (in years)",
          y = "Incidence (clinical episodes per person per year") +
     facet_wrap(~reorder(plot_title, meanEIR), scales = "free_y") +
+    expand_limits(x = 0, y = 0) +
     theme_minimal()
 ```

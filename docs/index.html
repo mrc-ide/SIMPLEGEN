@@ -62,19 +62,19 @@
     </li>
 <li class="dropdown-header">Simulating malaria transmission</li>
     <li>
-      <a href="404.html">A simple model</a>
+      <a href="404.html">TODO - A simple model</a>
     </li>
     <li>
-      <a href="404.html">Sampling from the population</a>
+      <a href="404.html">TODO - Sampling from the population</a>
     </li>
     <li class="divider">
     </li>
 <li class="dropdown-header">Overlaying genetics</li>
     <li>
-      <a href="404.html">Pruning the transmission record</a>
+      <a href="404.html">TODO - Pruning the transmission record</a>
     </li>
     <li>
-      <a href="404.html">Pedigrees and relatedness</a>
+      <a href="404.html">TODO - Pedigrees and relatedness</a>
     </li>
   </ul>
 </li>
@@ -86,7 +86,7 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="404.html">What is the SIMPLEGEN pipeline?</a>
+      <a href="articles/what_is_simplegen.html">What is the SIMPLEGEN pipeline?</a>
     </li>
     <li>
       <a href="articles/transmission_record.html">The transmission record</a>
@@ -114,6 +114,9 @@
       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Calibration</a>
       <ul class="dropdown-menu" role="menu">
 <li>
+          <a href="articles/calibration_intro.html">Calibrating the in-built transmission model</a>
+        </li>
+        <li>
           <a href="articles/calibration_prev_inc.html">Prevalence, incidence and EIR</a>
         </li>
         <li>
@@ -128,13 +131,13 @@
     </li>
 <li class="dropdown-header">Genetic models</li>
     <li>
-      <a href="404.html">TODO - description</a>
+      <a href="404.html">TODO - Description</a>
     </li>
     <li class="dropdown-submenu">
       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Calibration</a>
       <ul class="dropdown-menu" role="menu">
 <li>
-          <a href="404.html">TODO - genetic calibration</a>
+          <a href="404.html">TODO - Genetic calibration</a>
         </li>
       </ul>
 </li>
@@ -161,7 +164,7 @@
     </li>
 <li class="dropdown-header">Genetic data</li>
     <li>
-      <a href="404.html">Complexity of infection</a>
+      <a href="404.html">TODO - Complexity of infection</a>
     </li>
   </ul>
 </li>
@@ -207,11 +210,10 @@
 </h3>
 <p><strong>SIMPLEGEN is currently in development and is not yet ready for real analysis sorry!</strong> We hope to have a working release version start of 2024.</p>
 <hr>
-<p>SIMPLEGEN is an R package for <strong>sim</strong>ulating <strong>Pl</strong>asmodium <strong>e</strong>pidemiological and <strong>gen</strong>etic data. The rationalle behind SIMPLEGEN is that computationally intensive forwards-simulation of <em>P. falciparum</em> genetic data can be avoided by splitting the process into multiple stages. These stages make up the SIMPLEGEN pipeline:</p>
+<p>SIMPLEGEN is an R package for efficiently simulating <em>Plasmodium</em> genetic data. It does this by breaking the simulation process down into a series of steps:</p>
 <p><img src="https://raw.githubusercontent.com/mrc-ide/SIMPLEGEN/master/R_ignore/images/pipeline.png" height="185px" width="800px"></p>
-<p>Notice that genotypes are not actually generated until near the end of the pipeline, at which point we have already discarded many unimportant events. For example, we never need to model the genetics of infections that eventually clear, or infections in hosts that are not connected to our final sample. By discarding unimportant events like this we get significant gains in speed, which has a knock-on effect on the size and spatial scale that we can handle. For example, the final software is aiming to simulate a population of thousands of hosts distributed across hundreds of connected demes, and to sample whole <em>P. falciparum</em> genomes.</p>
-<p>A second advantage of breaking simulation into stages is that the user is free to enter the pipeline at any stage. For example, an entirely different epidemiological model could be used in the first stage, just as long as it can produce a transmission record in the required format for the second stage of the pipeline. Similarly, if someone wanted to use the inbuilt epidemiological model but wanted to explore a different model of parasite genetics then they could enter at a later stage.</p>
-<p>To get started with SIMPLEGEN, take a look at the <a href="https://mrc-ide.github.io/SIMPLEGEN/articles/installation.html" class="external-link">installation instructions</a>, followed by a <a href="https://mrc-ide.github.io/SIMPLEGEN/articles/basic_tutorial.html" class="external-link">basic tutorial</a> on how to run the program. Alternatively, you may want to read about the <a href="https://mrc-ide.github.io/SIMPLEGEN/articles/model_description.html" class="external-link">basic epidemiological model</a> that comes with SIMPLEGEN.</p>
+<p>There are several types of models along this pipeline, including epidemiological models, genetic models, and observation models. SIMPLEGEN contains in-built versions of these models that are calibrated against publicly available data. Alternatively you can use your own model, just as long as you follow the same input/output conventions.</p>
+<p>If you’d like to know more about the logic behind the SIMPLEGEN pipeline then please <a href="https://mrc-ide.github.io/SIMPLEGEN/articles/what_is_simplegen.html" class="external-link">see here</a>, or if you’d like to jump straight into using the package then please <a href="https://mrc-ide.github.io/SIMPLEGEN/404.html" class="external-link">start here</a>.</p>
 </div>
 
   </div>

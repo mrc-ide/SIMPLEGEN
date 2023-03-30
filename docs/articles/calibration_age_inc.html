@@ -54,19 +54,19 @@
     </li>
 <li class="dropdown-header">Simulating malaria transmission</li>
     <li>
-      <a href="../404.html">A simple model</a>
+      <a href="../404.html">TODO - A simple model</a>
     </li>
     <li>
-      <a href="../404.html">Sampling from the population</a>
+      <a href="../404.html">TODO - Sampling from the population</a>
     </li>
     <li class="divider">
     </li>
 <li class="dropdown-header">Overlaying genetics</li>
     <li>
-      <a href="../404.html">Pruning the transmission record</a>
+      <a href="../404.html">TODO - Pruning the transmission record</a>
     </li>
     <li>
-      <a href="../404.html">Pedigrees and relatedness</a>
+      <a href="../404.html">TODO - Pedigrees and relatedness</a>
     </li>
   </ul>
 </li>
@@ -78,7 +78,7 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../404.html">What is the SIMPLEGEN pipeline?</a>
+      <a href="../articles/what_is_simplegen.html">What is the SIMPLEGEN pipeline?</a>
     </li>
     <li>
       <a href="../articles/transmission_record.html">The transmission record</a>
@@ -106,6 +106,9 @@
       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Calibration</a>
       <ul class="dropdown-menu" role="menu">
 <li>
+          <a href="../articles/calibration_intro.html">Calibrating the in-built transmission model</a>
+        </li>
+        <li>
           <a href="../articles/calibration_prev_inc.html">Prevalence, incidence and EIR</a>
         </li>
         <li>
@@ -120,13 +123,13 @@
     </li>
 <li class="dropdown-header">Genetic models</li>
     <li>
-      <a href="../404.html">TODO - description</a>
+      <a href="../404.html">TODO - Description</a>
     </li>
     <li class="dropdown-submenu">
       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Calibration</a>
       <ul class="dropdown-menu" role="menu">
 <li>
-          <a href="../404.html">TODO - genetic calibration</a>
+          <a href="../404.html">TODO - Genetic calibration</a>
         </li>
       </ul>
 </li>
@@ -153,7 +156,7 @@
     </li>
 <li class="dropdown-header">Genetic data</li>
     <li>
-      <a href="../404.html">Complexity of infection</a>
+      <a href="../404.html">TODO - Complexity of infection</a>
     </li>
   </ul>
 </li>
@@ -196,7 +199,8 @@
       <h1 data-toc-skip>Calibration to data on age-incidence</h1>
                         <h4 data-toc-skip class="author">Bob Verity</h4>
             
-            <h4 data-toc-skip class="date">2023-03-28</h4>
+            <h4 data-toc-skip class="date">Last updated: 30 Mar
+2023</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/mrc-ide/SIMPLEGEN/blob/HEAD/vignettes/calibration_age_inc.Rmd" class="external-link"><code>vignettes/calibration_age_inc.Rmd</code></a></small>
       <div class="hidden name"><code>calibration_age_inc.Rmd</code></div>
@@ -226,10 +230,11 @@ literature.</li>
 </h3>
 <p>The data used here come from an analysis by <a href="https://pubmed.ncbi.nlm.nih.gov/24518518/" class="external-link">Griffin et
 al. (2014)</a> looking at the changing age-burden of <em>P.
-falciparum</em> malaria disease in sub-Saharan Africa - see <a href="www.TODO">here</a> for further information on this dataset. The
-data giv both prevalence and incidence data over 23 distinct sites. We
-will focus on incidence data, and will begin by plotting confidence
-intervals on the raw data:</p>
+falciparum</em> malaria disease in sub-Saharan Africa - see <a href="https://mrc-ide.github.io/SIMPLEGEN/articles/data_age_inc.html" class="external-link">here</a>
+for further information on this dataset. The data give both prevalence
+and incidence data over 23 distinct sites. We will focus on incidence
+data, and will begin by plotting confidence intervals on the raw
+data:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># get CIs on raw incidence data</span></span>
 <span><span class="va">df_data</span> <span class="op">&lt;-</span> <span class="va">prev_inc_griffin2014</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -244,7 +249,7 @@ intervals on the raw data:</p>
 <span><span class="va">df_data</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu">mutate</span><span class="op">(</span>plot_title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">plot_title</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">plot_title</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="co"># set order</span></span>
 <span>  <span class="fu">ggplot</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">theme_bw</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">geom_hline</span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>, alpha <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">+</span> <span class="co"># force y-axis range to start at 0</span></span>
+<span>  <span class="fu">expand_limits</span><span class="op">(</span>x <span class="op">=</span> <span class="fl">0</span>, y <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_errorbar</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">age_mid</span>, ymin <span class="op">=</span> <span class="va">lower</span>, ymax <span class="op">=</span> <span class="va">upper</span>, color <span class="op">=</span> <span class="va">case_detection</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_point</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">age_mid</span>, y <span class="op">=</span> <span class="va">inc</span>, color <span class="op">=</span> <span class="va">case_detection</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">xlim</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">20</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu">xlab</span><span class="op">(</span><span class="st">"Age, years"</span><span class="op">)</span> <span class="op">+</span> <span class="fu">ylab</span><span class="op">(</span><span class="st">"Incidence per year"</span><span class="op">)</span> <span class="op">+</span></span>
@@ -252,7 +257,7 @@ intervals on the raw data:</p>
 <p><img src="calibration_age_inc_files/figure-html/unnamed-chunk-2-1.png" width="864"></p>
 <p>These panels are in order of increasing transmission intensity, as
 measured in the original publication. We can see that most cases are
-concenrated in children, and we can see hints that cases are
+concentrated in children, and we can see hints that cases are
 concentrated in younger children as transmission intensity increases,
 however, there is also significant variation around this pattern.</p>
 <p>When comparing against model output, we will restrict our attention
@@ -270,7 +275,7 @@ the title for each site.</p>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">case_detection</span> <span class="op">!=</span> <span class="st">"PCD"</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu">left_join</span><span class="op">(</span><span class="va">model_output</span><span class="op">$</span><span class="va">df_order</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu">ggplot</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">theme_bw</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">geom_hline</span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>, alpha <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">+</span> <span class="co"># force y-axis range to start at 0</span></span>
+<span>  <span class="fu">expand_limits</span><span class="op">(</span>x <span class="op">=</span> <span class="fl">0</span>, y <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_errorbar</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">age_mid</span>, ymin <span class="op">=</span> <span class="va">lower</span>, ymax <span class="op">=</span> <span class="va">upper</span>, color <span class="op">=</span> <span class="va">case_detection</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_point</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">age_mid</span>, y <span class="op">=</span> <span class="va">inc</span>, color <span class="op">=</span> <span class="va">case_detection</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">xlim</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">20</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu">xlab</span><span class="op">(</span><span class="st">"Age, years"</span><span class="op">)</span> <span class="op">+</span> <span class="fu">ylab</span><span class="op">(</span><span class="st">"Incidence per year"</span><span class="op">)</span> <span class="op">+</span></span>
