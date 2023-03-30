@@ -498,3 +498,147 @@ prune_transmission_record <- function(project,
   # return project
   invisible(project)
 }
+
+#------------------------------------------------
+#' @title Define genetic parameters
+#'
+#' @description Defines all parameters relating to the genetic model. This
+#'   includes parameters related to recombination etc. that are used when
+#'   simulating relatedness between lineages, as well as parameters related to
+#'   mutation and sequencing errors etc. that are used at a later stage when
+#'   converting relatedness into actual genotypes.
+#'
+#' @param project a SIMPLEGEN project, as produced by the
+#'   \code{simplegen_project()} function.
+#' @param oocyst_distribution vector specifying the probability distribution of
+#'   each number of oocysts within the mosquito midgut.
+#' @param hepatocyte_distribution vector specifying the probability distribution
+#'   of the number of infected hepatocytes in a human host. More broadly, this
+#'   defines the number of independent draws from the oocyst products that make
+#'   it into the host bloodstream upon a bite from an infectious mosquito.
+#' @param alpha parameter dictating the skew of lineage densities. Small
+#'   values of \code{alpha} create a large skew, and hence make it likely that
+#'   an oocyst will be produced from the same parents.
+#' @param r the rate of recombination. The expected number of base pairs in a
+#'   single recombinant block is 1/r.
+#' @param contig_lengths vector of lengths (in bp) of each contig.
+#' 
+#' @importFrom stats dpois
+#' @export
+
+define_genetic_params <- function(project,
+                                  r = 1e-6,
+                                  alpha = 1.0,
+                                  oocyst_distribution = dpois(1:10, lambda = 2),
+                                  hepatocyte_distribution = dpois(1:10, lambda = 5),
+                                  contig_lengths = c(643292, 947102, 1060087, 1204112, 1343552,
+                                                     1418244, 1501717, 1419563, 1541723, 1687655,
+                                                     2038337, 2271478, 2895605, 3291871)) {
+  
+  # NB. This function is written so that only parameters specified by the user
+  # are updated. Any parameters that already have values within the project are
+  # left alone
+  
+  # basic checks on inputs (more thorough checks on parameter values will be
+  # carried out later)
+  assert_class(project, "simplegen_project")
+  
+  # get list of all input values, including those set by default
+  all_args <- within(as.list(environment()), rm(project))
+  
+  # get list of only input values defined by user
+  user_arg_names <- names(as.list(match.call()))
+  user_arg_names <- setdiff(user_arg_names, c("", "project"))
+  user_args <- all_args[user_arg_names]
+  
+  # if there are no defined parameters then create all parameters from
+  # scratch using default values
+  if (is.null(project$genetic_parameters)) {
+    project$genetic_parameters <- all_args
+  }
+  
+  # otherwise overwrite parameters defined by user
+  project$genetic_parameters[user_arg_names] <- user_args
+  
+  # perform checks on parameters
+  check_genetic_params(project$genetic_parameters)
+  
+  # return
+  invisible(project)
+}
+
+#------------------------------------------------
+#' @title Simulate haplotype tree
+#'
+#' @description Reads in the pruned transmission record from file and uses this,
+#'   along with a specified genetic model, to simulate a tree relating
+#'   haplotypes to one another.
+#'
+#' @param project a SIMPLEGEN project, as produced by the
+#'   \code{simplegen_project()} function.
+#' @param silent whether to suppress written messages to the console.
+#'
+#' @export
+
+sim_haplotype_tree <- function(project,
+                               silent = FALSE) {
+  
+  # check inputs
+  assert_class(project, "simplegen_project")
+  assert_single_logical(silent)
+  
+  # check pruned record exists
+  assert_non_null(project$pruned_record,
+                  message = "no pruned transmission record found in project")
+  
+  # check sample details exist
+  assert_non_null(project$sample_details,
+                  message = "no sample details dataframe found in project")
+  
+  # check for defined genetic params
+  assert_non_null(project$genetic_parameters,
+                  message = "no genetic parameters defined. See ?define_genetic_params")
+  
+  # subset sample to those with infections
+  sample_positive <- project$sample_details %>%
+    dplyr::filter(mapply(length, inoc_ID) > 0)
+  
+  # determine whether optional extra columns have been used
+  defined_densities <- ("parent_infection_density" %in% names(project$pruned_record))
+  defined_deme <- ("deme" %in% names(project$pruned_record))
+  
+  # define arguments
+  args <- append(project$genetic_parameters,
+                 list(sample_human_IDs = sample_positive$host_ID,
+                      sample_infection_IDs = sample_positive$inoc_ID,
+                      pruned_record = project$pruned_record,
+                      defined_densities = defined_densities,
+                      defined_deme = defined_deme,
+                      silent = silent))
+  
+  # run efficient C++ code
+  output_raw <- sim_haplotype_tree_cpp(args)
+  
+  return(output_raw)
+  
+  # get haplotype tree into dataframe by ading columns to pruned transmission
+  # record
+  haplotype_tree <- project$pruned_record[output_raw$record_row + 1, ] %>%
+    dplyr::mutate(child_haplo_ID = output_raw$child_haplo_ID,
+                  parent_haplo_ID = output_raw$parent_haplo_ID)
+  row.names(haplotype_tree) <- NULL
+  
+  # append haplotype IDs and densities to sample_details dataframe
+  sample_details <- project$sample_details
+  w <- which(sample_details$true_positive)
+  haplo_ID_list <- replicate(nrow(sample_details), integer())
+  haplo_ID_list[w] <- output_raw$sample_haplo_IDs
+  sample_details$haplo_IDs <- haplo_ID_list
+  
+  # save objects back into project
+  project$haplotype_tree <- haplotype_tree
+  project$sample_details <- sample_details
+  
+  # return project
+  invisible(project)
+}

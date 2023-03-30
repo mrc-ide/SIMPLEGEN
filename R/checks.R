@@ -106,3 +106,16 @@ check_epi_model_params <- function(project) {
   assert_single_pos_int(x$max_inoculations, zero_allowed = FALSE, name = "max_infections")
 }
 
+#------------------------------------------------
+# perform checks on genetic parameters
+#' @noRd
+check_genetic_params <- function(x) {
+  
+  # perform checks
+  assert_vector_pos(x$oocyst_distribution)
+  assert_vector_pos(x$hepatocyte_distribution)
+  assert_single_pos(x$alpha, zero_allowed = FALSE)
+  assert_single_pos(x$r, zero_allowed = TRUE)
+  assert_vector_pos_int(x$contig_lengths, zero_allowed = FALSE)
+}
+
