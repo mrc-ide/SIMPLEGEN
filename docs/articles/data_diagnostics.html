@@ -54,19 +54,19 @@
     </li>
 <li class="dropdown-header">Simulating malaria transmission</li>
     <li>
-      <a href="../404.html">A simple model</a>
+      <a href="../404.html">TODO - A simple model</a>
     </li>
     <li>
-      <a href="../404.html">Sampling from the population</a>
+      <a href="../404.html">TODO - Sampling from the population</a>
     </li>
     <li class="divider">
     </li>
 <li class="dropdown-header">Overlaying genetics</li>
     <li>
-      <a href="../404.html">Pruning the transmission record</a>
+      <a href="../404.html">TODO - Pruning the transmission record</a>
     </li>
     <li>
-      <a href="../404.html">Pedigrees and relatedness</a>
+      <a href="../404.html">TODO - Pedigrees and relatedness</a>
     </li>
   </ul>
 </li>
@@ -78,7 +78,7 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../404.html">What is the SIMPLEGEN pipeline?</a>
+      <a href="../articles/what_is_simplegen.html">What is the SIMPLEGEN pipeline?</a>
     </li>
     <li>
       <a href="../articles/transmission_record.html">The transmission record</a>
@@ -106,6 +106,9 @@
       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Calibration</a>
       <ul class="dropdown-menu" role="menu">
 <li>
+          <a href="../articles/calibration_intro.html">Calibrating the in-built transmission model</a>
+        </li>
+        <li>
           <a href="../articles/calibration_prev_inc.html">Prevalence, incidence and EIR</a>
         </li>
         <li>
@@ -120,13 +123,13 @@
     </li>
 <li class="dropdown-header">Genetic models</li>
     <li>
-      <a href="../404.html">TODO - description</a>
+      <a href="../404.html">TODO - Description</a>
     </li>
     <li class="dropdown-submenu">
       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Calibration</a>
       <ul class="dropdown-menu" role="menu">
 <li>
-          <a href="../404.html">TODO - genetic calibration</a>
+          <a href="../404.html">TODO - Genetic calibration</a>
         </li>
       </ul>
 </li>
@@ -153,7 +156,7 @@
     </li>
 <li class="dropdown-header">Genetic data</li>
     <li>
-      <a href="../404.html">Complexity of infection</a>
+      <a href="../404.html">TODO - Complexity of infection</a>
     </li>
   </ul>
 </li>
@@ -194,9 +197,11 @@
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Diagnostic sensitivity</h1>
-                        <h4 data-toc-skip class="author">Bob Verity</h4>
+                        <h4 data-toc-skip class="author">Shazia
+Ruybal-Pesántez</h4>
             
-            <h4 data-toc-skip class="date">2023-03-28</h4>
+            <h4 data-toc-skip class="date">Last updated: 30 Mar
+2023</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/mrc-ide/SIMPLEGEN/blob/HEAD/vignettes/data_diagnostics.Rmd" class="external-link"><code>vignettes/data_diagnostics.Rmd</code></a></small>
       <div class="hidden name"><code>data_diagnostics.Rmd</code></div>
@@ -214,15 +219,113 @@ p.caption {
   font-size: 0.9em;
 }
 </style>
+<p>This report aims to:</p>
+<ul>
+<li>Explore the sensitivity to detect malaria by microscopy, rapid
+diagnostic test (RDT) and polymerase chain reaction (PCR)</li>
+<li>Gain insights to help with future model development.</li>
+</ul>
+<div class="section level2">
+<h2 id="prevalence-by-microscopy-vs--pcr">Prevalence by microscopy vs. PCR<a class="anchor" aria-label="anchor" href="#prevalence-by-microscopy-vs--pcr"></a>
+</h2>
 <div class="section level3">
-<h3 id="todo">TODO<a class="anchor" aria-label="anchor" href="#todo"></a>
+<h3 id="whittaker-et-al--2021">Whittaker et al. (2021)<a class="anchor" aria-label="anchor" href="#whittaker-et-al--2021"></a>
 </h3>
+<p>Data: <code>PCR_micro_full_whittaker2021</code></p>
+<p>The data come from a systematic review by <a href="https://doi.org/10.1016/S2666-5247(21)00055-0" class="external-link">Whittaker et
+al. (2021)</a> looking into global patterns of submicroscopic <em>P.
+falciparum</em> infection. This review collates data from 166 studies
+containing 551 distinct cross-sectional surveys in which surveyed
+individuals had malaria infection assessed by both PCR and microscopy
+from a given location. Of these surveys, 164 were done in a specific
+age-group (0–5 years, 6–15 years, and &gt;15 years) and 387 were from
+cross-sectional surveys done in populations that spanned more than one
+age-group.</p>
+<p>Below we can take a look at the variables included in the
+dataset:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">PCR_micro_full_whittaker2021</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 × 19</span></span></span>
+<span><span class="co">##   Name      Year Globa…¹ Country Admin_1 Hist_…² Curr_…³ PCR_N…⁴ PCR_N…⁵ PCR_P…⁶</span></span>
+<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> Proietti  <span style="text-decoration: underline;">2</span>011 East A… Uganda  Apac      0.746   0.625     241     133 5.52<span style="color: #949494;">e</span><span style="color: #BB0000;">-1</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span> Souza     <span style="text-decoration: underline;">2</span>012 South … Brazil  <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>          74       1 1.35<span style="color: #949494;">e</span><span style="color: #BB0000;">-2</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span> Souza     <span style="text-decoration: underline;">2</span>012 South … Brazil  <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>          74       2 1.35<span style="color: #949494;">e</span><span style="color: #BB0000;">-2</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">4</span> Souza     <span style="text-decoration: underline;">2</span>012 South … Brazil  <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>         134       1 1.35<span style="color: #949494;">e</span><span style="color: #BB0000;">-2</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">5</span> Atkinson  <span style="text-decoration: underline;">2</span>012 Asia&amp;O… Solomo… <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>        <span style="text-decoration: underline;">1</span>843       1 5.43<span style="color: #949494;">e</span><span style="color: #BB0000;">-4</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">6</span> Pegha M…  <span style="text-decoration: underline;">2</span>016 West A… Gabon   Ogooue…   0.341   0.189     277     161 5.81<span style="color: #949494;">e</span><span style="color: #BB0000;">-1</span></span></span>
+<span><span class="co">## <span style="color: #949494;"># … with 9 more variables: Microscopy_N_Tested &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   Microscopy_N_Positive &lt;dbl&gt;, Micro_Prev &lt;dbl&gt;, PCR_Method &lt;chr&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   PCR_Method_Raw &lt;chr&gt;, Microscopy_Fields &lt;dbl&gt;, Microscopy_Leucocytes &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   Sampling_Season &lt;chr&gt;, Sampling_Season_Raw &lt;chr&gt;, and abbreviated variable</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   names ¹​Global_Region, ²​Hist_Trans, ³​Curr_Trans, ⁴​PCR_N_Tested,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   ⁵​PCR_N_Positive, ⁶​PCR_Prev</span></span></span></code></pre>
+<p>The authors found that microscopy detected 44.9% (95% CI 42.0–47.8)
+of all PCR-detectable infections. This varied by setting, with more
+submicroscopic infections (60-70%) in areas with lower PCR prevalence
+such as South America, but &lt;20% submicroscopic infections in areas
+with the highest PCR prevalence such as West Africa. The authors found
+that both historical and current transmission levels are important
+determinants of the submicroscopic reservoir size.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">PCR_micro_full_whittaker2021</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu">ggplot</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">PCR_Prev</span>, y <span class="op">=</span> <span class="va">Micro_Prev</span>, group <span class="op">=</span> <span class="va">Global_Region</span>, color <span class="op">=</span> <span class="va">Global_Region</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">geom_point</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">geom_smooth</span><span class="op">(</span>method <span class="op">=</span> <span class="st">"loess"</span>, formula <span class="op">=</span> <span class="st">"y ~ x"</span>, se <span class="op">=</span> <span class="cn">F</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">scale_x_continuous</span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/percent_format.html" class="external-link">percent_format</a></span><span class="op">(</span>accuracy <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">scale_y_continuous</span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/percent_format.html" class="external-link">percent_format</a></span><span class="op">(</span>accuracy <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">scale_color_manual</span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hotpink3"</span>, <span class="st">"goldenrod3"</span>, <span class="st">"lightblue3"</span>, <span class="st">"olivedrab3"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="st">"PCR prevalence (%)"</span>,</span>
+<span>         y <span class="op">=</span> <span class="st">"Microscopy prevalence (%)"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">theme_minimal</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="data_diagnostics_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
+<p>Data: <code>PCR_micro_age_whittaker2021</code></p>
+<p>The authors also aggregated the surveys carried out in specific age
+groups into three categories: young children (0–5 years), n=49 sureveys,
+older children (6–15 years) n=62 surveys, and adults (&gt;15 years) n=53
+surveys. This age-disaggregated dataset is also available, below we can
+take a look at the variables included in this dataset:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">PCR_micro_age_whittaker2021</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 × 21</span></span></span>
+<span><span class="co">##   Name      Year Globa…¹ Country Admin_1 Hist_…² Curr_…³ PCR_N…⁴ PCR_N…⁵ PCR_P…⁶</span></span>
+<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> Proietti  <span style="text-decoration: underline;">2</span>011 East A… Uganda  Apac      0.746   0.625      57      38   0.667</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span> Proietti  <span style="text-decoration: underline;">2</span>011 East A… Uganda  Apac      0.746   0.625      62      43   0.694</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span> Proietti  <span style="text-decoration: underline;">2</span>011 East A… Uganda  Apac      0.746   0.625     122      52   0.426</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">4</span> Atelu     <span style="text-decoration: underline;">2</span>016 West A… Ghana   Upper …   0.653   0.493      29       4   0.138</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">5</span> Atelu     <span style="text-decoration: underline;">2</span>016 West A… Ghana   Upper …   0.653   0.493      38       8   0.211</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">6</span> Atelu     <span style="text-decoration: underline;">2</span>016 West A… Ghana   Upper …   0.653   0.493     142      17   0.120</span></span>
+<span><span class="co">## <span style="color: #949494;"># … with 11 more variables: Microscopy_N_Tested &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   Microscopy_N_Positive &lt;dbl&gt;, Micro_Prev &lt;dbl&gt;, Age_Group &lt;fct&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   Age_Group_Raw &lt;chr&gt;, PCR_Method &lt;chr&gt;, PCR_Method_Raw &lt;chr&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   Microscopy_Fields &lt;dbl&gt;, Microscopy_Leucocytes &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   Sampling_Season &lt;chr&gt;, Sampling_Season_Raw &lt;chr&gt;, and abbreviated variable</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   names ¹​Global_Region, ²​Hist_Trans, ³​Curr_Trans, ⁴​PCR_N_Tested,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   ⁵​PCR_N_Positive, ⁶​PCR_Prev</span></span></span></code></pre>
+<p>The authors found that a greater proportion of submicroscopic
+infections was observed in adults compared to young and older children.
+This was less pronounced in areas with higher transmission.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">PCR_micro_age_whittaker2021</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu">ggplot</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">PCR_Prev</span>, y <span class="op">=</span> <span class="va">Micro_Prev</span>, group <span class="op">=</span> <span class="va">Age_Group</span>, color <span class="op">=</span> <span class="va">Age_Group</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">geom_point</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">geom_smooth</span><span class="op">(</span>method <span class="op">=</span> <span class="st">"loess"</span>, formula <span class="op">=</span> <span class="st">"y ~ x"</span>, se <span class="op">=</span> <span class="cn">F</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">scale_x_continuous</span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/percent_format.html" class="external-link">percent_format</a></span><span class="op">(</span>accuracy <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">scale_y_continuous</span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/percent_format.html" class="external-link">percent_format</a></span><span class="op">(</span>accuracy <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="st">"PCR prevalence (%)"</span>,</span>
+<span>         y <span class="op">=</span> <span class="st">"Microscopy prevalence (%)"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">theme_minimal</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="data_diagnostics_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
+</div>
 </div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
 
-      </div>
+        <nav id="toc" data-toggle="toc"><h2 data-toc-skip>Contents</h2>
+    </nav>
+</div>
 
 </div>
 
