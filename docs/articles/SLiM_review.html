@@ -54,19 +54,19 @@
     </li>
 <li class="dropdown-header">Simulating malaria transmission</li>
     <li>
-      <a href="../404.html">A simple model</a>
+      <a href="../404.html">TODO - A simple model</a>
     </li>
     <li>
-      <a href="../404.html">Sampling from the population</a>
+      <a href="../404.html">TODO - Sampling from the population</a>
     </li>
     <li class="divider">
     </li>
 <li class="dropdown-header">Overlaying genetics</li>
     <li>
-      <a href="../404.html">Pruning the transmission record</a>
+      <a href="../404.html">TODO - Pruning the transmission record</a>
     </li>
     <li>
-      <a href="../404.html">Pedigrees and relatedness</a>
+      <a href="../404.html">TODO - Pedigrees and relatedness</a>
     </li>
   </ul>
 </li>
@@ -78,7 +78,7 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../404.html">What is the SIMPLEGEN pipeline?</a>
+      <a href="../articles/what_is_simplegen.html">What is the SIMPLEGEN pipeline?</a>
     </li>
     <li>
       <a href="../articles/transmission_record.html">The transmission record</a>
@@ -106,6 +106,9 @@
       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Calibration</a>
       <ul class="dropdown-menu" role="menu">
 <li>
+          <a href="../articles/calibration_intro.html">Calibrating the in-built transmission model</a>
+        </li>
+        <li>
           <a href="../articles/calibration_prev_inc.html">Prevalence, incidence and EIR</a>
         </li>
         <li>
@@ -120,13 +123,13 @@
     </li>
 <li class="dropdown-header">Genetic models</li>
     <li>
-      <a href="../404.html">TODO - description</a>
+      <a href="../404.html">TODO - Description</a>
     </li>
     <li class="dropdown-submenu">
       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Calibration</a>
       <ul class="dropdown-menu" role="menu">
 <li>
-          <a href="../404.html">TODO - genetic calibration</a>
+          <a href="../404.html">TODO - Genetic calibration</a>
         </li>
       </ul>
 </li>
@@ -153,7 +156,7 @@
     </li>
 <li class="dropdown-header">Genetic data</li>
     <li>
-      <a href="../404.html">Complexity of infection</a>
+      <a href="../404.html">TODO - Complexity of infection</a>
     </li>
   </ul>
 </li>
@@ -200,7 +203,7 @@ models</h1>
                         <h4 data-toc-skip class="author">Shazia
 Ruybal-Pesántez</h4>
             
-            <h4 data-toc-skip class="date">Last updated: 28 Mar
+            <h4 data-toc-skip class="date">Last updated: 30 Mar
 2023</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/mrc-ide/SIMPLEGEN/blob/HEAD/vignettes/SLiM_review.Rmd" class="external-link"><code>vignettes/SLiM_review.Rmd</code></a></small>
@@ -738,8 +741,8 @@ for simulation runs with varying human population sizes
 <span>         title <span class="op">=</span> <span class="st">"Simple Ross-Macdonald model"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu">theme_minimal</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<div id="htmlwidget-a47dc9029f7b05506638" style="width:576px;height:480px;" class="plotly html-widget"></div>
-<script type="application/json" data-for="htmlwidget-a47dc9029f7b05506638">{"x":{"data":[{"x":[1000,10000,100000,null],"y":[0.318666666666667,4.5005,40.6773333333333,109.082333333333],"text":["pop_size_humans: 1e+03<br />cpu_time/60:   0.3186667<br />factor(years): 5<br />factor(years): 5","pop_size_humans: 1e+04<br />cpu_time/60:   4.5005000<br />factor(years): 5<br />factor(years): 5","pop_size_humans: 1e+05<br />cpu_time/60:  40.6773333<br />factor(years): 5<br />factor(years): 5","pop_size_humans: 1e+06<br />cpu_time/60: 109.0823333<br />factor(years): 5<br />factor(years): 5"],"type":"scatter","mode":"markers+lines","marker":{"autocolorscale":false,"color":"rgba(205,96,144,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(205,96,144,1)"}},"hoveron":"points","name":"5","legendgroup":"5","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","line":{"width":null,"color":"rgba(205,96,144,1)","dash":"solid"},"frame":null},{"x":[1000,10000,100000],"y":[0.639333333333333,8.3615,86.8385],"text":["pop_size_humans: 1e+03<br />cpu_time/60:   0.6393333<br />factor(years): 10<br />factor(years): 10","pop_size_humans: 1e+04<br />cpu_time/60:   8.3615000<br />factor(years): 10<br />factor(years): 10","pop_size_humans: 1e+05<br />cpu_time/60:  86.8385000<br />factor(years): 10<br />factor(years): 10"],"type":"scatter","mode":"markers+lines","marker":{"autocolorscale":false,"color":"rgba(205,155,29,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(205,155,29,1)"}},"hoveron":"points","name":"10","legendgroup":"10","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","line":{"width":null,"color":"rgba(205,155,29,1)","dash":"solid"},"frame":null},{"x":[1000,10000,100000],"y":[1.95283333333333,19.8146666666667,380.079166666667],"text":["pop_size_humans: 1e+03<br />cpu_time/60:   1.9528333<br />factor(years): 25<br />factor(years): 25","pop_size_humans: 1e+04<br />cpu_time/60:  19.8146667<br />factor(years): 25<br />factor(years): 25","pop_size_humans: 1e+05<br />cpu_time/60: 380.0791667<br />factor(years): 25<br />factor(years): 25"],"type":"scatter","mode":"markers+lines","marker":{"autocolorscale":false,"color":"rgba(154,192,205,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(154,192,205,1)"}},"hoveron":"points","name":"25","legendgroup":"25","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","line":{"width":null,"color":"rgba(154,192,205,1)","dash":"solid"},"frame":null},{"x":[1000,10000,100000],"y":[3.33633333333333,45.2665,694.9655],"text":["pop_size_humans: 1e+03<br />cpu_time/60:   3.3363333<br />factor(years): 50<br />factor(years): 50","pop_size_humans: 1e+04<br />cpu_time/60:  45.2665000<br />factor(years): 50<br />factor(years): 50","pop_size_humans: 1e+05<br />cpu_time/60: 694.9655000<br />factor(years): 50<br />factor(years): 50"],"type":"scatter","mode":"markers+lines","marker":{"autocolorscale":false,"color":"rgba(154,205,50,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(154,205,50,1)"}},"hoveron":"points","name":"50","legendgroup":"50","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","line":{"width":null,"color":"rgba(154,205,50,1)","dash":"solid"},"frame":null}],"layout":{"margin":{"t":42.3013698630137,"r":7.30593607305936,"b":38.7214611872146,"l":43.1050228310502},"font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"title":{"text":"Simple Ross-Macdonald model","font":{"color":"rgba(0,0,0,1)","family":"","size":17.5342465753425},"x":0,"xref":"paper"},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-5000,105000],"tickmode":"array","ticktext":["0","25000","50000","75000","100000"],"tickvals":[0,25000,50000,75000,100000],"categoryorder":"array","categoryarray":["0","25000","50000","75000","100000"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"Human population size","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-34.413675,729.697841666667],"tickmode":"array","ticktext":["0","100","200","300","400","500","600","700"],"tickvals":[0,100,200,300,400,500,600,700],"categoryorder":"array","categoryarray":["0","100","200","300","400","500","600","700"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"CPU time (in minutes)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":true,"legend":{"bgcolor":null,"bordercolor":null,"borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895},"title":{"text":"Simulation run time (in years)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"b796f109de5":{"x":{},"y":{},"colour":{},"type":"scatter"},"b792bee5e5a":{"x":{},"y":{},"colour":{}}},"cur_data":"b796f109de5","visdat":{"b796f109de5":["function (y) ","x"],"b792bee5e5a":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script><p class="caption">
+<div id="htmlwidget-95c375089d41efdce399" style="width:576px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-95c375089d41efdce399">{"x":{"data":[{"x":[1000,10000,100000,null],"y":[0.318666666666667,4.5005,40.6773333333333,109.082333333333],"text":["pop_size_humans: 1e+03<br />cpu_time/60:   0.3186667<br />factor(years): 5<br />factor(years): 5","pop_size_humans: 1e+04<br />cpu_time/60:   4.5005000<br />factor(years): 5<br />factor(years): 5","pop_size_humans: 1e+05<br />cpu_time/60:  40.6773333<br />factor(years): 5<br />factor(years): 5","pop_size_humans: 1e+06<br />cpu_time/60: 109.0823333<br />factor(years): 5<br />factor(years): 5"],"type":"scatter","mode":"markers+lines","marker":{"autocolorscale":false,"color":"rgba(205,96,144,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(205,96,144,1)"}},"hoveron":"points","name":"5","legendgroup":"5","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","line":{"width":null,"color":"rgba(205,96,144,1)","dash":"solid"},"frame":null},{"x":[1000,10000,100000],"y":[0.639333333333333,8.3615,86.8385],"text":["pop_size_humans: 1e+03<br />cpu_time/60:   0.6393333<br />factor(years): 10<br />factor(years): 10","pop_size_humans: 1e+04<br />cpu_time/60:   8.3615000<br />factor(years): 10<br />factor(years): 10","pop_size_humans: 1e+05<br />cpu_time/60:  86.8385000<br />factor(years): 10<br />factor(years): 10"],"type":"scatter","mode":"markers+lines","marker":{"autocolorscale":false,"color":"rgba(205,155,29,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(205,155,29,1)"}},"hoveron":"points","name":"10","legendgroup":"10","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","line":{"width":null,"color":"rgba(205,155,29,1)","dash":"solid"},"frame":null},{"x":[1000,10000,100000],"y":[1.95283333333333,19.8146666666667,380.079166666667],"text":["pop_size_humans: 1e+03<br />cpu_time/60:   1.9528333<br />factor(years): 25<br />factor(years): 25","pop_size_humans: 1e+04<br />cpu_time/60:  19.8146667<br />factor(years): 25<br />factor(years): 25","pop_size_humans: 1e+05<br />cpu_time/60: 380.0791667<br />factor(years): 25<br />factor(years): 25"],"type":"scatter","mode":"markers+lines","marker":{"autocolorscale":false,"color":"rgba(154,192,205,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(154,192,205,1)"}},"hoveron":"points","name":"25","legendgroup":"25","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","line":{"width":null,"color":"rgba(154,192,205,1)","dash":"solid"},"frame":null},{"x":[1000,10000,100000],"y":[3.33633333333333,45.2665,694.9655],"text":["pop_size_humans: 1e+03<br />cpu_time/60:   3.3363333<br />factor(years): 50<br />factor(years): 50","pop_size_humans: 1e+04<br />cpu_time/60:  45.2665000<br />factor(years): 50<br />factor(years): 50","pop_size_humans: 1e+05<br />cpu_time/60: 694.9655000<br />factor(years): 50<br />factor(years): 50"],"type":"scatter","mode":"markers+lines","marker":{"autocolorscale":false,"color":"rgba(154,205,50,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(154,205,50,1)"}},"hoveron":"points","name":"50","legendgroup":"50","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","line":{"width":null,"color":"rgba(154,205,50,1)","dash":"solid"},"frame":null}],"layout":{"margin":{"t":42.3013698630137,"r":7.30593607305936,"b":38.7214611872146,"l":43.1050228310502},"font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"title":{"text":"Simple Ross-Macdonald model","font":{"color":"rgba(0,0,0,1)","family":"","size":17.5342465753425},"x":0,"xref":"paper"},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-5000,105000],"tickmode":"array","ticktext":["0","25000","50000","75000","100000"],"tickvals":[0,25000,50000,75000,100000],"categoryorder":"array","categoryarray":["0","25000","50000","75000","100000"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"Human population size","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-34.413675,729.697841666667],"tickmode":"array","ticktext":["0","100","200","300","400","500","600","700"],"tickvals":[0,100,200,300,400,500,600,700],"categoryorder":"array","categoryarray":["0","100","200","300","400","500","600","700"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"CPU time (in minutes)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":true,"legend":{"bgcolor":null,"bordercolor":null,"borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895},"title":{"text":"Simulation run time (in years)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"abd540bc907a":{"x":{},"y":{},"colour":{},"type":"scatter"},"abd51bb15aca":{"x":{},"y":{},"colour":{}}},"cur_data":"abd540bc907a","visdat":{"abd540bc907a":["function (y) ","x"],"abd51bb15aca":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script><p class="caption">
 Figure 2. An interactive plot showing the profiling results for
 simulation runs with varying human population sizes
 </p>

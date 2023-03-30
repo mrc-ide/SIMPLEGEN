@@ -1,0 +1,38 @@
+---
+title: "Calibration of the in-built transmission model"
+author: "Bob Verity"
+date: "Last updated: `r format(Sys.Date(), '%d %b %Y')`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Calibration of the in-built transmission model}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<!---
+Set the font size of figure captions
+Currently not used because figures inserted with html method
+-->
+<style>
+p.caption {
+  font-size: 0.9em;
+}
+</style>
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+set.seed(1)
+library(SIMPLEGEN)
+library(ggplot2)
+library(dplyr)
+```
+
+This model is calibrated against 3 epidemiological datasets:
+
+- Prevalence vs. incidence relationships
+- Diagnostic sensitivity data
+- Age-incidence data
+
+The current model calibration is far from perfect! It serves as a baseline that can hopefully be improved in subsequent versions.
+
+
